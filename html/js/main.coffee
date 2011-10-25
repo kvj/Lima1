@@ -59,7 +59,7 @@ class HTML5Provider extends DBProvider
 				handler error.message
 
 	verify: (schema, handler) ->
-		log 'verify', schema
+		# log 'verify', schema
 		@query 'select name, type from sqlite_master where type=? or type=?', ['table', 'index'], (err, res, tr) =>
 			log	'SQL result', err, res, tr
 			if err
@@ -103,10 +103,9 @@ class StorageProvider
 
 	schema: ['create table if not exists updates (id integer primary key, version_in integer, version_out integer, version text)', 'create table if not exists data (id integer primary key, status integer default 0, updated integer default 0, own integer default 1, stream text, data text, i0 integer, i1 integer, i2 integer, i3 integer, i4 integer, i5 integer, i6 integer, i7 integer, i8 integer, i9 integer, t0 text, t1 text, t2 text, t3 text, t4 text, t5 text, t6 text, t7 text, t8 text, t9 text)']
 
-	constructor: (@connection) ->
+	constructor: (@connection, @db) ->
 
 	open: (handler) ->
-		@db = new HTML5Provider 'test.db', '1'
 		@db.open true, (err) =>
 			log 'Open result:', err
 			if not err
@@ -205,29 +204,109 @@ class StorageProvider
 				try
 					result.push JSON.parse(item.data)
 				catch err
-			handler null, result
+			handler null, result		
 
+class DataManager
 
-		
+	constructor: (@storage) ->
+	
+	open: (handler) ->
+		@storage.open (err) =>
+			log 'Open result', err 
+			if err then return handler err
+			@storage.schema = 
+				templates:
+					texts: ['name', 'tag']
+				sheets:
+					numbers: ['order', 'template_id']
+					texts: ['name']
+				notes:
+					numbers: ['place', 'sheet_id', 'date', 'link_id', 'mark']
+					texts: ['area', 'text']
+			handler null
 
-storage = new StorageProvider null
+	getTemplates: (handler) ->
+		@storage.select 'templates', [], (err, data) =>
+			if err then return handler err
+			handler null, data
 
-storage.open (err) ->
-	log 'Open result', err 
-	storage.schema = 
-		templates:
-			texts: ['name', 'tag']
-		sheets:
-			numbers: ['order', 'template_id']
-			texts: ['name']
-		notes:
-			numbers: ['place', 'sheet_id', 'date', 'link_id', 'mark']
-			texts: ['area', 'text']
-	storage.create 'templates',
-		name: 'test 01',
-		body:
-			test: 0
-	, (err) ->
-		log 'Create result', err
-		storage.select 'templates', ['name', 'test 01', 'id', op: '>', var: 0], (err, data) ->
-			log 'Select', err, data
+	removeTemplate: (object, handler) ->
+		@storage.remove 'templates', object, (err) =>
+			if err then return handler err
+			handler null, object
+
+	saveTemplate: (object, handler) ->
+		if not object.id
+			@storage.create 'templates', object, (err) =>
+				if err then return handler err
+				handler null, object
+		else
+			@storage.update 'templates', object, (err) =>
+				if err then return handler err
+				handler null, object
+
+class UIProvider
+
+	constructor: (@manager) ->
+		$('#new_template').live 'vclick', (event) =>
+			@editTemplate null
+		$('#save_template').live 'vclick', (event) =>
+			@saveTemplate null
+		$('#remove_template').live 'vclick', (event) =>
+			@removeTemplate null
+		$('#templates').live 'pageshow', (event, data) =>
+			@showTemplates null
+		$('#edit_template').live 'pageshow', (event, data) =>
+			@loadTemplate null
+
+	start: ->
+		@manager.open (err) =>
+			if err then return @error err
+			$.mobile.changePage '#index'
+
+	error: (message) ->
+		log 'Error', message
+		$('#error_text').text message
+		$.mobile.changePage '#error'
+
+	editTemplate: (tmpl) ->
+		@template = tmpl ? {}
+		$.mobile.changePage '#edit_template'
+
+	saveTemplate: ->
+		@template.name = $('#template_name').val()
+		@template.body = $('#template_body').val()
+		if not @template.name then return @error 'No name!'
+		@manager.saveTemplate @template, (err, object) =>
+			if err then return @error err
+			$.mobile.changePage '#templates'
+				reverse: yes
+
+	showTemplates: ->
+		@manager.getTemplates (err, list) =>
+			if err then return @error err
+			ul = $('#template_list').empty();
+			for tmpl in list
+				do (tmpl) => 
+					li = $('<li/>').appendTo ul
+					a = $('<a/>').text(tmpl.name).appendTo li
+					a.bind 'vclick', (event) =>
+						@editTemplate tmpl
+			ul.listview('refresh')
+
+	loadTemplate: ->
+		$('#template_name').val(@template.name)
+		$('#template_body').val(@template.body)
+	
+	removeTemplate: ->
+		if @template?.id
+			@manager.removeTemplate @template, (err) =>
+				if err then return @error err
+				$.mobile.changePage '#templates'
+					reverse: yes
+
+db = new HTML5Provider 'test.db', '1'
+storage = new StorageProvider null, db
+manager = new DataManager storage
+ui = new UIProvider manager
+ui.start null

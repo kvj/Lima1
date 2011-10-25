@@ -34,9 +34,34 @@
 	</div>
 	<div id="templates" data-role="page" data-title="Templates">
 		<div data-role="header">
-				<a id="new_template" data-role="button" data-icon="add">Add</a>
+				<a id="new_template" data-role="button" data-icon="plus">Add</a>
 				<h1>Templates</h1>
 		</div>
+		<div data-role="content">
+			<ul id="template_list" data-role="listview"></ul>
+		</div>
+	</div>
+	<div id="edit_template" data-role="page" data-title="Template editor">
+		<div data-role="header">
+				<a id="save_template" data-role="button" data-icon="check">Save</a>
+				<h1>Template</h1>
+				<a id="remove_template" data-role="button" data-icon="delete">Remove</a>
+		</div>
+		<div data-role="content">
+			<div data-role="fieldcontain">
+				<label for="template_name">Name:</label>
+				<input type="text" id="template_name"/>
+				<label for="template_body">JSON body:</label>
+				<textarea id="template_body"></textarea>
+			</div>
+		</div>
+	</div>
+	<div id="error" data-role="dialog">
+		<div data-role="header">
+				<h1>Error!</h1>
+		</div>
+		<div id="error_text" data-role="content"></div>
+		<a data-rel="back" data-role="button">Close</a>
 	</div>
 </body>
 </html>
