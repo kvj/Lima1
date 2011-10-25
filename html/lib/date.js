@@ -179,5 +179,16 @@ Date.prototype.setDay = function (day) {
 }
 
 Date.prototype.fromString = function (str) {
-    
+    // Parses yyyymmdd
+    if (!str || str.length != 8) {
+        return null;
+    }
+    var y = parseInt(str.substr(0, 4))
+    var m = parseInt(str.substr(4, 2))
+    var d = parseInt(str.substr(6, 2))
+    this.setFullYear(y);
+    this.setDate(1);
+    this.setMonth(m-1);
+    this.setDate(d);
+    return this;
 }

@@ -1,6 +1,182 @@
-#page {
+html {
+	font-family: Tahoma, Sans-serif, Arial;
+	font-size: 0.8em;
+}
+
+#page1, #page2 {
 	margin: 20px;
 	border: 1px solid #aaaaaa;
-	width: 400px;
-	height: 550px;
+	width: 30em;
+	height: 42em;
+	float: left;
+}
+
+.page_content {
+	width: 26em;
+	margin: 2em;
+}
+
+.page {
+	overflow: auto;
+}
+
+.title0_text {
+	font-weight: bold;
+	font-size: 1.2em;
+}
+
+.title0_editor {
+	margin-left: 3px;
+	border-bottom: 1px solid #222222;
+	width: 100%;
+	min-width: 3em;
+}
+
+.hr {
+	height: 1.7em;
+	border: 1px solid #222222;
+	background-color: #aaaaaa;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+}
+
+.title1_bg {
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	background-color: #dddddd;
+	height: 1em;
+}
+
+.title1 {
+	background-color: #ffffff;
+	position: relative;
+	top: -0.3em;
+	padding: 1px;
+	padding-left: 0.5em;
+	border: 1px solid #222222;
+	float: left;
+	width: 50%;
+}
+
+.grid1 {
+	border-left: 1px solid #dddddd;
+	border-right: 1px solid #dddddd;
+}
+
+.grid_top1 {
+	margin-top: 3px;
+	border-top: 1px solid #dddddd;
+}
+
+.grid_bottom1 {
+	border-bottom: 1px solid #dddddd !important;
+}
+
+.grid_delimiter1 {
+	border-bottom: 1px solid #dddddd;
+}
+
+.grid2 {
+	border-left: 2px solid #dddddd;
+	border-right: 2px solid #dddddd;
+}
+
+.grid_top2 {
+	margin-top: 3px;
+	border-top: 2px solid #dddddd;
+}
+
+.grid_bottom2 {
+	border-bottom: 2px solid #dddddd !important;
+}
+
+.grid_delimiter2 {
+	border-bottom: 1px dashed #dddddd;
+}
+
+.disabled {
+	opacity: 0.5;
+}
+
+.text_editor {
+	margin-left: 0.3em;
+	min-height: 1.5em;
+}
+
+.list_item {
+	position: relative;
+	background-color: #ffffff;
+}
+
+.list_item_handle {
+	width: 1.5em;
+	height: 100%;
+	background-color: #ffffff;
+	display: none;
+	position: absolute;
+	border: 1px solid #dddddd;
+	top: -1px;
+	z-index: 2;
+}
+
+.list_item_handle_left {
+	left: -1.5em;
+	border-top-left-radius: 0.8em;
+	border-bottom-left-radius: 0.8em;
+	border-right: 0px;
+}
+
+.list_item_handle_right {
+	right: -1.5em;
+	border-top-right-radius: 0.8em;
+	border-bottom-right-radius: 0.8em;
+	border-left: 0px;
+}
+
+.list_item_drop {
+	background-color: #ffdddd !important;
+}
+
+.ui-draggable-dragging {
+	z-index: 10;
+	min-width: 200px;
+	opacity: 0.6;
+	border: 1px solid #dddddd;
+}
+
+.check_editor {
+	width: 1.3em;
+	height: 1.3em;
+	margin-left: -0.5em;
+	margin-top: 1px;
+	position: relative;
+	border: 1px solid #dddddd;
+	background-color: #ffffff;
+	border-bottom: 2px solid #dddddd;
+	border-right: 2px solid #dddddd;
+	z-index: 3;
+}
+
+.mark_editor {
+	width: 1em;
+	height: 1em;
+	margin-left: 0.2em;
+	margin-top: 0.2em;
+	position: relative;
+	border: 1px solid #dddddd;
+	background-color: #ffffff;
+	z-index: 3;
+}
+
+.date_editor {
+	width: 100%;
+	height: 100%;
+}
+
+.col {
+	float: left;
+	height: auto;
+}
+.ui-datepicker {
+	z-index: 5 !important;
 }
