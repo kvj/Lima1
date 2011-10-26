@@ -1,32 +1,33 @@
 w2 = {
-	defaults: {
-		title: 'Actions'
+	"defaults": {
+		"title": "Actions"
 	},
-	flow: [
-		{type: 'title', name: 'Actions', edit:'@:title'},
-		{type: 'hr'},
+	"flow": [
+		{"type": "title", "name": "Actions", "edit":"@:title"},
+		{"type": "hr"},
 		{
-			type: 'list',
-			grid: 1,
-			area: 'main',
-			config: {
-				grid: 1,
-				delimiter: 1
+			"type": "list",
+			"grid": 1,
+			"area": "main",
+			"config": {
+				"grid": 1,
+				"delimiter": 1
 			},
-			flow: [
-				{type: 'cols', size: [20, 1, 35], flow: [
-					{type: 'check', edit: '@:done'},
-					{type: 'text', edit: '@:text'},
-					{type: 'date', edit: '@:due'}
+			"flow": [
+				{"type": "cols", "size": [20, 1, 35], "flow": [
+					{"type": "check", "edit": "@:done"},
+					{"type": "text", "edit": "@:text"},
+					{"type": "date", "edit": "@:due"}
 				]},
-				{type: 'cols', size: [15, 1], flow: [
-					{type: 'mark', edit: '@:mark'},
-					{type: 'text', edit: '@:notes'},
-				]},
+				{"type": "cols", "size": [15, 1], "flow": [
+					{"type": "mark", "edit": "@:mark"},
+					{"type": "text", "edit": "@:notes"}
+				]}
 			]
 		}
 	]	
 }
+
 w1 = {
 	code: 'w1${dt:(e1)ddmmyyyy}',
 	protocol: {
@@ -139,7 +140,16 @@ class CheckElement extends UIElement
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler
-		$('<div/>').addClass('check_editor').appendTo(element)
+		el = $('<div/>').addClass('check_editor').appendTo(element)
+		property = (@renderer.replace config.edit)
+		checked = no
+		if property and item[property] is 1
+			checked = yes
+			el.addClass('checked')
+		if not options.readonly
+			el.bind 'click', (event) =>
+				@renderer.on_edited item, property, if checked then null else 1
+				return false
 		handler null
 
 class DateElement extends UIElement
@@ -148,20 +158,27 @@ class DateElement extends UIElement
 
 	print_date: (date, el) ->
 		dt = new Date()
-		if dt.fromString(date)
+		if date and dt.fromString(date)
 			el.text(dt.format('MM/dd'))
+			return true
 		else
 			el.html('&nbsp;')
+			return false
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler
 		el = $('<div/>').addClass('date_editor').appendTo(element)
+		property = (@renderer.replace config.edit)
+		@print_date item[property], el
 		el.bind 'click', (e) =>
-			el.datepicker 'dialog' , null, (date) =>
-				@print_date date, el
-			, {dateFormat: 'yymmdd'}, e
+			if e.shiftKey
+				@renderer.on_edited item, property, null
+			else
+				el.datepicker 'dialog' , null, (date) =>
+					if @print_date date, el
+						@renderer.on_edited item, property, date
+				, {dateFormat: 'yymmdd'}, e
 		$('<div style="clear: both;"/>').appendTo(element)
-		@print_date '', el
 		handler null
 
 class MarkElement extends UIElement
@@ -258,11 +275,21 @@ class ListElement extends UIElement
 				handle.show()
 			el.bind 'mouseout', () =>
 				handle.hide()
-			el.draggable({revert: true, handle: handle, zIndex: 3, containment: 'document', helper: 'clone'})
+			el.data('type', 'note')
+			el.data('renderer', @renderer)
+			el.data('item', item)
+			el.draggable({handle: handle, zIndex: 3, containment: 'document', helper: 'clone', appendTo: 'body'})
 		el.droppable({
 			accept: '.list_item',
 			hoverClass: 'list_item_drop',
-			tolerance: 'pointer'
+			tolerance: 'pointer',
+			drop: (event, ui) =>
+				drop = ui.draggable.data('item')
+				renderer = ui.draggable.data('renderer')
+				@renderer.on_edited drop, 'area', item.area
+				if renderer isnt @renderer
+					renderer.render null
+
 		})
 		# if not empty
 			# el.bind 'click', (ev) =>
@@ -276,7 +303,7 @@ class ListElement extends UIElement
 	_fill_empty: (config, element, parent, handler) ->
 		parent_height = parent.outerHeight()
 		# log 'Before fill empty', parent_height, parent.outerHeight(), parent
-		@_render {}, config, element, {disable: true}, (el) =>
+		@_render {area: config.area}, config, element, {disable: true}, (el) =>
 			need_grid = yes
 			# log 'After fill empty', parent.outerHeight(), parent_height
 			if parent.outerHeight()<=parent_height 
@@ -300,12 +327,12 @@ class ListElement extends UIElement
 		@renderer.items config.area, (items) =>
 			for i, itm of items
 				@_render itm, config, element, {disable: false, draggable: true}, () =>
-			@_render {}, config, element, {disable: false}, handler
+			@_render {area: config.area}, config, element, {disable: false}, handler
 
 
 
 class Renderer
-	constructor: (@root, @template, @data, @env) ->
+	constructor: (@manager, @ui, @root, @template, @data, @env) ->
 		@elements = [
 			new SimpleElement this
 			new TitleElement this
@@ -322,16 +349,17 @@ class Renderer
 			new DateProtocol 'dt'
 			new ItemProtocol '@'
 		]
+		@root.data('sheet', @data)
 
 	fix_grid: (element, config) ->
 		if not config or not config.grid
 			return
 		gr = config.grid
-		element.children().removeClass('grid_top'+gr+' grid_bottom'+gr).addClass('grid'+gr)
+		element.children(':not(.list_item_handle)').removeClass('grid_top'+gr+' grid_bottom'+gr).addClass('grid'+gr)
 		if config.delimiter
-			element.children().addClass('grid_delimiter'+config.delimiter)
-		element.children().first().addClass('grid_top'+gr)
-		element.children().last().addClass('grid_bottom'+gr)
+			element.children(':not(.list_item_handle)').addClass('grid_delimiter'+config.delimiter)
+		element.children(':not(.list_item_handle)').first().addClass('grid_top'+gr)
+		element.children(':not(.list_item_handle)').last().addClass('grid_bottom'+gr)
 
 	get: (name) ->
 		# log 'get', name, @elements.length
@@ -381,24 +409,64 @@ class Renderer
 			return value
 		return text
 
+	_save_sheet: (handler) ->
+		@manager.saveSheet @data, (err, object) =>
+			if err then return @ui.show_error err
+			@on_sheet_change @data
+			handler object
+
+	_save_note: (item, handler) ->
+		@manager.saveNote item, (err, object) =>
+			if err then return @ui.show_error err
+			handler object
+
+	on_edited: (item, property, value) ->
+		if not item or not property
+			return false
+		item[property] = value
+		if item is @data
+			@_save_sheet (object) =>
+				@render null
+		else
+			if not @data.id
+				@_save_sheet (object) =>
+					item.sheet_id = @data.id
+					@_save_note item, () =>
+						@render null
+			else
+				item.sheet_id = @data.id
+				@_save_note item, () =>
+					@render null
+
+	remove_note: (item) ->
+		@manager.removeNote item, (err) =>
+			if err then return @ui.show_error err
+			@render null
+
 	text_editor: (element, item, property, handler) ->
 		if not property
 			return
 		element.attr('contentEditable', true)
-		element.text(item[property])
+		old_value = item[property] ? ''
+		element.text(old_value)
 		element.bind 'keypress', (event) =>
 			if event.keyCode is 13
 				element.blur()
 				event.preventDefault()
 				return false
 		element.bind 'blur', (event) =>
-			element.text(element.text())
+			value = element.text() ? ''
+			element.text value
+			if value is old_value
+				return
 			if handler
-				handler item, property, element.text()
+				handler item, property, value
+			else
+				@on_edited item, property, value
 
 	render: () ->
-		@root.empty()
-		@full = no
+		# @root.empty()
+		@prev_content = @root.children()
 		@content = $('<div/>').addClass('page_content group').appendTo(@root)
 		@get(@template.name).render @data, @template, @content, {empty: false}, () =>
 			@fix_height null
@@ -408,15 +476,23 @@ class Renderer
 
 	fix_height: () ->
 		@have_space = no
-		if not @full
-			@get(@template.name).render @data, @template, @content, {empty: true}, () =>
-				# log 'Fix done', @have_space
-				if @have_space 
-					@fix_height null
+		@get(@template.name).render @data, @template, @content, {empty: true}, () =>
+			# log 'Fix done', @have_space
+			if @have_space 
+				@fix_height null
+			else
+				@prev_content.remove()
 
 	
 	items: (area, handler) ->
-		handler([{text: '01234567890012345678901234567890'}])
+		@manager.getNotes @data.id, area, (err, data) =>
+			if err
+				log 'Error getting items', err
+				handler []
+			else
+				handler data
+	
+	on_sheet_change: () ->
 
 
 class Protocol
@@ -468,15 +544,21 @@ class DateProtocol extends Protocol
 		# log 'Format', dt, format
 		dt.format format
 
-
-log = (params...) ->
+window.log = (params...) ->
 	console.log.apply console, params
 
+window.Renderer = Renderer
+
 $(document).ready () ->
-	renderer = new Renderer $('#page1'), w1, {},
-		dt: new Date().getTime()
-	renderer.render null
-	renderer = new Renderer $('#page2'), w2, {},
-		dt: new Date().getTime()
-	renderer.render null
-	$('button').button();
+	db = new HTML5Provider 'test.db', '1.1'
+	storage = new StorageProvider null, db
+	manager = new DataManager storage
+	ui = new UIManager manager
+	ui.start null
+	# renderer = new Renderer $('#page1'), w1, {},
+	# 	dt: new Date().getTime()
+	# renderer.render null
+	# renderer = new Renderer $('#page2'), w2, {},
+	# 	dt: new Date().getTime()
+	# renderer.render null
+	# $('button').button();

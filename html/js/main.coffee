@@ -1,6 +1,3 @@
-log = (params...) ->
-	console.log.apply console, params
-
 class DBProvider
 	constructor: (@name, @version = '1')->
 
@@ -218,10 +215,10 @@ class DataManager
 				templates:
 					texts: ['name', 'tag']
 				sheets:
-					numbers: ['order', 'template_id']
-					texts: ['name']
+					numbers: ['template_id', 'parent_id']
+					texts: ['title']
 				notes:
-					numbers: ['place', 'sheet_id', 'date', 'link_id', 'mark']
+					numbers: ['sheet_id', 'due', 'link_id', 'mark']
 					texts: ['area', 'text']
 			handler null
 
@@ -230,20 +227,57 @@ class DataManager
 			if err then return handler err
 			handler null, data
 
+	getSheets: (handler) ->
+		@storage.select 'sheets', [], (err, data) =>
+			if err then return handler err
+			handler null, data
+
+	getNotes: (sheet_id, area, handler) ->
+		@storage.select 'notes', ['sheet_id', sheet_id, 'area', area], (err, data) =>
+			if err then return handler err
+			handler null, data
+
 	removeTemplate: (object, handler) ->
-		@storage.remove 'templates', object, (err) =>
+		@storage.select 'sheets', ['template_id', object.id], (err, data) =>
+			if err then return handler err
+			for item in data
+				@removeSheet item, () =>
+			@storage.remove 'templates', object, (err) =>
+				if err then return handler err
+				handler null, object
+
+	removeNote: (object, handler) ->
+		@storage.remove 'notes', object, (err) =>
 			if err then return handler err
 			handler null, object
 
-	saveTemplate: (object, handler) ->
+	removeSheet: (object, handler) ->
+		@storage.select 'notes', ['sheet_id', object.id], (err, data) =>
+			if err then return handler err
+			for item in data
+				@removeNote item, () =>
+			@storage.remove 'sheets', object, (err) =>
+				if err then return handler err
+				handler null, object
+
+	_save: (stream, object, handler) ->
 		if not object.id
-			@storage.create 'templates', object, (err) =>
+			@storage.create stream, object, (err) =>
 				if err then return handler err
 				handler null, object
 		else
-			@storage.update 'templates', object, (err) =>
+			@storage.update stream, object, (err) =>
 				if err then return handler err
 				handler null, object
+
+	saveTemplate: (object, handler) ->
+		@_save 'templates', object, handler
+	
+	saveSheet: (object, handler) ->
+		@_save 'sheets', object, handler
+
+	saveNote: (object, handler) ->
+		@_save 'notes', object, handler
 
 class UIProvider
 
@@ -305,8 +339,11 @@ class UIProvider
 				$.mobile.changePage '#templates'
 					reverse: yes
 
-db = new HTML5Provider 'test.db', '1'
-storage = new StorageProvider null, db
-manager = new DataManager storage
-ui = new UIProvider manager
-ui.start null
+window.HTML5Provider = HTML5Provider
+window.StorageProvider = StorageProvider
+window.DataManager = DataManager
+# db = new HTML5Provider 'test.db', '1'
+# storage = new StorageProvider null, db
+# manager = new DataManager storage
+# ui = new UIProvider manager
+# ui.start null

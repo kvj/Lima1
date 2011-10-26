@@ -1,23 +1,85 @@
-html {
+body {
 	font-family: Tahoma, Sans-serif, Arial;
-	font-size: 0.8em;
+	font-size: 0.75em;
+	margin: 0px;
+	padding: 0px;
+	width: 100%;
+	height: 100%;
+	position: absolute;
 }
 
-#page1, #page2 {
-	margin: 20px;
-	border: 1px solid #aaaaaa;
-	width: 30em;
-	height: 42em;
-	float: left;
+#body {
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+}
+
+#toolbar {
+	border-bottom: 1px solid #dddddd;
+	height: 40px;
+}
+
+#main {
+	width: 100%;
+	position: absolute;
+	bottom: 0px;
+	top: 40px;
+}
+
+.left {
+	border-right: 1px solid #dddddd;
+	position: absolute;
+	top: 0px;
+	bottom: 0px;
+	overflow: auto;
+}
+
+#left {
+	width: 200px;
+}
+
+.right {
+	width: auto;
+	top: 0px;
+	bottom: 0px;
+	position: absolute;
+	right: 0px;
+}
+
+#right {
+	left: 200px;
+}
+
+.clear {
+	clear: both;
+}
+
+#templates_dialog {
+}
+
+#left_t {
+	width: 150px;
+}
+
+#right_t {
+	left: 150px;
 }
 
 .page_content {
 	width: 26em;
 	margin: 2em;
+	position: absolute;
+	background-color: #ffffff;
 }
 
 .page {
+	margin: 20px;
+	border: 1px solid #aaaaaa;
+	width: 30em;
+	height: 42em;
+	float: left;
 	overflow: auto;
+	position: relative;
 }
 
 .title0_text {
@@ -179,4 +241,96 @@ html {
 }
 .ui-datepicker {
 	z-index: 5 !important;
+}
+
+.form {
+	top: 15px;
+	left: 15px;
+	right: 15px;
+	position: absolute;
+}
+
+label {
+	width: 100%;
+	margin-top: 10px;
+	display: block;
+}
+
+input[type=text], textarea {
+	border: 1px solid #dddddd;
+	border-radius: 3px;
+	width: 100%;
+}
+
+textarea {
+	height: 400px;
+	font-family: monospace !important;
+}
+
+.ui-dialog-content {
+	padding: 0px !important;
+}
+
+ul {
+	padding: 1px;
+}
+
+li {
+	display: block;
+	margin: 2px;
+	padding: 3px;
+	border: 1px solid #dddddd;
+	list-style-type: none;	
+	background-color: #ffffff;
+
+}
+
+.ui-selected {
+	background-color: #ddddff;
+}
+
+.ui-selecting {
+	background-color: #eeeeff;
+}
+
+.ui-selectable-helper {
+	border: 2px solid #0000ff;
+	background-color: #ddddff;
+	opacity: 0.3;
+	z-index: 1010;
+	border-radius: 4px;
+}
+
+#new_sheet_templates {
+	padding: 10px;
+}
+
+.new_sheet_template {
+	float: left;
+	margin: 2px;
+	padding: 3px;
+	border: 1px solid #dddddd;
+	width: 150px;
+	cursor: pointer;
+}
+
+.sheet {
+	position: relative;
+	padding: 5px;
+	border-width: 2px;
+	border-radius: 3px;
+}
+
+#trash {
+	border: 2px solid #dddddd;
+	padding: 5px;
+	border-radius: 4px;
+}
+
+.trash_drop {
+	background-color: #ddddff;
+}
+
+.checked {
+	background-color: #aaaaaa;
 }

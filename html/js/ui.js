@@ -1,5 +1,5 @@
 (function() {
-  var CheckElement, ColsElement, DateElement, DateProtocol, HRElement, ItemProtocol, ListElement, MarkElement, Protocol, Renderer, SimpleElement, Textlement, Title1Element, TitleElement, UIElement, log, w1, w2;
+  var CheckElement, ColsElement, DateElement, DateProtocol, HRElement, ItemProtocol, ListElement, MarkElement, Protocol, Renderer, SimpleElement, Textlement, Title1Element, TitleElement, UIElement, w1, w2;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -9,50 +9,50 @@
     return child;
   }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __slice = Array.prototype.slice;
   w2 = {
-    defaults: {
-      title: 'Actions'
+    "defaults": {
+      "title": "Actions"
     },
-    flow: [
+    "flow": [
       {
-        type: 'title',
-        name: 'Actions',
-        edit: '@:title'
+        "type": "title",
+        "name": "Actions",
+        "edit": "@:title"
       }, {
-        type: 'hr'
+        "type": "hr"
       }, {
-        type: 'list',
-        grid: 1,
-        area: 'main',
-        config: {
-          grid: 1,
-          delimiter: 1
+        "type": "list",
+        "grid": 1,
+        "area": "main",
+        "config": {
+          "grid": 1,
+          "delimiter": 1
         },
-        flow: [
+        "flow": [
           {
-            type: 'cols',
-            size: [20, 1, 35],
-            flow: [
+            "type": "cols",
+            "size": [20, 1, 35],
+            "flow": [
               {
-                type: 'check',
-                edit: '@:done'
+                "type": "check",
+                "edit": "@:done"
               }, {
-                type: 'text',
-                edit: '@:text'
+                "type": "text",
+                "edit": "@:text"
               }, {
-                type: 'date',
-                edit: '@:due'
+                "type": "date",
+                "edit": "@:due"
               }
             ]
           }, {
-            type: 'cols',
-            size: [15, 1],
-            flow: [
+            "type": "cols",
+            "size": [15, 1],
+            "flow": [
               {
-                type: 'mark',
-                edit: '@:mark'
+                "type": "mark",
+                "edit": "@:mark"
               }, {
-                type: 'text',
-                edit: '@:notes'
+                "type": "text",
+                "edit": "@:notes"
               }
             ]
           }
@@ -239,10 +239,23 @@
     }
     CheckElement.prototype.name = 'check';
     CheckElement.prototype.render = function(item, config, element, options, handler) {
+      var checked, el, property;
       if (options.empty) {
         return handler;
       }
-      $('<div/>').addClass('check_editor').appendTo(element);
+      el = $('<div/>').addClass('check_editor').appendTo(element);
+      property = this.renderer.replace(config.edit);
+      checked = false;
+      if (property && item[property] === 1) {
+        checked = true;
+        el.addClass('checked');
+      }
+      if (!options.readonly) {
+        el.bind('click', __bind(function(event) {
+          this.renderer.on_edited(item, property, checked ? null : 1);
+          return false;
+        }, this));
+      }
       return handler(null);
     };
     return CheckElement;
@@ -256,27 +269,36 @@
     DateElement.prototype.print_date = function(date, el) {
       var dt;
       dt = new Date();
-      if (dt.fromString(date)) {
-        return el.text(dt.format('MM/dd'));
+      if (date && dt.fromString(date)) {
+        el.text(dt.format('MM/dd'));
+        return true;
       } else {
-        return el.html('&nbsp;');
+        el.html('&nbsp;');
+        return false;
       }
     };
     DateElement.prototype.render = function(item, config, element, options, handler) {
-      var el;
+      var el, property;
       if (options.empty) {
         return handler;
       }
       el = $('<div/>').addClass('date_editor').appendTo(element);
+      property = this.renderer.replace(config.edit);
+      this.print_date(item[property], el);
       el.bind('click', __bind(function(e) {
-        return el.datepicker('dialog', null, __bind(function(date) {
-          return this.print_date(date, el);
-        }, this), {
-          dateFormat: 'yymmdd'
-        }, e);
+        if (e.shiftKey) {
+          return this.renderer.on_edited(item, property, null);
+        } else {
+          return el.datepicker('dialog', null, __bind(function(date) {
+            if (this.print_date(date, el)) {
+              return this.renderer.on_edited(item, property, date);
+            }
+          }, this), {
+            dateFormat: 'yymmdd'
+          }, e);
+        }
       }, this));
       $('<div style="clear: both;"/>').appendTo(element);
-      this.print_date('', el);
       return handler(null);
     };
     return DateElement;
@@ -427,18 +449,30 @@
         el.bind('mouseout', __bind(function() {
           return handle.hide();
         }, this));
+        el.data('type', 'note');
+        el.data('renderer', this.renderer);
+        el.data('item', item);
         el.draggable({
-          revert: true,
           handle: handle,
           zIndex: 3,
           containment: 'document',
-          helper: 'clone'
+          helper: 'clone',
+          appendTo: 'body'
         });
       }
       el.droppable({
         accept: '.list_item',
         hoverClass: 'list_item_drop',
-        tolerance: 'pointer'
+        tolerance: 'pointer',
+        drop: __bind(function(event, ui) {
+          var drop, renderer;
+          drop = ui.draggable.data('item');
+          renderer = ui.draggable.data('renderer');
+          this.renderer.on_edited(drop, 'area', item.area);
+          if (renderer !== this.renderer) {
+            return renderer.render(null);
+          }
+        }, this)
       });
       return this.renderer.get('simple').render(item, config, el, {
         empty: false,
@@ -450,7 +484,9 @@
     ListElement.prototype._fill_empty = function(config, element, parent, handler) {
       var parent_height;
       parent_height = parent.outerHeight();
-      return this._render({}, config, element, {
+      return this._render({
+        area: config.area
+      }, config, element, {
         disable: true
       }, __bind(function(el) {
         var need_grid;
@@ -487,7 +523,9 @@
             draggable: true
           }, __bind(function() {}, this));
         }
-        return this._render({}, config, element, {
+        return this._render({
+          area: config.area
+        }, config, element, {
           disable: false
         }, handler);
       }, this));
@@ -495,13 +533,16 @@
     return ListElement;
   })();
   Renderer = (function() {
-    function Renderer(root, template, data, env) {
+    function Renderer(manager, ui, root, template, data, env) {
+      this.manager = manager;
+      this.ui = ui;
       this.root = root;
       this.template = template;
       this.data = data;
       this.env = env;
       this.elements = [new SimpleElement(this), new TitleElement(this), new HRElement(this), new Title1Element(this), new ColsElement(this), new ListElement(this), new Textlement(this), new CheckElement(this), new MarkElement(this), new DateElement(this)];
       this.protocols = [new DateProtocol('dt'), new ItemProtocol('@')];
+      this.root.data('sheet', this.data);
     }
     Renderer.prototype.fix_grid = function(element, config) {
       var gr;
@@ -509,12 +550,12 @@
         return;
       }
       gr = config.grid;
-      element.children().removeClass('grid_top' + gr + ' grid_bottom' + gr).addClass('grid' + gr);
+      element.children(':not(.list_item_handle)').removeClass('grid_top' + gr + ' grid_bottom' + gr).addClass('grid' + gr);
       if (config.delimiter) {
-        element.children().addClass('grid_delimiter' + config.delimiter);
+        element.children(':not(.list_item_handle)').addClass('grid_delimiter' + config.delimiter);
       }
-      element.children().first().addClass('grid_top' + gr);
-      return element.children().last().addClass('grid_bottom' + gr);
+      element.children(':not(.list_item_handle)').first().addClass('grid_top' + gr);
+      return element.children(':not(.list_item_handle)').last().addClass('grid_bottom' + gr);
     };
     Renderer.prototype.get = function(name) {
       var el, _i, _len, _ref;
@@ -575,12 +616,64 @@
       }
       return text;
     };
+    Renderer.prototype._save_sheet = function(handler) {
+      return this.manager.saveSheet(this.data, __bind(function(err, object) {
+        if (err) {
+          return this.ui.show_error(err);
+        }
+        this.on_sheet_change(this.data);
+        return handler(object);
+      }, this));
+    };
+    Renderer.prototype._save_note = function(item, handler) {
+      return this.manager.saveNote(item, __bind(function(err, object) {
+        if (err) {
+          return this.ui.show_error(err);
+        }
+        return handler(object);
+      }, this));
+    };
+    Renderer.prototype.on_edited = function(item, property, value) {
+      if (!item || !property) {
+        return false;
+      }
+      item[property] = value;
+      if (item === this.data) {
+        return this._save_sheet(__bind(function(object) {
+          return this.render(null);
+        }, this));
+      } else {
+        if (!this.data.id) {
+          return this._save_sheet(__bind(function(object) {
+            item.sheet_id = this.data.id;
+            return this._save_note(item, __bind(function() {
+              return this.render(null);
+            }, this));
+          }, this));
+        } else {
+          item.sheet_id = this.data.id;
+          return this._save_note(item, __bind(function() {
+            return this.render(null);
+          }, this));
+        }
+      }
+    };
+    Renderer.prototype.remove_note = function(item) {
+      return this.manager.removeNote(item, __bind(function(err) {
+        if (err) {
+          return this.ui.show_error(err);
+        }
+        return this.render(null);
+      }, this));
+    };
     Renderer.prototype.text_editor = function(element, item, property, handler) {
+      var old_value, _ref;
       if (!property) {
         return;
       }
       element.attr('contentEditable', true);
-      element.text(item[property]);
+      old_value = (_ref = item[property]) != null ? _ref : '';
+      element.text(old_value);
       element.bind('keypress', __bind(function(event) {
         if (event.keyCode === 13) {
           element.blur();
@@ -589,15 +682,21 @@
         }
       }, this));
       return element.bind('blur', __bind(function(event) {
-        element.text(element.text());
+        var value, _ref2;
+        value = (_ref2 = element.text()) != null ? _ref2 : '';
+        element.text(value);
+        if (value === old_value) {
+          return;
+        }
         if (handler) {
-          return handler(item, property, element.text());
+          return handler(item, property, value);
+        } else {
+          return this.on_edited(item, property, value);
         }
       }, this));
     };
     Renderer.prototype.render = function() {
-      this.root.empty();
-      this.full = false;
+      this.prev_content = this.root.children();
       this.content = $('<div/>').addClass('page_content group').appendTo(this.root);
       return this.get(this.template.name).render(this.data, this.template, this.content, {
         empty: false
@@ -610,23 +709,27 @@
     };
     Renderer.prototype.fix_height = function() {
       this.have_space = false;
-      if (!this.full) {
-        return this.get(this.template.name).render(this.data, this.template, this.content, {
-          empty: true
-        }, __bind(function() {
-          if (this.have_space) {
-            return this.fix_height(null);
-          }
-        }, this));
-      }
+      return this.get(this.template.name).render(this.data, this.template, this.content, {
+        empty: true
+      }, __bind(function() {
+        if (this.have_space) {
+          return this.fix_height(null);
+        } else {
+          return this.prev_content.remove();
+        }
+      }, this));
     };
     Renderer.prototype.items = function(area, handler) {
-      return handler([
-        {
-          text: '01234567890012345678901234567890'
+      return this.manager.getNotes(this.data.id, area, __bind(function(err, data) {
+        if (err) {
+          log('Error getting items', err);
+          return handler([]);
+        } else {
+          return handler(data);
         }
-      ]);
+      }, this));
     };
+    Renderer.prototype.on_sheet_change = function() {};
     return Renderer;
   })();
   Protocol = (function() {
@@ -703,21 +806,18 @@
     };
     return DateProtocol;
   })();
-  log = function() {
+  window.log = function() {
     var params;
     params = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
     return console.log.apply(console, params);
   };
+  window.Renderer = Renderer;
   $(document).ready(function() {
-    var renderer;
-    renderer = new Renderer($('#page1'), w1, {}, {
-      dt: new Date().getTime()
-    });
-    renderer.render(null);
-    renderer = new Renderer($('#page2'), w2, {}, {
-      dt: new Date().getTime()
-    });
-    renderer.render(null);
-    return $('button').button();
+    var db, manager, storage, ui;
+    db = new HTML5Provider('test.db', '1.1');
+    storage = new StorageProvider(null, db);
+    manager = new DataManager(storage);
+    ui = new UIManager(manager);
+    return ui.start(null);
   });
 }).call(this);

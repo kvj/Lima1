@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE HTML>
 <html>
 	<head>
 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
@@ -9,11 +9,47 @@
 		<script type="text/javascript" src="lib/jquery-ui-1.8.16.custom.min.js"></script>
 		<script type="text/javascript" src="lib/date.js"></script>
 		<script type="text/javascript" src="lib/json2.js"></script>
+		<script type="text/javascript" src="js/main.js"></script>
+		<script type="text/javascript" src="js/ui_manager.js"></script>
 		<script type="text/javascript" src="js/ui.js"></script>
 	</head>
 	<body>
-		<div id="page1" class="page"></div>
-		<div id="page2" class="page"></div>
+		<div id="body">
+			<div id="toolbar">
+				<button id="new_sheet_button">New page</button>
+				<button id="templates_button">Templates</button>
+				<span id="trash">Trash</span>
+			</div>
+			<div id="main">
+				<div id="left" class="left">
+					<ul id="sheets"></ul>
+				</div>
+				<div id="right" class="right">
+					<div class="page" id="page0"></div>
+					<div class="page" id="page1"></div>
+				</div>
+				<div class="clear"></div>
+			</div>
+		</div>
+		<div id="new_sheet_dialog" style="display: none;" title="New page">
+			<div id="new_sheet_templates"></div>
+		</div>
+		<div id="templates_dialog" style="display: none;" title="Templates">
+			<div id="left_t" class="left">
+				<button id="new_template_button">New template</button>
+				<ul id="templates"></ul>
+			</div>
+			<div id="right_t" class="right">
+				<div class="form" id="template_form">
+					<label for="template_name">Name:</label>
+					<input type="text" id="template_name"/>
+					<label for="template_body">Body:</label>
+					<textarea id="template_body"></textarea>
+					<button id="save_template">Save</button>
+					<button id="remove_template">Remove</button>
+				</div>
+			</div>
+		</div>
 	</body>
 </html>
 

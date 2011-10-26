@@ -1,6 +1,6 @@
 (function() {
-  var DBProvider, HTML5Provider, StorageProvider, log, storage;
-  var __slice = Array.prototype.slice, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+  var DBProvider, DataManager, HTML5Provider, StorageProvider, UIProvider;
+  var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
     ctor.prototype = parent.prototype;
@@ -8,11 +8,6 @@
     child.__super__ = parent.prototype;
     return child;
   }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
-  log = function() {
-    var params;
-    params = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
-    return console.log.apply(console, params);
-  };
   DBProvider = (function() {
     function DBProvider(name, version) {
       this.name = name;
@@ -99,7 +94,6 @@
       }
     };
     HTML5Provider.prototype.verify = function(schema, handler) {
-      log('verify', schema);
       return this.query('select name, type from sqlite_master where type=? or type=?', ['table', 'index'], __bind(function(err, res, tr) {
         var create_at, drop_at;
         log('SQL result', err, res, tr);
@@ -154,11 +148,11 @@
   })();
   StorageProvider = (function() {
     StorageProvider.prototype.schema = ['create table if not exists updates (id integer primary key, version_in integer, version_out integer, version text)', 'create table if not exists data (id integer primary key, status integer default 0, updated integer default 0, own integer default 1, stream text, data text, i0 integer, i1 integer, i2 integer, i3 integer, i4 integer, i5 integer, i6 integer, i7 integer, i8 integer, i9 integer, t0 text, t1 text, t2 text, t3 text, t4 text, t5 text, t6 text, t7 text, t8 text, t9 text)'];
-    function StorageProvider(connection) {
+    function StorageProvider(connection, db) {
       this.connection = connection;
+      this.db = db;
     }
     StorageProvider.prototype.open = function(handler) {
-      this.db = new HTML5Provider('test.db', '1');
       return this.db.open(true, __bind(function(err) {
         log('Open result:', err);
         if (!err) {
@@ -311,37 +305,221 @@
     };
     return StorageProvider;
   })();
-  storage = new StorageProvider(null);
-  storage.open(function(err) {
-    log('Open result', err);
-    storage.schema = {
-      templates: {
-        texts: ['name', 'tag']
-      },
-      sheets: {
-        numbers: ['order', 'template_id'],
-        texts: ['name']
-      },
-      notes: {
-        numbers: ['place', 'sheet_id', 'date', 'link_id', 'mark'],
-        texts: ['area', 'text']
+  DataManager = (function() {
+    function DataManager(storage) {
+      this.storage = storage;
+    }
+    DataManager.prototype.open = function(handler) {
+      return this.storage.open(__bind(function(err) {
+        log('Open result', err);
+        if (err) {
+          return handler(err);
+        }
+        this.storage.schema = {
+          templates: {
+            texts: ['name', 'tag']
+          },
+          sheets: {
+            numbers: ['template_id', 'parent_id'],
+            texts: ['title']
+          },
+          notes: {
+            numbers: ['sheet_id', 'due', 'link_id', 'mark'],
+            texts: ['area', 'text']
+          }
+        };
+        return handler(null);
+      }, this));
+    };
+    DataManager.prototype.getTemplates = function(handler) {
+      return this.storage.select('templates', [], __bind(function(err, data) {
+        if (err) {
+          return handler(err);
+        }
+        return handler(null, data);
+      }, this));
+    };
+    DataManager.prototype.getSheets = function(handler) {
+      return this.storage.select('sheets', [], __bind(function(err, data) {
+        if (err) {
+          return handler(err);
+        }
+        return handler(null, data);
+      }, this));
+    };
+    DataManager.prototype.getNotes = function(sheet_id, area, handler) {
+      return this.storage.select('notes', ['sheet_id', sheet_id, 'area', area], __bind(function(err, data) {
+        if (err) {
+          return handler(err);
+        }
+        return handler(null, data);
+      }, this));
+    };
+    DataManager.prototype.removeTemplate = function(object, handler) {
+      return this.storage.select('sheets', ['template_id', object.id], __bind(function(err, data) {
+        var item, _i, _len;
+        if (err) {
+          return handler(err);
+        }
+        for (_i = 0, _len = data.length; _i < _len; _i++) {
+          item = data[_i];
+          this.removeSheet(item, __bind(function() {}, this));
+        }
+        return this.storage.remove('templates', object, __bind(function(err) {
+          if (err) {
+            return handler(err);
+          }
+          return handler(null, object);
+        }, this));
+      }, this));
+    };
+    DataManager.prototype.removeNote = function(object, handler) {
+      return this.storage.remove('notes', object, __bind(function(err) {
+        if (err) {
+          return handler(err);
+        }
+        return handler(null, object);
+      }, this));
+    };
+    DataManager.prototype.removeSheet = function(object, handler) {
+      return this.storage.select('notes', ['sheet_id', object.id], __bind(function(err, data) {
+        var item, _i, _len;
+        if (err) {
+          return handler(err);
+        }
+        for (_i = 0, _len = data.length; _i < _len; _i++) {
+          item = data[_i];
+          this.removeNote(item, __bind(function() {}, this));
+        }
+        return this.storage.remove('sheets', object, __bind(function(err) {
+          if (err) {
+            return handler(err);
+          }
+          return handler(null, object);
+        }, this));
+      }, this));
+    };
+    DataManager.prototype._save = function(stream, object, handler) {
+      if (!object.id) {
+        return this.storage.create(stream, object, __bind(function(err) {
+          if (err) {
+            return handler(err);
+          }
+          return handler(null, object);
+        }, this));
+      } else {
+        return this.storage.update(stream, object, __bind(function(err) {
+          if (err) {
+            return handler(err);
+          }
+          return handler(null, object);
+        }, this));
       }
     };
-    return storage.create('templates', {
-      name: 'test 01',
-      body: {
-        test: 0
-      }
-    }, function(err) {
-      log('Create result', err);
-      return storage.select('templates', [
-        'name', 'test 01', 'id', {
-          op: '>',
-          "var": 0
+    DataManager.prototype.saveTemplate = function(object, handler) {
+      return this._save('templates', object, handler);
+    };
+    DataManager.prototype.saveSheet = function(object, handler) {
+      return this._save('sheets', object, handler);
+    };
+    DataManager.prototype.saveNote = function(object, handler) {
+      return this._save('notes', object, handler);
+    };
+    return DataManager;
+  })();
+  UIProvider = (function() {
+    function UIProvider(manager) {
+      this.manager = manager;
+      $('#new_template').live('vclick', __bind(function(event) {
+        return this.editTemplate(null);
+      }, this));
+      $('#save_template').live('vclick', __bind(function(event) {
+        return this.saveTemplate(null);
+      }, this));
+      $('#remove_template').live('vclick', __bind(function(event) {
+        return this.removeTemplate(null);
+      }, this));
+      $('#templates').live('pageshow', __bind(function(event, data) {
+        return this.showTemplates(null);
+      }, this));
+      $('#edit_template').live('pageshow', __bind(function(event, data) {
+        return this.loadTemplate(null);
+      }, this));
+    }
+    UIProvider.prototype.start = function() {
+      return this.manager.open(__bind(function(err) {
+        if (err) {
+          return this.error(err);
         }
-      ], function(err, data) {
-        return log('Select', err, data);
-      });
-    });
-  });
+        return $.mobile.changePage('#index');
+      }, this));
+    };
+    UIProvider.prototype.error = function(message) {
+      log('Error', message);
+      $('#error_text').text(message);
+      return $.mobile.changePage('#error');
+    };
+    UIProvider.prototype.editTemplate = function(tmpl) {
+      this.template = tmpl != null ? tmpl : {};
+      return $.mobile.changePage('#edit_template');
+    };
+    UIProvider.prototype.saveTemplate = function() {
+      this.template.name = $('#template_name').val();
+      this.template.body = $('#template_body').val();
+      if (!this.template.name) {
+        return this.error('No name!');
+      }
+      return this.manager.saveTemplate(this.template, __bind(function(err, object) {
+        if (err) {
+          return this.error(err);
+        }
+        return $.mobile.changePage('#templates', {
+          reverse: true
+        });
+      }, this));
+    };
+    UIProvider.prototype.showTemplates = function() {
+      return this.manager.getTemplates(__bind(function(err, list) {
+        var tmpl, ul, _fn, _i, _len;
+        if (err) {
+          return this.error(err);
+        }
+        ul = $('#template_list').empty();
+        _fn = __bind(function(tmpl) {
+          var a, li;
+          li = $('<li/>').appendTo(ul);
+          a = $('<a/>').text(tmpl.name).appendTo(li);
+          return a.bind('vclick', __bind(function(event) {
+            return this.editTemplate(tmpl);
+          }, this));
+        }, this);
+        for (_i = 0, _len = list.length; _i < _len; _i++) {
+          tmpl = list[_i];
+          _fn(tmpl);
+        }
+        return ul.listview('refresh');
+      }, this));
+    };
+    UIProvider.prototype.loadTemplate = function() {
+      $('#template_name').val(this.template.name);
+      return $('#template_body').val(this.template.body);
+    };
+    UIProvider.prototype.removeTemplate = function() {
+      var _ref;
+      if ((_ref = this.template) != null ? _ref.id : void 0) {
+        return this.manager.removeTemplate(this.template, __bind(function(err) {
+          if (err) {
+            return this.error(err);
+          }
+          return $.mobile.changePage('#templates', {
+            reverse: true
+          });
+        }, this));
+      }
+    };
+    return UIProvider;
+  })();
+  window.HTML5Provider = HTML5Provider;
+  window.StorageProvider = StorageProvider;
+  window.DataManager = DataManager;
 }).call(this);
