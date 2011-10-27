@@ -1,5 +1,5 @@
 (function() {
-  var DBProvider, DataManager, HTML5Provider, StorageProvider, UIProvider;
+  var DBProvider, DataManager, HTML5Provider, StorageProvider;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -164,27 +164,27 @@
       }, this));
     };
     StorageProvider.prototype.create = function(stream, object, handler) {
-      var fields, i, numbers, questions, texts, values, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
+      var fields, i, numbers, questions, texts, values, _ref, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7;
       if (!this.schema[stream]) {
         return handler('Unsupported stream');
       }
       if (!object.id) {
-        object.id = new Date().getTime();
+        object.id = new Date().getTime() + ((_ref = this.schema[stream].index) != null ? _ref : 0);
       }
       questions = '?, ?, ?, ?, ?, ?';
       fields = 'id, status, updated, own, stream, data';
       values = [object.id, 1, object.id, 1, stream, JSON.stringify(object)];
-      numbers = (_ref = this.schema[stream].numbers) != null ? _ref : [];
-      texts = (_ref2 = this.schema[stream].texts) != null ? _ref2 : [];
-      for (i = 0, _ref3 = numbers.length; 0 <= _ref3 ? i < _ref3 : i > _ref3; 0 <= _ref3 ? i++ : i--) {
+      numbers = (_ref2 = this.schema[stream].numbers) != null ? _ref2 : [];
+      texts = (_ref3 = this.schema[stream].texts) != null ? _ref3 : [];
+      for (i = 0, _ref4 = numbers.length; 0 <= _ref4 ? i < _ref4 : i > _ref4; 0 <= _ref4 ? i++ : i--) {
         questions += ', ?';
         fields += ', i' + i;
-        values.push((_ref4 = object[numbers[i]]) != null ? _ref4 : null);
+        values.push((_ref5 = object[numbers[i]]) != null ? _ref5 : null);
       }
-      for (i = 0, _ref5 = texts.length; 0 <= _ref5 ? i < _ref5 : i > _ref5; 0 <= _ref5 ? i++ : i--) {
+      for (i = 0, _ref6 = texts.length; 0 <= _ref6 ? i < _ref6 : i > _ref6; 0 <= _ref6 ? i++ : i--) {
         questions += ', ?';
         fields += ', t' + i;
-        values.push((_ref6 = object[texts[i]]) != null ? _ref6 : null);
+        values.push((_ref7 = object[texts[i]]) != null ? _ref7 : null);
       }
       return this.db.query('insert into data (' + fields + ') values (' + questions + ')', values, __bind(function(err) {
         if (err) {
@@ -232,7 +232,7 @@
       }, this));
     };
     StorageProvider.prototype.select = function(stream, query, handler, options) {
-      var array_to_query, fields, i, name, numbers, values, where, _ref, _ref2, _ref3, _ref4, _ref5;
+      var ar, arr, array_to_query, fields, i, name, numbers, order, values, where, _i, _len, _ref, _ref2, _ref3, _ref4, _ref5;
       if (!this.schema[stream]) {
         return handler('Unsupported stream');
       }
@@ -286,14 +286,28 @@
         return result.join(" " + op + " ");
       }, this);
       where = array_to_query(query != null ? query : []);
-      return this.db.query('select data from data where stream=? and status<>? ' + (where ? 'and ' + where : '') + ' order by id', values, __bind(function(err, data) {
-        var item, result, _i, _len;
+      order = [];
+      if (options != null ? options.order : void 0) {
+        arr = options != null ? options.order : void 0;
+        if (!$.isArray(arr)) {
+          arr = [arr];
+        }
+        for (_i = 0, _len = arr.length; _i < _len; _i++) {
+          ar = arr[_i];
+          if (fields[ar]) {
+            order.push(fields[ar]);
+          }
+        }
+      }
+      order.push('id');
+      return this.db.query('select data from data where stream=? and status<>? ' + (where ? 'and ' + where : '') + ' order by ' + (order.join(',')), values, __bind(function(err, data) {
+        var item, result, _j, _len2;
         if (err) {
           return handler(err);
         }
         result = [];
-        for (_i = 0, _len = data.length; _i < _len; _i++) {
-          item = data[_i];
+        for (_j = 0, _len2 = data.length; _j < _len2; _j++) {
+          item = data[_j];
           try {
             result.push(JSON.parse(item.data));
           } catch (err) {
@@ -309,6 +323,8 @@
     function DataManager(storage) {
       this.storage = storage;
     }
+    DataManager.prototype.place_field = 'place';
+    DataManager.prototype.place_step = 100;
     DataManager.prototype.open = function(handler) {
       return this.storage.open(__bind(function(err) {
         log('Open result', err);
@@ -317,22 +333,81 @@
         }
         this.storage.schema = {
           templates: {
+            index: 0,
             texts: ['name', 'tag']
           },
           sheets: {
-            numbers: ['template_id', 'parent_id'],
-            texts: ['title']
+            index: 1,
+            numbers: ['template_id', 'place'],
+            texts: ['title', 'code']
           },
           notes: {
-            numbers: ['sheet_id', 'due', 'link_id', 'mark'],
-            texts: ['area', 'text']
+            index: 2,
+            numbers: ['sheet_id', 'place'],
+            texts: ['area', 'text', 'due']
           }
         };
         return handler(null);
       }, this));
     };
+    DataManager.prototype._resort = function(array, result) {
+      var item, place, _i, _len, _results;
+      place = this.place_step;
+      _results = [];
+      for (_i = 0, _len = array.length; _i < _len; _i++) {
+        item = array[_i];
+        item.place = place;
+        place += this.place_step;
+        _results.push(result.push(item));
+      }
+      return _results;
+    };
+    DataManager.prototype.sortArray = function(array, item, before) {
+      var bbefore, bbefore_place, before_place, el, i, result;
+      result = [];
+      if (array.length === 0) {
+        item[this.place_field] = this.place_step;
+        return result;
+      }
+      if (!before) {
+        if (array[array.length - 1][this.place_field]) {
+          item[this.place_field] = this.place_step + array[array.length - 1][this.place_field];
+        }
+        return result;
+      }
+      bbefore = null;
+      for (i in array) {
+        el = array[i];
+        if (el === before) {
+          if (i > 0) {
+            bbefore = array[i - 1];
+          }
+          break;
+        }
+      }
+      if (!before.place || (bbefore && !bbefore.place)) {
+        this._resort(array, result);
+      }
+      before_place = before[this.place_field];
+      bbefore_place = bbefore ? bbefore[this.place_field] : 0;
+      if (before_place - bbefore_place < 2) {
+        this._resort(array, result);
+        before_place = before[this.place_field];
+        bbefore_place = bbefore ? bbefore[this.place_field] : 0;
+      }
+      item[this.place_field] = Math.floor((before_place - bbefore_place) / 2) + bbefore_place;
+      return result;
+    };
     DataManager.prototype.getTemplates = function(handler) {
       return this.storage.select('templates', [], __bind(function(err, data) {
+        if (err) {
+          return handler(err);
+        }
+        return handler(null, data);
+      }, this));
+    };
+    DataManager.prototype.findSheet = function(query, handler) {
+      return this.storage.select('sheets', query, __bind(function(err, data) {
         if (err) {
           return handler(err);
         }
@@ -345,15 +420,24 @@
           return handler(err);
         }
         return handler(null, data);
-      }, this));
+      }, this), {
+        order: 'place'
+      });
     };
     DataManager.prototype.getNotes = function(sheet_id, area, handler) {
-      return this.storage.select('notes', ['sheet_id', sheet_id, 'area', area], __bind(function(err, data) {
+      var params;
+      params = ['sheet_id', sheet_id];
+      if (area) {
+        params.push('area', area);
+      }
+      return this.storage.select('notes', params, __bind(function(err, data) {
         if (err) {
           return handler(err);
         }
         return handler(null, data);
-      }, this));
+      }, this), {
+        order: 'place'
+      });
     };
     DataManager.prototype.removeTemplate = function(object, handler) {
       return this.storage.select('sheets', ['template_id', object.id], __bind(function(err, data) {
@@ -426,98 +510,6 @@
       return this._save('notes', object, handler);
     };
     return DataManager;
-  })();
-  UIProvider = (function() {
-    function UIProvider(manager) {
-      this.manager = manager;
-      $('#new_template').live('vclick', __bind(function(event) {
-        return this.editTemplate(null);
-      }, this));
-      $('#save_template').live('vclick', __bind(function(event) {
-        return this.saveTemplate(null);
-      }, this));
-      $('#remove_template').live('vclick', __bind(function(event) {
-        return this.removeTemplate(null);
-      }, this));
-      $('#templates').live('pageshow', __bind(function(event, data) {
-        return this.showTemplates(null);
-      }, this));
-      $('#edit_template').live('pageshow', __bind(function(event, data) {
-        return this.loadTemplate(null);
-      }, this));
-    }
-    UIProvider.prototype.start = function() {
-      return this.manager.open(__bind(function(err) {
-        if (err) {
-          return this.error(err);
-        }
-        return $.mobile.changePage('#index');
-      }, this));
-    };
-    UIProvider.prototype.error = function(message) {
-      log('Error', message);
-      $('#error_text').text(message);
-      return $.mobile.changePage('#error');
-    };
-    UIProvider.prototype.editTemplate = function(tmpl) {
-      this.template = tmpl != null ? tmpl : {};
-      return $.mobile.changePage('#edit_template');
-    };
-    UIProvider.prototype.saveTemplate = function() {
-      this.template.name = $('#template_name').val();
-      this.template.body = $('#template_body').val();
-      if (!this.template.name) {
-        return this.error('No name!');
-      }
-      return this.manager.saveTemplate(this.template, __bind(function(err, object) {
-        if (err) {
-          return this.error(err);
-        }
-        return $.mobile.changePage('#templates', {
-          reverse: true
-        });
-      }, this));
-    };
-    UIProvider.prototype.showTemplates = function() {
-      return this.manager.getTemplates(__bind(function(err, list) {
-        var tmpl, ul, _fn, _i, _len;
-        if (err) {
-          return this.error(err);
-        }
-        ul = $('#template_list').empty();
-        _fn = __bind(function(tmpl) {
-          var a, li;
-          li = $('<li/>').appendTo(ul);
-          a = $('<a/>').text(tmpl.name).appendTo(li);
-          return a.bind('vclick', __bind(function(event) {
-            return this.editTemplate(tmpl);
-          }, this));
-        }, this);
-        for (_i = 0, _len = list.length; _i < _len; _i++) {
-          tmpl = list[_i];
-          _fn(tmpl);
-        }
-        return ul.listview('refresh');
-      }, this));
-    };
-    UIProvider.prototype.loadTemplate = function() {
-      $('#template_name').val(this.template.name);
-      return $('#template_body').val(this.template.body);
-    };
-    UIProvider.prototype.removeTemplate = function() {
-      var _ref;
-      if ((_ref = this.template) != null ? _ref.id : void 0) {
-        return this.manager.removeTemplate(this.template, __bind(function(err) {
-          if (err) {
-            return this.error(err);
-          }
-          return $.mobile.changePage('#templates', {
-            reverse: true
-          });
-        }, this));
-      }
-    };
-    return UIProvider;
   })();
   window.HTML5Provider = HTML5Provider;
   window.StorageProvider = StorageProvider;

@@ -2,6 +2,7 @@ w2 = {
 	"defaults": {
 		"title": "Actions"
 	},
+	"direct": true,
 	"flow": [
 		{"type": "title", "name": "Actions", "edit":"@:title"},
 		{"type": "hr"},
@@ -28,58 +29,283 @@ w2 = {
 	]	
 }
 
+wnotes = {
+	"defaults": {
+		"title": "Notes"
+	},
+	"direct": true,
+	"flow": [
+		{"type": "title", "name": "Notes", "edit":"@:title"},
+		{"type": "hr"},
+		{
+			"type": "list",
+			"grid": 2,
+			"delimiter": 2,
+			"area": "main",
+			"flow": [
+				{"type": "text", "edit": "@:text"}
+			]
+		}
+	]	
+}
+
 w1 = {
-	code: 'w1${dt:(e1)ddmmyyyy}',
-	protocol: {
-		dt: {
-			'e': [1, 2, 3]
+	"code": "w13:${dt:(e1)}",
+	"protocol": {
+		"dt": {
+			"e": [1, 2, 3]
 		}
 	},
-	defaults: {
-		title: '${dt:(e1)yyyy}: ${dt:(e1)MM/dd} - ${dt:(e7)MM/dd}',
-		dt: '${dt:(e1)}',
+	"defaults": {
+		"title": "${dt:(e1)yyyy}: ${dt:(e1)MM/dd} - ${dt:(e3)MM/dd}",
+		"dt": "${dt:(e1)}"
 	},
-	flow: [
-		{type: 'title', name: 'Week ${dt:ww}/${dt:yyyy}', edit:'@:title'},
-		{type: 'hr'},
-		{type: 'title1', name: '${dt:(e1)dd} Monday'},
-		{type: 'cols', size: [0.5, 0.5], space: 10, flow: [
+	"flow": [
+		{"type": "title", "name": "Week ${dt:ww}/${dt:yyyy}", "edit":"@:title"},
+		{"type": "hr"},
+		{"type": "title1", "name": "${dt:(e1)dd} Monday"},
+		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
 			{
-				type: 'list', 
-				area: 'd1',
-				drag: 'right',
-				grid: 1,
-				delimiter: 1,
-				defaults: {due: '${dt:(e1)}'},
-				flow: [
-					{type: 'text', edit: '@:text'}
+				"type": "list", 
+				"area": "d1",
+				"drag": "right",
+				"grid": 1,
+				"delimiter": 1,
+				"defaults": {"due": "${dt:(e1)}"},
+				"flow": [
+					{"type": "text", "edit": "@:text"}
 				]
 			}, {
-				flow: [
+				"flow": [
 					{
-						type: 'list', 
-						area: 't1',
-						grid: 1,
-						delimiter: 1,
-						defaults: {due: '${dt:(e1)}'},
-						flow: [
-							{type: 'cols', size: [15, 1], flow: [
-								{type: 'check', edit: '@:done'},
-								{type: 'text', edit: '@:text'}
-							]},
+						"type": "list", 
+						"area": "t1",
+						"grid": 1,
+						"delimiter": 1,
+						"defaults": {"due": "${dt:(e1)}"},
+						"flow": [
+							{"type": "cols", "size": [15, 1], "flow": [
+								{"type": "check", "edit": "@:done"},
+								{"type": "text", "edit": "@:text"}
+							]}
 						]
 					}, {
-						type: 'list',
-						area: 'n1',
-						grid: 2,
-						delimiter: 2,
-						flow: [
-							{type: 'text', edit: '@:text'}
+						"type": "list",
+						"area": "n1",
+						"grid": 2,
+						"delimiter": 2,
+						"flow": [
+							{"type": "text", "edit": "@:text"}
 						]
 					}
 				]
 			}
 		]},
+		{"type": "title1", "name": "${dt:(e2)dd} Tuesday"},
+		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
+			{
+				"type": "list", 
+				"area": "d2",
+				"drag": "right",
+				"grid": 1,
+				"delimiter": 1,
+				"defaults": {"due": "${dt:(e2)}"},
+				"flow": [
+					{"type": "text", "edit": "@:text"}
+				]
+			}, {
+				"flow": [
+					{
+						"type": "list", 
+						"area": "t2",
+						"grid": 1,
+						"delimiter": 1,
+						"defaults": {"due": "${dt:(e2)}"},
+						"flow": [
+							{"type": "cols", "size": [15, 1], "flow": [
+								{"type": "check", "edit": "@:done"},
+								{"type": "text", "edit": "@:text"}
+							]}
+						]
+					}, {
+						"type": "list",
+						"area": "n2",
+						"grid": 2,
+						"delimiter": 2,
+						"flow": [
+							{"type": "text", "edit": "@:text"}
+						]
+					}
+				]
+			}
+		]},
+		{"type": "title1", "name": "${dt:(e3)dd} Wednesday"},
+		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
+			{
+				"type": "list", 
+				"area": "d3",
+				"drag": "right",
+				"grid": 1,
+				"delimiter": 1,
+				"defaults": {"due": "${dt:(e3)}"},
+				"flow": [
+					{"type": "text", "edit": "@:text"}
+				]
+			}, {
+				"flow": [
+					{
+						"type": "list", 
+						"area": "t3",
+						"grid": 1,
+						"delimiter": 1,
+						"defaults": {"due": "${dt:(e3)}"},
+						"flow": [
+							{"type": "cols", "size": [15, 1], "flow": [
+								{"type": "check", "edit": "@:done"},
+								{"type": "text", "edit": "@:text"}
+							]}
+						]
+					}, {
+						"type": "list",
+						"area": "n3",
+						"grid": 2,
+						"delimiter": 2,
+						"flow": [
+							{"type": "text", "edit": "@:text"}
+						]
+					}
+				]
+			}
+		]}
+	]
+}
+
+w47 = {
+	"code": "w47:${dt:(e1)}",
+	"protocol": {
+		"dt": {
+			"e": [4, 5, 6, 0]
+		}
+	},
+	"defaults": {
+		"title": "${dt:(e4)yyyy}: ${dt:(e4)MM/dd} - ${dt:(e7)MM/dd}",
+		"dt": "${dt:(e4)}"
+	},
+	"flow": [
+		{"type": "title", "name": "Week ${dt:ww}/${dt:yyyy}", "edit":"@:title"},
+		{"type": "hr"},
+		{"type": "title1", "name": "${dt:(e4)dd} Thursday"},
+		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
+			{
+				"type": "list", 
+				"area": "d1",
+				"drag": "right",
+				"grid": 1,
+				"delimiter": 1,
+				"defaults": {"due": "${dt:(e4)}"},
+				"flow": [
+					{"type": "text", "edit": "@:text"}
+				]
+			}, {
+				"flow": [
+					{
+						"type": "list", 
+						"area": "t1",
+						"grid": 1,
+						"delimiter": 1,
+						"defaults": {"due": "${dt:(e4)}"},
+						"flow": [
+							{"type": "cols", "size": [15, 1], "flow": [
+								{"type": "check", "edit": "@:done"},
+								{"type": "text", "edit": "@:text"}
+							]}
+						]
+					}, {
+						"type": "list",
+						"area": "n1",
+						"grid": 2,
+						"delimiter": 2,
+						"flow": [
+							{"type": "text", "edit": "@:text"}
+						]
+					}
+				]
+			}
+		]},
+		{"type": "title1", "name": "${dt:(e5)dd} Friday"},
+		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
+			{
+				"type": "list", 
+				"area": "d2",
+				"drag": "right",
+				"grid": 1,
+				"delimiter": 1,
+				"defaults": {"due": "${dt:(e5)}"},
+				"flow": [
+					{"type": "text", "edit": "@:text"}
+				]
+			}, {
+				"flow": [
+					{
+						"type": "list", 
+						"area": "t2",
+						"grid": 1,
+						"delimiter": 1,
+						"defaults": {"due": "${dt:(e5)}"},
+						"flow": [
+							{"type": "cols", "size": [15, 1], "flow": [
+								{"type": "check", "edit": "@:done"},
+								{"type": "text", "edit": "@:text"}
+							]}
+						]
+					}, {
+						"type": "list",
+						"area": "n2",
+						"grid": 2,
+						"delimiter": 2,
+						"flow": [
+							{"type": "text", "edit": "@:text"}
+						]
+					}
+				]
+			}
+		]},
+		{"type": "title1", "name": "${dt:(e6)dd}, ${dt:(e7)dd} Weekend"},
+		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
+			{
+				"type": "list", 
+				"area": "d3",
+				"drag": "right",
+				"grid": 1,
+				"delimiter": 1,
+				"flow": [
+					{"type": "text", "edit": "@:text"}
+				]
+			}, {
+				"flow": [
+					{
+						"type": "list", 
+						"area": "t3",
+						"grid": 1,
+						"delimiter": 1,
+						"flow": [
+							{"type": "cols", "size": [15, 1], "flow": [
+								{"type": "check", "edit": "@:done"},
+								{"type": "text", "edit": "@:text"}
+							]}
+						]
+					}, {
+						"type": "list",
+						"area": "n3",
+						"grid": 2,
+						"delimiter": 2,
+						"flow": [
+							{"type": "text", "edit": "@:text"}
+						]
+					}
+				]
+			}
+		]}
 	]
 }
 
@@ -286,9 +512,10 @@ class ListElement extends UIElement
 			drop: (event, ui) =>
 				drop = ui.draggable.data('item')
 				renderer = ui.draggable.data('renderer')
-				@renderer.on_edited drop, 'area', item.area
-				if renderer isnt @renderer
-					renderer.render null
+				@renderer.move_note drop, item.area, (if item.id then item else null), () =>
+					if renderer isnt @renderer
+						renderer.render null
+					@renderer.render null
 
 		})
 		# if not empty
@@ -326,8 +553,11 @@ class ListElement extends UIElement
 			return @_fill_empty config, element, parent, handler
 		@renderer.items config.area, (items) =>
 			for i, itm of items
+				# log 'Render', i, itm.text, itm.place
 				@_render itm, config, element, {disable: false, draggable: true}, () =>
-			@_render {area: config.area}, config, element, {disable: false}, handler
+			@_render {area: config.area}, config, element, {disable: false}, () =>
+				@renderer.fix_grid element, config
+				handler null
 
 
 
@@ -344,10 +574,6 @@ class Renderer
 			new CheckElement this
 			new MarkElement this
 			new DateElement this
-		]
-		@protocols = [
-			new DateProtocol 'dt'
-			new ItemProtocol '@'
 		]
 		@root.data('sheet', @data)
 
@@ -376,49 +602,52 @@ class Renderer
 				# log 'After inject', item[key]
 
 	inject: (txt, item) ->
-		text = txt
-		exp = ///
-			\$\{ 							#${
-			([a-z\@]+\:)					#protocol:
-			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
-			\}								#}
-		///
-		while m = text.match exp
-			# log 'inject', m, m.length
-			if not m then return text
-			value = ''
-			for p in @protocols
-				if p.name+':' is m[1]
-					value = p.convert m[2], @env
-					break
-			text = text.replace m[0], (value ? '')
-		return text
+		return @ui.inject txt, item, @env
 
 	replace: (text, item) ->
-		exp = ///^
-			([a-z\@]+\:)					#protocol:
-			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
-			$
-		///
-		if m = text.match exp
-			value = ''
-			for p in @protocols
-				if p.name+':' is m[1]
-					value = p.convert m[2], @env
-					break
-			return value
-		return text
+		return @ui.replace text, item, @env
 
 	_save_sheet: (handler) ->
+		if @template.code
+			@data.code = @inject @template.code, @data
 		@manager.saveSheet @data, (err, object) =>
 			if err then return @ui.show_error err
 			@on_sheet_change @data
 			handler object
 
+	move_note: (item, area, before, handler) ->
+		# log 'Moving', item.place, area, before
+		to_save = @manager.sortArray @items(area), item, before
+		item.area = area
+		@_save_note item, () =>
+			# log 'Saving others', to_save
+			if to_save.length is 0
+				return handler item
+			else
+				for i, el of to_save
+					last = parseInt(i) is to_save.length-1
+					do (last) =>
+						@manager.saveNote el, () =>
+							if last
+								handler item
+
 	_save_note: (item, handler) ->
-		@manager.saveNote item, (err, object) =>
-			if err then return @ui.show_error err
-			handler object
+		# log '_save_note', item.place
+		if not item.place
+			others = @items item.area
+			@manager.sortArray others, item
+		
+		if not @data.id
+			@_save_sheet (object) =>
+				item.sheet_id = @data.id
+				@manager.saveNote item, (err, object) =>
+					if err then return @ui.show_error err
+					handler object
+		else
+				item.sheet_id = @data.id
+				@manager.saveNote item, (err, object) =>
+					if err then return @ui.show_error err
+					handler object
 
 	on_edited: (item, property, value) ->
 		if not item or not property
@@ -428,15 +657,8 @@ class Renderer
 			@_save_sheet (object) =>
 				@render null
 		else
-			if not @data.id
-				@_save_sheet (object) =>
-					item.sheet_id = @data.id
-					@_save_note item, () =>
-						@render null
-			else
-				item.sheet_id = @data.id
-				@_save_note item, () =>
-					@render null
+			@_save_note item, () =>
+				@render null
 
 	remove_note: (item) ->
 		@manager.removeNote item, (err) =>
@@ -466,10 +688,13 @@ class Renderer
 
 	render: () ->
 		# @root.empty()
+		@root.addClass 'page_render'
 		@prev_content = @root.children()
-		@content = $('<div/>').addClass('page_content group').appendTo(@root)
-		@get(@template.name).render @data, @template, @content, {empty: false}, () =>
-			@fix_height null
+		@content = $('<div/>').addClass('page_content group').prependTo(@root)
+		@_load_items (data) =>
+			@notes = data
+			@get(@template.name).render @data, @template, @content, {empty: false}, () =>
+				@fix_height null
 	
 	size_too_big: () ->
 		return @root.innerHeight()<@content.outerHeight(true)
@@ -482,67 +707,32 @@ class Renderer
 				@fix_height null
 			else
 				@prev_content.remove()
-
+				@root.removeClass 'page_render'
 	
-	items: (area, handler) ->
-		@manager.getNotes @data.id, area, (err, data) =>
+	_load_items: (handler) ->
+		@manager.getNotes @data.id, null, (err, data) =>
 			if err
 				log 'Error getting items', err
 				handler []
 			else
 				handler data
 	
+	items: (area, handler) ->
+		result = []
+		for item in @notes
+			if item.area is area
+				result.push item
+		if handler then handler result
+		return result
+		# @manager.getNotes @data.id, area, (err, data) =>
+		# 	if err
+		# 		log 'Error getting items', err
+		# 		handler []
+		# 	else
+		# 		handler data
+	
 	on_sheet_change: () ->
 
-
-class Protocol
-	constructor: (@name) ->
-
-	convert: (text, value) ->
-		null
-
-	accept: (config, value) ->
-		no
-
-class ItemProtocol extends Protocol
-
-	convert: (text, value) ->
-		return text
-
-class DateProtocol extends Protocol
-
-	convert: (text, value) ->
-		dt = new Date value.dt #from int
-		exp = ///^						#start
-			(\(							#(
-			(([ewmdy][+-]?[0-9]+)+)	#e1d+2m0
-			\))?						#)
-			([EwMdy/\:\.]*)				#ddmmyyyy
-		$///
-		m = text.match exp
-		if not m then return text
-		modifiers = m[2]
-		format = if m[4] and m[4].length>0 then m[4] else 'yyyymmdd'
-		if modifiers
-			mexp = /([ewmdy][+-]?[0-9]+)/g
-			mm = modifiers.match mexp
-			for item in mm
-				mmm = item.match /([ewmdy])([+-]?)([0-9]+)/
-				if mmm
-					method = ''
-					switch mmm[1]
-						when 'e' then method = 'Day'
-						when 'w' then method = 'Week'
-						when 'd' then method = 'Date'
-						when 'm' then method = 'Month'
-						when 'y' then method = 'FullYear'
-					val = parseInt mmm[3]
-					if mmm[2]
-						dt['set'+method](dt['get'+method]()+(if mmm[2] is '+' ? val else -val))
-					else
-						dt['set'+method](val)
-		# log 'Format', dt, format
-		dt.format format
 
 window.log = (params...) ->
 	console.log.apply console, params

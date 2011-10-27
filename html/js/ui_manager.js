@@ -1,9 +1,131 @@
 (function() {
-  var UIManager;
-  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  var DateProtocol, ItemProtocol, Protocol, UIManager;
+  var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
+    function ctor() { this.constructor = child; }
+    ctor.prototype = parent.prototype;
+    child.prototype = new ctor;
+    child.__super__ = parent.prototype;
+    return child;
+  }, __indexOf = Array.prototype.indexOf || function(item) {
+    for (var i = 0, l = this.length; i < l; i++) {
+      if (this[i] === item) return i;
+    }
+    return -1;
+  }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  Protocol = (function() {
+    function Protocol() {}
+    Protocol.prototype.convert = function(text, value) {
+      return null;
+    };
+    Protocol.prototype.accept = function(config, value) {
+      return false;
+    };
+    Protocol.prototype.prepare = function(config, value) {};
+    return Protocol;
+  })();
+  ItemProtocol = (function() {
+    __extends(ItemProtocol, Protocol);
+    function ItemProtocol() {
+      ItemProtocol.__super__.constructor.apply(this, arguments);
+    }
+    ItemProtocol.prototype.convert = function(text, value) {
+      return text;
+    };
+    return ItemProtocol;
+  })();
+  DateProtocol = (function() {
+    __extends(DateProtocol, Protocol);
+    function DateProtocol() {
+      DateProtocol.__super__.constructor.apply(this, arguments);
+    }
+    DateProtocol.prototype.fromDateByType = function(type) {
+      var method;
+      method = null;
+      switch (type) {
+        case 'e':
+          method = 'Day';
+          break;
+        case 'w':
+          method = 'Week';
+          break;
+        case 'd':
+          method = 'Date';
+          break;
+        case 'm':
+          method = 'Month';
+          break;
+        case 'y':
+          method = 'FullYear';
+      }
+      return method;
+    };
+    DateProtocol.prototype.prepare = function(config, value) {
+      var dt;
+      dt = new Date();
+      dt.fromString(value.substr(value.indexOf(':') + 1));
+      return config.dt = dt;
+    };
+    DateProtocol.prototype.accept = function(config, value) {
+      var dt, method, type, val;
+      log('Check accept', value);
+      dt = new Date();
+      dt.fromString(value);
+      for (type in config) {
+        value = config[type];
+        method = this.fromDateByType(type);
+        if (!method) {
+          continue;
+        }
+        val = dt['get' + method]();
+        if (__indexOf.call(value, val) >= 0 || val === value) {
+          continue;
+        } else {
+          return false;
+        }
+      }
+      return {
+        dt: dt
+      };
+    };
+    DateProtocol.prototype.convert = function(text, value) {
+      var dt, exp, format, item, m, method, mexp, mm, mmm, modifiers, val, _i, _len;
+      dt = new Date(value.dt);
+      exp = /^(\((([ewmdy][+-]?[0-9]+)+)\))?([EwMdy\/\:\.]*)$/;
+      m = text.match(exp);
+      if (!m) {
+        return text;
+      }
+      modifiers = m[2];
+      format = m[4] && m[4].length > 0 ? m[4] : 'yyyyMMdd';
+      if (modifiers) {
+        mexp = /([ewmdy][+-]?[0-9]+)/g;
+        mm = modifiers.match(mexp);
+        for (_i = 0, _len = mm.length; _i < _len; _i++) {
+          item = mm[_i];
+          mmm = item.match(/([ewmdy])([+-]?)([0-9]+)/);
+          if (mmm) {
+            method = this.fromDateByType(mmm[1]);
+            val = parseInt(mmm[3]);
+            if (mmm[2]) {
+              dt['set' + method](dt['get' + method]() + (mmm[2] === '+' ? val : -val));
+            } else {
+              dt['set' + method](val);
+            }
+          }
+        }
+      }
+      return dt.format(format);
+    };
+    return DateProtocol;
+  })();
   UIManager = (function() {
     function UIManager(manager) {
       this.manager = manager;
+      this.protocols = {
+        "dt": new DateProtocol(null),
+        "@": new ItemProtocol(null)
+      };
       log('Create UI...');
       $('button').button();
       $('#templates_button').bind('click', __bind(function() {
@@ -35,7 +157,7 @@
       });
       $('.page').droppable({
         accept: '.sheet',
-        hoverClass: 'trash_drop',
+        hoverClass: 'page_drop',
         tolerance: 'pointer',
         drop: __bind(function(event, ui) {
           var item;
@@ -45,7 +167,107 @@
           return event.preventDefault();
         }, this)
       });
+      $('#calendar').datepicker({
+        dateFormat: 'yymmdd',
+        firstDay: 1,
+        onSelect: __bind(function(dt) {
+          this.open_link('dt:' + dt);
+          return false;
+        }, this)
+      });
     }
+    UIManager.prototype.replace = function(text, item, env) {
+      var exp, m, name, p, value, _ref;
+      exp = /^([a-z\@]+\:)([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)$/;
+      if (m = text.match(exp)) {
+        value = '';
+        _ref = this.protocols;
+        for (name in _ref) {
+          p = _ref[name];
+          if (name + ':' === m[1]) {
+            value = p.convert(m[2], env);
+            break;
+          }
+        }
+        return value;
+      }
+      return text;
+    };
+    UIManager.prototype.inject = function(txt, item, env) {
+      var exp, m, name, p, text, value, _ref;
+      text = txt;
+      exp = /\$\{([a-z\@]+\:)([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)\}/;
+      while (m = text.match(exp)) {
+        if (!m) {
+          return text;
+        }
+        value = '';
+        _ref = this.protocols;
+        for (name in _ref) {
+          p = _ref[name];
+          if (name + ':' === m[1]) {
+            value = p.convert(m[2], env);
+            break;
+          }
+        }
+        text = text.replace(m[0], value != null ? value : '');
+      }
+      return text;
+    };
+    UIManager.prototype.open_link = function(link, place) {
+      var code, config, exp, id, m, name, p, templates_found, tmpl, _ref;
+      log('Open link', link);
+      exp = /^([a-z\@]+)\:([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)$/;
+      templates_found = [];
+      if (m = link.match(exp)) {
+        name = m[1];
+        p = this.protocols[name];
+        if (!p) {
+          return;
+        }
+        _ref = this.templates;
+        for (id in _ref) {
+          tmpl = _ref[id];
+          if (tmpl.protocol && tmpl.protocol[name] && tmpl.code) {
+            config = p.accept(tmpl.protocol[name], m[2]);
+            if (!config) {
+              continue;
+            }
+            code = this.inject(tmpl.code, {}, config);
+            if (code) {
+              templates_found.push({
+                code: code,
+                template_id: id
+              });
+            }
+          }
+        }
+      }
+      log('Templates found:', templates_found);
+      if (templates_found.length === 0) {
+        this.show_error('No templates matching link');
+      }
+      if (templates_found.length === 1) {
+        this.open_sheet_by_code(templates_found[0].code, templates_found[0].template_id);
+      }
+      if (templates_found.length > 1) {
+        return this.show_error('Too many templates');
+      }
+    };
+    UIManager.prototype.open_sheet_by_code = function(code, template_id) {
+      return this.manager.findSheet(['code', code], __bind(function(err, data) {
+        if (err) {
+          return this.show_error(err);
+        }
+        if (data.length > 0) {
+          return this.show_page(data[0].template_id, data[0]);
+        } else {
+          return this.show_page(template_id, {
+            code: code
+          });
+        }
+      }, this));
+    };
     UIManager.prototype.remove_drop = function(drag) {
       log('Remove', drag.data('type'));
       if (drag.data('type') === 'note') {
@@ -192,29 +414,76 @@
       }, this));
     };
     UIManager.prototype.show_page = function(template_id, sheet, place) {
-      var renderer;
+      var conf, config, name, p, renderer, template, _ref;
       if (place == null) {
         place = '#page0';
       }
+      log('Show page', template_id, sheet, place);
       if (!this.templates || !this.templates[template_id]) {
         return this.show_error('No template found');
       }
+      template = this.templates[template_id];
       sheet.template_id = template_id;
-      renderer = new Renderer(this.manager, this, $(place), this.templates[template_id], sheet, {});
+      config = {};
+      if (template.protocol && sheet.code) {
+        _ref = template.protocol;
+        for (name in _ref) {
+          conf = _ref[name];
+          p = this.protocols[name];
+          if (!p) {
+            continue;
+          }
+          p.prepare(config, sheet.code);
+        }
+      }
+      renderer = new Renderer(this.manager, this, $(place), template, sheet, config);
       renderer.on_sheet_change = __bind(function() {
         return this.show_sheets(null);
       }, this);
       return renderer.render(null);
     };
+    UIManager.prototype.move_sheet = function(item, before) {
+      var i, itm, last, to_save, _results;
+      log('Move sheet', item.title, 'before', before != null ? before.title : void 0);
+      to_save = this.manager.sortArray(this.sheets, item, before);
+      log('After sort', item.place, to_save.length);
+      to_save.push(item);
+      _results = [];
+      for (i in to_save) {
+        itm = to_save[i];
+        last = parseInt(i) === to_save.length - 1;
+        _results.push(__bind(function(last) {
+          return this.manager.saveSheet(itm, __bind(function() {
+            if (last) {
+              return this.show_sheets(null);
+            }
+          }, this));
+        }, this)(last));
+      }
+      return _results;
+    };
     UIManager.prototype.show_sheets = function() {
       var ul;
       ul = $('#sheets').empty();
       return this.manager.getSheets(__bind(function(err, data) {
-        var item, li, _fn, _i, _len;
+        var index, item, li, _fn, _fn2, _i, _len;
         if (err) {
           return this.show_error(err);
         }
+        this.sheets = data;
+        index = 0;
         _fn = __bind(function(item) {
+          return li.droppable({
+            accept: '.sheet',
+            hoverClass: 'trash_drop',
+            tolerance: 'pointer',
+            drop: __bind(function(event, ui) {
+              this.move_sheet(ui.draggable.data('item'), item);
+              return event.preventDefault();
+            }, this)
+          });
+        }, this);
+        _fn2 = __bind(function(item) {
           return li.bind('dblclick', __bind(function() {
             return this.show_page(item.template_id, item);
           }, this));
@@ -224,27 +493,37 @@
           li = $('<li/>').addClass('sheet').appendTo(ul);
           li.data('type', 'sheet');
           li.data('item', item);
-          li.text(item.title);
+          li.draggable({
+            zIndex: 3,
+            containment: 'document',
+            helper: 'clone',
+            appendTo: 'body'
+          });
           _fn(item);
+          li.text(item.title);
+          _fn2(item);
         }
-        return ul.sortable({
-          zIndex: 3,
-          containment: 'document',
-          helper: 'clone',
-          appendTo: 'body'
+        li = $('<li/>').addClass('sheet last_sheet').appendTo(ul);
+        return li.droppable({
+          accept: '.sheet',
+          hoverClass: 'trash_drop',
+          tolerance: 'pointer',
+          drop: __bind(function(event, ui) {
+            this.move_sheet(ui.draggable.data('item'));
+            return event.preventDefault();
+          }, this)
         });
       }, this));
     };
     UIManager.prototype.new_sheet = function() {
       var ul;
-      log('Show new sheet dialog');
       $('#new_sheet_dialog').dialog({
         width: 400,
         height: 200
       });
       ul = $('#new_sheet_templates').empty();
       return this.manager.getTemplates(__bind(function(err, data) {
-        var item, li, _fn, _i, _len;
+        var item, li, tmpl, _fn, _i, _len;
         if (err) {
           return this.show_error(err);
         }
@@ -260,6 +539,13 @@
         }, this);
         for (_i = 0, _len = data.length; _i < _len; _i++) {
           item = data[_i];
+          tmpl = this.templates[item.id];
+          if (!tmpl) {
+            continue;
+          }
+          if (!tmpl.direct) {
+            continue;
+          }
           li = $('<div/>').addClass('new_sheet_template').appendTo(ul);
           li.text(item.name);
           _fn(item);

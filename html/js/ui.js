@@ -1,5 +1,5 @@
 (function() {
-  var CheckElement, ColsElement, DateElement, DateProtocol, HRElement, ItemProtocol, ListElement, MarkElement, Protocol, Renderer, SimpleElement, Textlement, Title1Element, TitleElement, UIElement, w1, w2;
+  var CheckElement, ColsElement, DateElement, HRElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, Title1Element, TitleElement, UIElement, w1, w2, w47, wnotes;
   var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -12,6 +12,7 @@
     "defaults": {
       "title": "Actions"
     },
+    "direct": true,
     "flow": [
       {
         "type": "title",
@@ -60,81 +61,437 @@
       }
     ]
   };
+  wnotes = {
+    "defaults": {
+      "title": "Notes"
+    },
+    "direct": true,
+    "flow": [
+      {
+        "type": "title",
+        "name": "Notes",
+        "edit": "@:title"
+      }, {
+        "type": "hr"
+      }, {
+        "type": "list",
+        "grid": 2,
+        "delimiter": 2,
+        "area": "main",
+        "flow": [
+          {
+            "type": "text",
+            "edit": "@:text"
+          }
+        ]
+      }
+    ]
+  };
   w1 = {
-    code: 'w1${dt:(e1)ddmmyyyy}',
-    protocol: {
-      dt: {
-        'e': [1, 2, 3]
+    "code": "w13:${dt:(e1)}",
+    "protocol": {
+      "dt": {
+        "e": [1, 2, 3]
       }
     },
-    defaults: {
-      title: '${dt:(e1)yyyy}: ${dt:(e1)MM/dd} - ${dt:(e7)MM/dd}',
-      dt: '${dt:(e1)}'
+    "defaults": {
+      "title": "${dt:(e1)yyyy}: ${dt:(e1)MM/dd} - ${dt:(e3)MM/dd}",
+      "dt": "${dt:(e1)}"
     },
-    flow: [
+    "flow": [
       {
-        type: 'title',
-        name: 'Week ${dt:ww}/${dt:yyyy}',
-        edit: '@:title'
+        "type": "title",
+        "name": "Week ${dt:ww}/${dt:yyyy}",
+        "edit": "@:title"
       }, {
-        type: 'hr'
+        "type": "hr"
       }, {
-        type: 'title1',
-        name: '${dt:(e1)dd} Monday'
+        "type": "title1",
+        "name": "${dt:(e1)dd} Monday"
       }, {
-        type: 'cols',
-        size: [0.5, 0.5],
-        space: 10,
-        flow: [
+        "type": "cols",
+        "size": [0.5, 0.5],
+        "space": 10,
+        "flow": [
           {
-            type: 'list',
-            area: 'd1',
-            drag: 'right',
-            grid: 1,
-            delimiter: 1,
-            defaults: {
-              due: '${dt:(e1)}'
+            "type": "list",
+            "area": "d1",
+            "drag": "right",
+            "grid": 1,
+            "delimiter": 1,
+            "defaults": {
+              "due": "${dt:(e1)}"
             },
-            flow: [
+            "flow": [
               {
-                type: 'text',
-                edit: '@:text'
+                "type": "text",
+                "edit": "@:text"
               }
             ]
           }, {
-            flow: [
+            "flow": [
               {
-                type: 'list',
-                area: 't1',
-                grid: 1,
-                delimiter: 1,
-                defaults: {
-                  due: '${dt:(e1)}'
+                "type": "list",
+                "area": "t1",
+                "grid": 1,
+                "delimiter": 1,
+                "defaults": {
+                  "due": "${dt:(e1)}"
                 },
-                flow: [
+                "flow": [
                   {
-                    type: 'cols',
-                    size: [15, 1],
-                    flow: [
+                    "type": "cols",
+                    "size": [15, 1],
+                    "flow": [
                       {
-                        type: 'check',
-                        edit: '@:done'
+                        "type": "check",
+                        "edit": "@:done"
                       }, {
-                        type: 'text',
-                        edit: '@:text'
+                        "type": "text",
+                        "edit": "@:text"
                       }
                     ]
                   }
                 ]
               }, {
-                type: 'list',
-                area: 'n1',
-                grid: 2,
-                delimiter: 2,
-                flow: [
+                "type": "list",
+                "area": "n1",
+                "grid": 2,
+                "delimiter": 2,
+                "flow": [
                   {
-                    type: 'text',
-                    edit: '@:text'
+                    "type": "text",
+                    "edit": "@:text"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }, {
+        "type": "title1",
+        "name": "${dt:(e2)dd} Tuesday"
+      }, {
+        "type": "cols",
+        "size": [0.5, 0.5],
+        "space": 10,
+        "flow": [
+          {
+            "type": "list",
+            "area": "d2",
+            "drag": "right",
+            "grid": 1,
+            "delimiter": 1,
+            "defaults": {
+              "due": "${dt:(e2)}"
+            },
+            "flow": [
+              {
+                "type": "text",
+                "edit": "@:text"
+              }
+            ]
+          }, {
+            "flow": [
+              {
+                "type": "list",
+                "area": "t2",
+                "grid": 1,
+                "delimiter": 1,
+                "defaults": {
+                  "due": "${dt:(e2)}"
+                },
+                "flow": [
+                  {
+                    "type": "cols",
+                    "size": [15, 1],
+                    "flow": [
+                      {
+                        "type": "check",
+                        "edit": "@:done"
+                      }, {
+                        "type": "text",
+                        "edit": "@:text"
+                      }
+                    ]
+                  }
+                ]
+              }, {
+                "type": "list",
+                "area": "n2",
+                "grid": 2,
+                "delimiter": 2,
+                "flow": [
+                  {
+                    "type": "text",
+                    "edit": "@:text"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }, {
+        "type": "title1",
+        "name": "${dt:(e3)dd} Wednesday"
+      }, {
+        "type": "cols",
+        "size": [0.5, 0.5],
+        "space": 10,
+        "flow": [
+          {
+            "type": "list",
+            "area": "d3",
+            "drag": "right",
+            "grid": 1,
+            "delimiter": 1,
+            "defaults": {
+              "due": "${dt:(e3)}"
+            },
+            "flow": [
+              {
+                "type": "text",
+                "edit": "@:text"
+              }
+            ]
+          }, {
+            "flow": [
+              {
+                "type": "list",
+                "area": "t3",
+                "grid": 1,
+                "delimiter": 1,
+                "defaults": {
+                  "due": "${dt:(e3)}"
+                },
+                "flow": [
+                  {
+                    "type": "cols",
+                    "size": [15, 1],
+                    "flow": [
+                      {
+                        "type": "check",
+                        "edit": "@:done"
+                      }, {
+                        "type": "text",
+                        "edit": "@:text"
+                      }
+                    ]
+                  }
+                ]
+              }, {
+                "type": "list",
+                "area": "n3",
+                "grid": 2,
+                "delimiter": 2,
+                "flow": [
+                  {
+                    "type": "text",
+                    "edit": "@:text"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+  w47 = {
+    "code": "w47:${dt:(e1)}",
+    "protocol": {
+      "dt": {
+        "e": [4, 5, 6, 0]
+      }
+    },
+    "defaults": {
+      "title": "${dt:(e4)yyyy}: ${dt:(e4)MM/dd} - ${dt:(e7)MM/dd}",
+      "dt": "${dt:(e4)}"
+    },
+    "flow": [
+      {
+        "type": "title",
+        "name": "Week ${dt:ww}/${dt:yyyy}",
+        "edit": "@:title"
+      }, {
+        "type": "hr"
+      }, {
+        "type": "title1",
+        "name": "${dt:(e4)dd} Thursday"
+      }, {
+        "type": "cols",
+        "size": [0.5, 0.5],
+        "space": 10,
+        "flow": [
+          {
+            "type": "list",
+            "area": "d1",
+            "drag": "right",
+            "grid": 1,
+            "delimiter": 1,
+            "defaults": {
+              "due": "${dt:(e4)}"
+            },
+            "flow": [
+              {
+                "type": "text",
+                "edit": "@:text"
+              }
+            ]
+          }, {
+            "flow": [
+              {
+                "type": "list",
+                "area": "t1",
+                "grid": 1,
+                "delimiter": 1,
+                "defaults": {
+                  "due": "${dt:(e4)}"
+                },
+                "flow": [
+                  {
+                    "type": "cols",
+                    "size": [15, 1],
+                    "flow": [
+                      {
+                        "type": "check",
+                        "edit": "@:done"
+                      }, {
+                        "type": "text",
+                        "edit": "@:text"
+                      }
+                    ]
+                  }
+                ]
+              }, {
+                "type": "list",
+                "area": "n1",
+                "grid": 2,
+                "delimiter": 2,
+                "flow": [
+                  {
+                    "type": "text",
+                    "edit": "@:text"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }, {
+        "type": "title1",
+        "name": "${dt:(e5)dd} Friday"
+      }, {
+        "type": "cols",
+        "size": [0.5, 0.5],
+        "space": 10,
+        "flow": [
+          {
+            "type": "list",
+            "area": "d2",
+            "drag": "right",
+            "grid": 1,
+            "delimiter": 1,
+            "defaults": {
+              "due": "${dt:(e5)}"
+            },
+            "flow": [
+              {
+                "type": "text",
+                "edit": "@:text"
+              }
+            ]
+          }, {
+            "flow": [
+              {
+                "type": "list",
+                "area": "t2",
+                "grid": 1,
+                "delimiter": 1,
+                "defaults": {
+                  "due": "${dt:(e5)}"
+                },
+                "flow": [
+                  {
+                    "type": "cols",
+                    "size": [15, 1],
+                    "flow": [
+                      {
+                        "type": "check",
+                        "edit": "@:done"
+                      }, {
+                        "type": "text",
+                        "edit": "@:text"
+                      }
+                    ]
+                  }
+                ]
+              }, {
+                "type": "list",
+                "area": "n2",
+                "grid": 2,
+                "delimiter": 2,
+                "flow": [
+                  {
+                    "type": "text",
+                    "edit": "@:text"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }, {
+        "type": "title1",
+        "name": "${dt:(e6)dd}, ${dt:(e7)dd} Weekend"
+      }, {
+        "type": "cols",
+        "size": [0.5, 0.5],
+        "space": 10,
+        "flow": [
+          {
+            "type": "list",
+            "area": "d3",
+            "drag": "right",
+            "grid": 1,
+            "delimiter": 1,
+            "flow": [
+              {
+                "type": "text",
+                "edit": "@:text"
+              }
+            ]
+          }, {
+            "flow": [
+              {
+                "type": "list",
+                "area": "t3",
+                "grid": 1,
+                "delimiter": 1,
+                "flow": [
+                  {
+                    "type": "cols",
+                    "size": [15, 1],
+                    "flow": [
+                      {
+                        "type": "check",
+                        "edit": "@:done"
+                      }, {
+                        "type": "text",
+                        "edit": "@:text"
+                      }
+                    ]
+                  }
+                ]
+              }, {
+                "type": "list",
+                "area": "n3",
+                "grid": 2,
+                "delimiter": 2,
+                "flow": [
+                  {
+                    "type": "text",
+                    "edit": "@:text"
                   }
                 ]
               }
@@ -468,10 +825,12 @@
           var drop, renderer;
           drop = ui.draggable.data('item');
           renderer = ui.draggable.data('renderer');
-          this.renderer.on_edited(drop, 'area', item.area);
-          if (renderer !== this.renderer) {
-            return renderer.render(null);
-          }
+          return this.renderer.move_note(drop, item.area, (item.id ? item : null), __bind(function() {
+            if (renderer !== this.renderer) {
+              renderer.render(null);
+            }
+            return this.renderer.render(null);
+          }, this));
         }, this)
       });
       return this.renderer.get('simple').render(item, config, el, {
@@ -527,7 +886,10 @@
           area: config.area
         }, config, element, {
           disable: false
-        }, handler);
+        }, __bind(function() {
+          this.renderer.fix_grid(element, config);
+          return handler(null);
+        }, this));
       }, this));
     };
     return ListElement;
@@ -541,7 +903,6 @@
       this.data = data;
       this.env = env;
       this.elements = [new SimpleElement(this), new TitleElement(this), new HRElement(this), new Title1Element(this), new ColsElement(this), new ListElement(this), new Textlement(this), new CheckElement(this), new MarkElement(this), new DateElement(this)];
-      this.protocols = [new DateProtocol('dt'), new ItemProtocol('@')];
       this.root.data('sheet', this.data);
     }
     Renderer.prototype.fix_grid = function(element, config) {
@@ -579,44 +940,15 @@
       return _results;
     };
     Renderer.prototype.inject = function(txt, item) {
-      var exp, m, p, text, value, _i, _len, _ref;
-      text = txt;
-      exp = /\$\{([a-z\@]+\:)([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)\}/;
-      while (m = text.match(exp)) {
-        if (!m) {
-          return text;
-        }
-        value = '';
-        _ref = this.protocols;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          p = _ref[_i];
-          if (p.name + ':' === m[1]) {
-            value = p.convert(m[2], this.env);
-            break;
-          }
-        }
-        text = text.replace(m[0], value != null ? value : '');
-      }
-      return text;
+      return this.ui.inject(txt, item, this.env);
     };
     Renderer.prototype.replace = function(text, item) {
-      var exp, m, p, value, _i, _len, _ref;
-      exp = /^([a-z\@]+\:)([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)$/;
-      if (m = text.match(exp)) {
-        value = '';
-        _ref = this.protocols;
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          p = _ref[_i];
-          if (p.name + ':' === m[1]) {
-            value = p.convert(m[2], this.env);
-            break;
-          }
-        }
-        return value;
-      }
-      return text;
+      return this.ui.replace(text, item, this.env);
     };
     Renderer.prototype._save_sheet = function(handler) {
+      if (this.template.code) {
+        this.data.code = this.inject(this.template.code, this.data);
+      }
       return this.manager.saveSheet(this.data, __bind(function(err, object) {
         if (err) {
           return this.ui.show_error(err);
@@ -625,13 +957,56 @@
         return handler(object);
       }, this));
     };
-    Renderer.prototype._save_note = function(item, handler) {
-      return this.manager.saveNote(item, __bind(function(err, object) {
-        if (err) {
-          return this.ui.show_error(err);
+    Renderer.prototype.move_note = function(item, area, before, handler) {
+      var to_save;
+      to_save = this.manager.sortArray(this.items(area), item, before);
+      item.area = area;
+      return this._save_note(item, __bind(function() {
+        var el, i, last, _results;
+        if (to_save.length === 0) {
+          return handler(item);
+        } else {
+          _results = [];
+          for (i in to_save) {
+            el = to_save[i];
+            last = parseInt(i) === to_save.length - 1;
+            _results.push(__bind(function(last) {
+              return this.manager.saveNote(el, __bind(function() {
+                if (last) {
+                  return handler(item);
+                }
+              }, this));
+            }, this)(last));
+          }
+          return _results;
         }
-        return handler(object);
       }, this));
+    };
+    Renderer.prototype._save_note = function(item, handler) {
+      var others;
+      if (!item.place) {
+        others = this.items(item.area);
+        this.manager.sortArray(others, item);
+      }
+      if (!this.data.id) {
+        return this._save_sheet(__bind(function(object) {
+          item.sheet_id = this.data.id;
+          return this.manager.saveNote(item, __bind(function(err, object) {
+            if (err) {
+              return this.ui.show_error(err);
+            }
+            return handler(object);
+          }, this));
+        }, this));
+      } else {
+        item.sheet_id = this.data.id;
+        return this.manager.saveNote(item, __bind(function(err, object) {
+          if (err) {
+            return this.ui.show_error(err);
+          }
+          return handler(object);
+        }, this));
+      }
     };
     Renderer.prototype.on_edited = function(item, property, value) {
       if (!item || !property) {
@@ -643,19 +1018,9 @@
           return this.render(null);
         }, this));
       } else {
-        if (!this.data.id) {
-          return this._save_sheet(__bind(function(object) {
-            item.sheet_id = this.data.id;
-            return this._save_note(item, __bind(function() {
-              return this.render(null);
-            }, this));
-          }, this));
-        } else {
-          item.sheet_id = this.data.id;
-          return this._save_note(item, __bind(function() {
-            return this.render(null);
-          }, this));
-        }
+        return this._save_note(item, __bind(function() {
+          return this.render(null);
+        }, this));
       }
     };
     Renderer.prototype.remove_note = function(item) {
@@ -696,12 +1061,16 @@
       }, this));
     };
     Renderer.prototype.render = function() {
+      this.root.addClass('page_render');
       this.prev_content = this.root.children();
-      this.content = $('<div/>').addClass('page_content group').appendTo(this.root);
-      return this.get(this.template.name).render(this.data, this.template, this.content, {
-        empty: false
-      }, __bind(function() {
-        return this.fix_height(null);
+      this.content = $('<div/>').addClass('page_content group').prependTo(this.root);
+      return this._load_items(__bind(function(data) {
+        this.notes = data;
+        return this.get(this.template.name).render(this.data, this.template, this.content, {
+          empty: false
+        }, __bind(function() {
+          return this.fix_height(null);
+        }, this));
       }, this));
     };
     Renderer.prototype.size_too_big = function() {
@@ -715,12 +1084,13 @@
         if (this.have_space) {
           return this.fix_height(null);
         } else {
-          return this.prev_content.remove();
+          this.prev_content.remove();
+          return this.root.removeClass('page_render');
         }
       }, this));
     };
-    Renderer.prototype.items = function(area, handler) {
-      return this.manager.getNotes(this.data.id, area, __bind(function(err, data) {
+    Renderer.prototype._load_items = function(handler) {
+      return this.manager.getNotes(this.data.id, null, __bind(function(err, data) {
         if (err) {
           log('Error getting items', err);
           return handler([]);
@@ -729,82 +1099,23 @@
         }
       }, this));
     };
-    Renderer.prototype.on_sheet_change = function() {};
-    return Renderer;
-  })();
-  Protocol = (function() {
-    function Protocol(name) {
-      this.name = name;
-    }
-    Protocol.prototype.convert = function(text, value) {
-      return null;
-    };
-    Protocol.prototype.accept = function(config, value) {
-      return false;
-    };
-    return Protocol;
-  })();
-  ItemProtocol = (function() {
-    __extends(ItemProtocol, Protocol);
-    function ItemProtocol() {
-      ItemProtocol.__super__.constructor.apply(this, arguments);
-    }
-    ItemProtocol.prototype.convert = function(text, value) {
-      return text;
-    };
-    return ItemProtocol;
-  })();
-  DateProtocol = (function() {
-    __extends(DateProtocol, Protocol);
-    function DateProtocol() {
-      DateProtocol.__super__.constructor.apply(this, arguments);
-    }
-    DateProtocol.prototype.convert = function(text, value) {
-      var dt, exp, format, item, m, method, mexp, mm, mmm, modifiers, val, _i, _len, _ref;
-      dt = new Date(value.dt);
-      exp = /^(\((([ewmdy][+-]?[0-9]+)+)\))?([EwMdy\/\:\.]*)$/;
-      m = text.match(exp);
-      if (!m) {
-        return text;
-      }
-      modifiers = m[2];
-      format = m[4] && m[4].length > 0 ? m[4] : 'yyyymmdd';
-      if (modifiers) {
-        mexp = /([ewmdy][+-]?[0-9]+)/g;
-        mm = modifiers.match(mexp);
-        for (_i = 0, _len = mm.length; _i < _len; _i++) {
-          item = mm[_i];
-          mmm = item.match(/([ewmdy])([+-]?)([0-9]+)/);
-          if (mmm) {
-            method = '';
-            switch (mmm[1]) {
-              case 'e':
-                method = 'Day';
-                break;
-              case 'w':
-                method = 'Week';
-                break;
-              case 'd':
-                method = 'Date';
-                break;
-              case 'm':
-                method = 'Month';
-                break;
-              case 'y':
-                method = 'FullYear';
-            }
-            val = parseInt(mmm[3]);
-            if (mmm[2]) {
-              dt['set' + method](dt['get' + method]() + (((_ref = mmm[2] === '+') != null ? _ref : val) ? void 0 : -val));
-            } else {
-              dt['set' + method](val);
-            }
-          }
+    Renderer.prototype.items = function(area, handler) {
+      var item, result, _i, _len, _ref;
+      result = [];
+      _ref = this.notes;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        item = _ref[_i];
+        if (item.area === area) {
+          result.push(item);
         }
       }
-      return dt.format(format);
+      if (handler) {
+        handler(result);
+      }
+      return result;
     };
-    return DateProtocol;
+    Renderer.prototype.on_sheet_change = function() {};
+    return Renderer;
   })();
   window.log = function() {
     var params;

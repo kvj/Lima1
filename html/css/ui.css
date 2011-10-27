@@ -1,5 +1,5 @@
 body {
-	font-family: Tahoma, Sans-serif, Arial;
+	font-family: Calibri, Tahoma, Sans-serif, Arial;
 	font-size: 0.75em;
 	margin: 0px;
 	padding: 0px;
@@ -35,7 +35,7 @@ body {
 }
 
 #left {
-	width: 200px;
+	width: 230px;
 }
 
 .right {
@@ -47,7 +47,7 @@ body {
 }
 
 #right {
-	left: 200px;
+	left: 230px;
 }
 
 .clear {
@@ -73,10 +73,11 @@ body {
 }
 
 .page {
+	font-size: 1.1em;
 	margin: 20px;
 	border: 1px solid #aaaaaa;
 	width: 30em;
-	height: 42em;
+	height: 45em;
 	float: left;
 	overflow: auto;
 	position: relative;
@@ -95,7 +96,7 @@ body {
 }
 
 .hr {
-	height: 1.7em;
+	height: 1.4em;
 	border: 1px solid #222222;
 	background-color: #aaaaaa;
 	margin-top: 0.5em;
@@ -216,7 +217,7 @@ body {
 	background-color: #ffffff;
 	border-bottom: 2px solid #dddddd;
 	border-right: 2px solid #dddddd;
-	z-index: 3;
+	z-index: 2;
 }
 
 .mark_editor {
@@ -227,7 +228,14 @@ body {
 	position: relative;
 	border: 1px solid #dddddd;
 	background-color: #ffffff;
-	z-index: 3;
+}
+
+.mark1 {
+	background-color: #aa0000;
+}
+
+.mark2 {
+	background-color: #00aa00;
 }
 
 .date_editor {
@@ -319,6 +327,7 @@ li {
 	padding: 5px;
 	border-width: 2px;
 	border-radius: 3px;
+	cursor: pointer;
 }
 
 #trash {
@@ -333,4 +342,24 @@ li {
 
 .checked {
 	background-color: #aaaaaa;
+}
+
+.page_drop {
+	border-color: #ddddff;
+}
+
+#calendar .ui-state-active {
+	background: inherit !important;
+}
+
+.ui-widget {
+	font-family: inherit;
+}
+
+.page_render {
+	opacity: 0.8;
+}
+
+.last_sheet {
+	border-width: 0px;
 }

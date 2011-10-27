@@ -1,5 +1,83 @@
+class Protocol
+	constructor: () ->
+
+	convert: (text, value) ->
+		null
+
+	accept: (config, value) ->
+		no
+	
+	prepare: (config, value) ->
+
+class ItemProtocol extends Protocol
+
+	convert: (text, value) ->
+		return text
+
+class DateProtocol extends Protocol
+
+	fromDateByType: (type) ->
+		method = null
+		switch type
+			when 'e' then method = 'Day'
+			when 'w' then method = 'Week'
+			when 'd' then method = 'Date'
+			when 'm' then method = 'Month'
+			when 'y' then method = 'FullYear'
+		method
+
+	prepare: (config, value) ->
+		dt = new Date()
+		dt.fromString value.substr(value.indexOf(':')+1)
+		config.dt = dt
+
+	accept: (config, value) ->
+		log 'Check accept', value
+		dt = new Date()
+		dt.fromString value
+		for type, value of config
+			method = @fromDateByType type
+			if not method then continue
+			val = dt['get'+method]()
+			if val in value or val is value
+				continue
+			else
+				return no
+		return {dt: dt}
+	
+	convert: (text, value) ->
+		dt = new Date value.dt #from int
+		exp = ///^						#start
+			(\(							#(
+			(([ewmdy][+-]?[0-9]+)+)	#e1d+2m0
+			\))?						#)
+			([EwMdy/\:\.]*)				#ddmmyyyy
+		$///
+		m = text.match exp
+		if not m then return text
+		modifiers = m[2]
+		format = if m[4] and m[4].length>0 then m[4] else 'yyyyMMdd'
+		if modifiers
+			mexp = /([ewmdy][+-]?[0-9]+)/g
+			mm = modifiers.match mexp
+			for item in mm
+				mmm = item.match /([ewmdy])([+-]?)([0-9]+)/
+				if mmm
+					method = @fromDateByType mmm[1]
+					val = parseInt mmm[3]
+					if mmm[2]
+						dt['set'+method](dt['get'+method]()+(if mmm[2] is '+' then val else -val))
+					else
+						dt['set'+method](val)
+		# log 'Format', dt, format
+		dt.format format
+
 class UIManager
 	constructor: (@manager) ->
+		@protocols = {
+			"dt": new DateProtocol null
+			"@": new ItemProtocol null
+		}
 		log 'Create UI...'
 		$('button').button();
 		$('#templates_button').bind 'click', () =>
@@ -27,15 +105,89 @@ class UIManager
 		});
 		$('.page').droppable({
 			accept: '.sheet',
-			hoverClass: 'trash_drop',
+			hoverClass: 'page_drop',
 			tolerance: 'pointer',
 			drop: (event, ui) =>
 				item = ui.draggable.data('item')
 				log 'Drop', event.target
 				@show_page item.template_id, item, '#'+$(event.target).attr('id')
 				event.preventDefault()
-		})
+		});
+		$('#calendar').datepicker({
+			dateFormat: 'yymmdd',
+			firstDay: 1,
+			onSelect: (dt) =>
+				@open_link 'dt:'+dt
+				return false
+		});
 
+	replace: (text, item, env) ->
+		exp = ///^
+			([a-z\@]+\:)					#protocol:
+			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
+			$
+		///
+		if m = text.match exp
+			value = ''
+			for name, p of @protocols
+				if name+':' is m[1]
+					value = p.convert m[2], env
+					break
+			return value
+		return text
+	
+	inject: (txt, item, env) ->
+		text = txt
+		exp = ///
+			\$\{ 							#${
+			([a-z\@]+\:)					#protocol:
+			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
+			\}								#}
+		///
+		while m = text.match exp
+			if not m then return text
+			value = ''
+			for name, p of @protocols
+				if name+':' is m[1]
+					value = p.convert m[2], env
+					break
+			text = text.replace m[0], (value ? '')
+		return text
+
+	open_link: (link, place) ->
+		log 'Open link', link
+		exp = ///^
+			([a-z\@]+)\:					#protocol:
+			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
+			$
+		///
+		templates_found = []
+		if m = link.match exp
+			name = m[1]
+			p = @protocols[name]
+			if not p then return
+			for id, tmpl of @templates
+				if tmpl.protocol and tmpl.protocol[name] and tmpl.code
+					config = p.accept tmpl.protocol[name], m[2]
+					if not config then continue
+					code = @inject tmpl.code, {}, config
+					if code
+						templates_found.push {code: code, template_id: id}
+		log 'Templates found:', templates_found
+		if templates_found.length is 0
+			@show_error 'No templates matching link'
+		if templates_found.length is 1
+			@open_sheet_by_code templates_found[0].code, templates_found[0].template_id
+		if templates_found.length > 1
+			@show_error 'Too many templates'
+
+	open_sheet_by_code: (code, template_id) ->
+		@manager.findSheet ['code', code], (err, data) =>
+			if err then return @show_error err
+			if data.length>0
+				@show_page data[0].template_id, data[0]
+			else
+				@show_page template_id, {code: code}
 	remove_drop: (drag) ->
 		log 'Remove', drag.data('type')
 		if drag.data('type') is 'note'
@@ -137,36 +289,85 @@ class UIManager
 					log 'JSON error', e
 
 	show_page: (template_id, sheet, place = '#page0') ->
+		log 'Show page', template_id, sheet, place
 		if not @templates or not @templates[template_id]
 			return @show_error 'No template found'
+		template = @templates[template_id]
 		sheet.template_id = template_id
-		renderer = new Renderer @manager, this, $(place), @templates[template_id], sheet, {}
+		config = {}
+		if template.protocol and sheet.code
+			for name, conf of template.protocol
+				p = @protocols[name]
+				if not p then continue
+				p.prepare config, sheet.code
+		renderer = new Renderer @manager, this, $(place), template, sheet, config
 		renderer.on_sheet_change = () =>
 			@show_sheets null
 		renderer.render null
+
+	move_sheet: (item, before) ->
+		log 'Move sheet', item.title, 'before', before?.title
+		to_save = @manager.sortArray @sheets, item, before
+		log 'After sort', item.place, to_save.length
+		to_save.push item
+		for i, itm of to_save
+			last = parseInt(i) is to_save.length-1
+			do (last) =>
+				@manager.saveSheet itm, () =>
+					if last
+						@show_sheets null
 
 	show_sheets: () ->
 		ul = $('#sheets').empty()
 		@manager.getSheets (err, data) =>
 			if err then return @show_error(err)
+			@sheets = data
+			index = 0
 			for item in data
+				# log 'Show sheet', item.title, item.place
 				li = $('<li/>').addClass('sheet').appendTo(ul)
 				li.data('type', 'sheet')
 				li.data('item', item)
-				# li.sortable({revert: true, zIndex: 3, containment: 'document', helper: 'clone'})
+				li.draggable({
+					zIndex: 3
+					containment: 'document'
+					helper: 'clone' 
+					appendTo: 'body'
+				})
+				do (item) =>
+					li.droppable({
+						accept: '.sheet',
+						hoverClass: 'trash_drop',
+						tolerance: 'pointer',
+						drop: (event, ui) =>
+							@move_sheet ui.draggable.data('item'), item
+							event.preventDefault()
+					})
 				li.text(item.title)
 				do (item) =>
 					li.bind 'dblclick', () =>
 						@show_page item.template_id, item
-			ul.sortable({zIndex: 3, containment: 'document', helper: 'clone', appendTo: 'body'})
+			li = $('<li/>').addClass('sheet last_sheet').appendTo(ul)
+			li.droppable({
+				accept: '.sheet',
+				hoverClass: 'trash_drop',
+				tolerance: 'pointer',
+				drop: (event, ui) =>
+					@move_sheet ui.draggable.data('item')
+					event.preventDefault()
+			})
 
 	new_sheet: () ->
-		log 'Show new sheet dialog'
 		$('#new_sheet_dialog').dialog({width: 400, height: 200})
 		ul = $('#new_sheet_templates').empty()
 		@manager.getTemplates (err, data) =>
 			if err then return @show_error(err)
 			for item in data
+				tmpl = @templates[item.id]
+				if not tmpl
+					continue
+				if not tmpl.direct
+					continue
 				li = $('<div/>').addClass('new_sheet_template').appendTo(ul)
 				li.text(item.name)
 				do (item) =>

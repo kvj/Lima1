@@ -114,7 +114,7 @@ class StorageProvider
 		if not @schema[stream]
 			return handler 'Unsupported stream'
 		if not object.id
-		  object.id = new Date().getTime()
+		  object.id = new Date().getTime()+(@schema[stream].index ? 0)
 		questions = '?, ?, ?, ?, ?, ?'
 		fields = 'id, status, updated, own, stream, data'
 		values = [object.id, 1, object.id, 1, stream, JSON.stringify(object)]
@@ -194,7 +194,15 @@ class StorageProvider
 					i++
 			result.join " #{op} "
 		where = array_to_query query ? []
-		@db.query 'select data from data where stream=? and status<>? '+(if where then 'and '+where else '')+' order by id', values, (err, data) =>
+		order = []
+		if options?.order
+			arr = options?.order
+			if not $.isArray(arr)
+				arr = [arr]
+			for ar in arr
+				if fields[ar] then order.push fields[ar]
+		order.push 'id'
+		@db.query 'select data from data where stream=? and status<>? '+(if where then 'and '+where else '')+' order by '+(order.join ','), values, (err, data) =>
 			if err then return handler err
 			result = []
 			for item in data
@@ -207,23 +215,67 @@ class DataManager
 
 	constructor: (@storage) ->
 	
+	place_field: 'place'
+	place_step: 100
+
 	open: (handler) ->
 		@storage.open (err) =>
 			log 'Open result', err 
 			if err then return handler err
 			@storage.schema = 
 				templates:
+					index: 0
 					texts: ['name', 'tag']
 				sheets:
-					numbers: ['template_id', 'parent_id']
-					texts: ['title']
+					index: 1
+					numbers: ['template_id', 'place']
+					texts: ['title', 'code']
 				notes:
-					numbers: ['sheet_id', 'due', 'link_id', 'mark']
-					texts: ['area', 'text']
+					index: 2
+					numbers: ['sheet_id', 'place']
+					texts: ['area', 'text', 'due']
 			handler null
+
+	_resort: (array, result) ->
+		place = @place_step
+		for item in array
+			item.place = place
+			place += @place_step
+			result.push item
+
+	sortArray: (array, item, before) ->
+		result = []
+		if array.length is 0
+			item[@place_field] = @place_step
+			return result
+		if not before
+			# Add to the end
+			if array[array.length-1][@place_field]
+				item[@place_field] = @place_step+array[array.length-1][@place_field]
+			return result
+		bbefore = null
+		for i, el of array
+			if el is before
+				if i>0 then bbefore = array[i-1]
+				break
+		if not before.place or (bbefore and not bbefore.place)
+			@_resort array, result
+		before_place = before[@place_field]
+		bbefore_place = if bbefore then bbefore[@place_field] else 0
+		if before_place-bbefore_place<2
+			@_resort array, result
+			before_place = before[@place_field]
+			bbefore_place = if bbefore then bbefore[@place_field] else 0
+		item[@place_field] = Math.floor((before_place-bbefore_place)/2)+bbefore_place
+		return result
 
 	getTemplates: (handler) ->
 		@storage.select 'templates', [], (err, data) =>
+			if err then return handler err
+			handler null, data
+
+	findSheet: (query, handler) ->
+		@storage.select 'sheets', query, (err, data) =>
 			if err then return handler err
 			handler null, data
 
@@ -231,11 +283,16 @@ class DataManager
 		@storage.select 'sheets', [], (err, data) =>
 			if err then return handler err
 			handler null, data
+		, {order: 'place'}
 
 	getNotes: (sheet_id, area, handler) ->
-		@storage.select 'notes', ['sheet_id', sheet_id, 'area', area], (err, data) =>
+		params = ['sheet_id', sheet_id]
+		if area
+			params.push 'area', area
+		@storage.select 'notes', params, (err, data) =>
 			if err then return handler err
 			handler null, data
+		, {order: 'place'}
 
 	removeTemplate: (object, handler) ->
 		@storage.select 'sheets', ['template_id', object.id], (err, data) =>
@@ -278,66 +335,6 @@ class DataManager
 
 	saveNote: (object, handler) ->
 		@_save 'notes', object, handler
-
-class UIProvider
-
-	constructor: (@manager) ->
-		$('#new_template').live 'vclick', (event) =>
-			@editTemplate null
-		$('#save_template').live 'vclick', (event) =>
-			@saveTemplate null
-		$('#remove_template').live 'vclick', (event) =>
-			@removeTemplate null
-		$('#templates').live 'pageshow', (event, data) =>
-			@showTemplates null
-		$('#edit_template').live 'pageshow', (event, data) =>
-			@loadTemplate null
-
-	start: ->
-		@manager.open (err) =>
-			if err then return @error err
-			$.mobile.changePage '#index'
-
-	error: (message) ->
-		log 'Error', message
-		$('#error_text').text message
-		$.mobile.changePage '#error'
-
-	editTemplate: (tmpl) ->
-		@template = tmpl ? {}
-		$.mobile.changePage '#edit_template'
-
-	saveTemplate: ->
-		@template.name = $('#template_name').val()
-		@template.body = $('#template_body').val()
-		if not @template.name then return @error 'No name!'
-		@manager.saveTemplate @template, (err, object) =>
-			if err then return @error err
-			$.mobile.changePage '#templates'
-				reverse: yes
-
-	showTemplates: ->
-		@manager.getTemplates (err, list) =>
-			if err then return @error err
-			ul = $('#template_list').empty();
-			for tmpl in list
-				do (tmpl) => 
-					li = $('<li/>').appendTo ul
-					a = $('<a/>').text(tmpl.name).appendTo li
-					a.bind 'vclick', (event) =>
-						@editTemplate tmpl
-			ul.listview('refresh')
-
-	loadTemplate: ->
-		$('#template_name').val(@template.name)
-		$('#template_body').val(@template.body)
-	
-	removeTemplate: ->
-		if @template?.id
-			@manager.removeTemplate @template, (err) =>
-				if err then return @error err
-				$.mobile.changePage '#templates'
-					reverse: yes
 
 window.HTML5Provider = HTML5Provider
 window.StorageProvider = StorageProvider
