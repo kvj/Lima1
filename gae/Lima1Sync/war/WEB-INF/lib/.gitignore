@@ -1,4 +1,5 @@
+*.jar
 !slf4j*
 !log4j*
-!jetisson*
+!jettison*
 !cors*
