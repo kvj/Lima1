@@ -8,19 +8,18 @@ w2 = {
 		{"type": "hr"},
 		{
 			"type": "list",
-			"grid": 1,
 			"area": "main",
 			"config": {
-				"grid": 1,
+				"grid": 2,
 				"delimiter": 1
 			},
 			"flow": [
-				{"type": "cols", "size": [20, 1, 35], "flow": [
+				{"type": "cols", "size": [0.05, 0.8, 0.15], "flow": [
 					{"type": "check", "edit": "@:done"},
 					{"type": "text", "edit": "@:text"},
-					{"type": "date", "edit": "@:due"}
+					{"type": "date", "edit": "@:due", "border": "1lb"}
 				]},
-				{"type": "cols", "size": [15, 1], "flow": [
+				{"type": "cols", "size": [0.05, 0.95], "flow": [
 					{"type": "mark", "edit": "@:mark"},
 					{"type": "text", "edit": "@:notes"}
 				]}
@@ -64,7 +63,7 @@ w1 = {
 		{"type": "title", "name": "Week ${dt:ww}/${dt:yyyy}", "edit":"@:title"},
 		{"type": "hr"},
 		{"type": "title1", "name": "${dt:(e1)dd} Monday"},
-		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
+		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
 			{
 				"type": "list", 
 				"area": "d1",
@@ -73,7 +72,10 @@ w1 = {
 				"delimiter": 1,
 				"defaults": {"due": "${dt:(e1)}"},
 				"flow": [
-					{"type": "text", "edit": "@:text"}
+					{"type": "cols", "size": [0.15, 0.85], "flow": [
+						{"type": "time", "edit": "@:time", "bg": 1},
+						{"type": "text", "edit": "@:text"}
+					]}
 				]
 			}, {
 				"flow": [
@@ -84,7 +86,7 @@ w1 = {
 						"delimiter": 1,
 						"defaults": {"due": "${dt:(e1)}"},
 						"flow": [
-							{"type": "cols", "size": [15, 1], "flow": [
+							{"type": "cols", "size": [0.1, 0.9], "flow": [
 								{"type": "check", "edit": "@:done"},
 								{"type": "text", "edit": "@:text"}
 							]}
@@ -102,7 +104,7 @@ w1 = {
 			}
 		]},
 		{"type": "title1", "name": "${dt:(e2)dd} Tuesday"},
-		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
+		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
 			{
 				"type": "list", 
 				"area": "d2",
@@ -111,7 +113,10 @@ w1 = {
 				"delimiter": 1,
 				"defaults": {"due": "${dt:(e2)}"},
 				"flow": [
-					{"type": "text", "edit": "@:text"}
+					{"type": "cols", "size": [0.15, 0.85], "flow": [
+						{"type": "time", "edit": "@:time", "bg": 1},
+						{"type": "text", "edit": "@:text"}
+					]}
 				]
 			}, {
 				"flow": [
@@ -122,7 +127,7 @@ w1 = {
 						"delimiter": 1,
 						"defaults": {"due": "${dt:(e2)}"},
 						"flow": [
-							{"type": "cols", "size": [15, 1], "flow": [
+							{"type": "cols", "size": [0.1, 0.9], "flow": [
 								{"type": "check", "edit": "@:done"},
 								{"type": "text", "edit": "@:text"}
 							]}
@@ -140,7 +145,7 @@ w1 = {
 			}
 		]},
 		{"type": "title1", "name": "${dt:(e3)dd} Wednesday"},
-		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
+		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
 			{
 				"type": "list", 
 				"area": "d3",
@@ -149,7 +154,10 @@ w1 = {
 				"delimiter": 1,
 				"defaults": {"due": "${dt:(e3)}"},
 				"flow": [
-					{"type": "text", "edit": "@:text"}
+					{"type": "cols", "size": [0.15, 0.85], "flow": [
+						{"type": "time", "edit": "@:time", "bg": 1},
+						{"type": "text", "edit": "@:text"}
+					]}
 				]
 			}, {
 				"flow": [
@@ -160,7 +168,7 @@ w1 = {
 						"delimiter": 1,
 						"defaults": {"due": "${dt:(e3)}"},
 						"flow": [
-							{"type": "cols", "size": [15, 1], "flow": [
+							{"type": "cols", "size": [0.1, 0.9], "flow": [
 								{"type": "check", "edit": "@:done"},
 								{"type": "text", "edit": "@:text"}
 							]}
@@ -195,7 +203,7 @@ w47 = {
 		{"type": "title", "name": "Week ${dt:ww}/${dt:yyyy}", "edit":"@:title"},
 		{"type": "hr"},
 		{"type": "title1", "name": "${dt:(e4)dd} Thursday"},
-		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
+		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
 			{
 				"type": "list", 
 				"area": "d1",
@@ -204,7 +212,10 @@ w47 = {
 				"delimiter": 1,
 				"defaults": {"due": "${dt:(e4)}"},
 				"flow": [
-					{"type": "text", "edit": "@:text"}
+					{"type": "cols", "size": [0.15, 0.85], "flow": [
+						{"type": "time", "edit": "@:time", "bg": 1},
+						{"type": "text", "edit": "@:text"}
+					]}
 				]
 			}, {
 				"flow": [
@@ -215,7 +226,7 @@ w47 = {
 						"delimiter": 1,
 						"defaults": {"due": "${dt:(e4)}"},
 						"flow": [
-							{"type": "cols", "size": [15, 1], "flow": [
+							{"type": "cols", "size": [0.1, 0.9], "flow": [
 								{"type": "check", "edit": "@:done"},
 								{"type": "text", "edit": "@:text"}
 							]}
@@ -233,7 +244,7 @@ w47 = {
 			}
 		]},
 		{"type": "title1", "name": "${dt:(e5)dd} Friday"},
-		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
+		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
 			{
 				"type": "list", 
 				"area": "d2",
@@ -242,7 +253,10 @@ w47 = {
 				"delimiter": 1,
 				"defaults": {"due": "${dt:(e5)}"},
 				"flow": [
-					{"type": "text", "edit": "@:text"}
+					{"type": "cols", "size": [0.15, 0.85], "flow": [
+						{"type": "time", "edit": "@:time", "bg": 1},
+						{"type": "text", "edit": "@:text"}
+					]}
 				]
 			}, {
 				"flow": [
@@ -253,7 +267,7 @@ w47 = {
 						"delimiter": 1,
 						"defaults": {"due": "${dt:(e5)}"},
 						"flow": [
-							{"type": "cols", "size": [15, 1], "flow": [
+							{"type": "cols", "size": [0.1, 0.9], "flow": [
 								{"type": "check", "edit": "@:done"},
 								{"type": "text", "edit": "@:text"}
 							]}
@@ -271,7 +285,7 @@ w47 = {
 			}
 		]},
 		{"type": "title1", "name": "${dt:(e6)dd}, ${dt:(e7)dd} Weekend"},
-		{"type": "cols", "size": [0.5, 0.5], "space": 10, "flow": [
+		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
 			{
 				"type": "list", 
 				"area": "d3",
@@ -279,7 +293,10 @@ w47 = {
 				"grid": 1,
 				"delimiter": 1,
 				"flow": [
-					{"type": "text", "edit": "@:text"}
+					{"type": "cols", "size": [0.15, 0.85], "flow": [
+						{"type": "time", "edit": "@:time", "bg": 1},
+						{"type": "text", "edit": "@:text"}
+					]}
 				]
 			}, {
 				"flow": [
@@ -289,7 +306,7 @@ w47 = {
 						"grid": 1,
 						"delimiter": 1,
 						"flow": [
-							{"type": "cols", "size": [15, 1], "flow": [
+							{"type": "cols", "size": [0.1, 0.9], "flow": [
 								{"type": "check", "edit": "@:done"},
 								{"type": "text", "edit": "@:text"}
 							]}
@@ -315,6 +332,14 @@ class UIElement
 	child: (element, cl, index) ->
 		child = element.children(cl).eq(index)
 		if child.size() is 1 then child else null
+	
+	fix_decoration: (item, config, element) ->
+		if config.bg
+			element.addClass('bg'+config.bg)
+		if config.border
+			[type, chars...] = config.border.split('')
+			for ch in chars
+				element.addClass('border'+type+ch)
 
 	render: (item, config, element, options, handler) ->
 		handler null
@@ -332,6 +357,7 @@ class SimpleElement extends UIElement
 			do (i) =>
 				# log i, fl
 				el = @child(element, '.simple', i) ? $('<div/>').addClass('simple').appendTo(element)
+				@fix_decoration item, fl, el
 				@renderer.get(fl.type).render item, fl, el, options, () =>
 					if i is flow.length-1
 						@renderer.fix_grid element, if config.type is 'list' then config.config else config
@@ -357,7 +383,11 @@ class Textlement extends UIElement
 		if options.empty then return handler
 		el = $('<div/>').addClass('text_editor').appendTo(element)
 		if config.edit and not options.readonly
-			@renderer.text_editor el, item, (@renderer.replace config.edit)
+			property = @renderer.replace config.edit
+			ed = @renderer.text_editor el, item, property
+			ed.attr('item_id', item.id)
+			ed.attr('property', property)
+			ed.attr('option', options.text_option)
 		handler null
 
 class CheckElement extends UIElement
@@ -407,13 +437,122 @@ class DateElement extends UIElement
 		$('<div style="clear: both;"/>').appendTo(element)
 		handler null
 
+class TimeElement extends UIElement
+
+	name: 'time'
+
+	_split_value: (value) ->
+		[parseInt(value?.substr(0, 2) ? 0), parseInt(value?.substr(2) ? 0)]
+
+	value_to_string: (txt) ->
+		if not txt or txt.length isnt 4
+			return ''
+		[hr, min] = @_split_value txt
+		ap = 'a'
+		if hr is 0
+			hr = 12
+		else
+			if hr>11
+				ap = 'p'
+				if hr>12 then hr -= 12
+		return ''+hr+(if min>0 then ':'+min else '')+ap
+
+	show_editor: (value, element, handler) ->
+		connect_to = element.offset()
+		el = $('<div/>').addClass('ui-timepicker ui-corner-all ui-widget-content').appendTo(document.body)
+		x = Math.floor(connect_to.left-el.width()/2)
+		x = 0 if x<0
+		y = connect_to.top+element.height()
+		caption_div = $('<div/>').addClass('ui-timepicker-caption').appendTo(el)
+		hour_div = $('<div/>').addClass('ui-timepicker-slider').appendTo(el)
+		minute_div = $('<div/>').addClass('ui-timepicker-slider').appendTo(el)
+		val = value
+		_on_change = (hour, minute) =>
+			hr = parseInt(hour ? hour_div.slider 'value')
+			min = parseInt(minute ? minute_div.slider 'value')
+			val = ''+(if hr<10 then '0' else '')+hr+(if min<10 then '0' else '')+min
+			caption_div.text @value_to_string val
+		[hr_val, min_val] = @_split_value value
+		hour_div.slider({
+			min: 0
+			max: 23
+			step: 1
+			value: hr_val
+			slide: (event, ui) =>
+				_on_change ui.value, null
+		})
+		minute_div.slider({
+			min: 0
+			max: 45
+			step: 15
+			value: min_val
+			slide: (event, ui) =>
+				_on_change null, ui.value
+		})
+
+		_on_close = () =>
+			el.remove()
+		buttons = $('<div/>').addClass('ui-timepicker-buttons').appendTo(el)
+		$('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('OK').bind 'click', () =>
+			_on_close null
+			handler val
+		$('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('Cancel').bind 'click', () =>
+			_on_close null
+		_on_change null
+		buttons.find('button').button()
+		el.css('left', x).css('top', y)
+
+
+	render: (item, config, element, options, handler) ->
+		if options.empty then return handler
+		el = $('<div/>').addClass('time_editor').appendTo(element)
+		property = (@renderer.replace config.edit)
+		parts = (@value_to_string item[property]).split(':')
+		if parts.length is 2
+			el.html parts[0]+'<br/>'+parts[1]
+		else
+			el.text parts[0]
+		el.bind 'click', (e) =>
+			if e.shiftKey
+		 		@renderer.on_edited item, property, null
+		 	else
+		 		@show_editor item[property], el, (time) =>
+		 			@renderer.on_edited item, property, time
+		# 		el.datepicker 'dialog' , null, (date) =>
+		# 			if @print_date date, el
+		# 				@renderer.on_edited item, property, date
+		# 		, {dateFormat: 'yymmdd'}, e
+		$('<div class="clear"/>').appendTo(element)
+		handler null
+
 class MarkElement extends UIElement
 
 	name: 'mark'
 
+
+	_show_value: (value, el) ->
+		if not value then return true
+		if value in [1, 2] 
+			el.addClass('mark'+value)
+			return true
+		return false
+
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler
-		$('<div/>').addClass('mark_editor').appendTo(element)
+		property = (@renderer.replace config.edit)
+		value = item[property]
+		el = $('<div/>').addClass('mark_editor').appendTo(element)
+		@_show_value value, el
+		el.bind 'click', (event) =>
+			if not value
+				value = 1
+			else
+				if value is 1
+					value = 2
+				else
+					value = null
+			@_show_value value, el
+			@renderer.on_edited item, property, value
 		handler null
 
 class HRElement extends UIElement
@@ -446,41 +585,51 @@ class ColsElement extends UIElement
 		if flow.length isnt sizes.length then return handler
 
 		w = element.innerWidth()-4
-		fixed_size = 0
-		if config.space
-			fixed_size += config.space*(flow.length-1)
+		if not options.empty
+			element.addClass('group')
 		float_size = 0
+		if config.space
+			float_size += config.space*(flow.length-1)
 		lsizes = []
 		for sz in sizes
 			lsizes.push sz
-			if sz>1
-				fixed_size += sz
-			else
-				float_size += sz
+			float_size += sz
+		space_size = 0
 		if float_size>0
 			for i, sz of lsizes
 				if sz<=1
-					lsizes[i] = Math.floor((w-fixed_size)*sz/float_size)
+					lsizes[i] = Math.floor(w*sz/float_size)
+			if config.space
+				space_size = Math.floor(w*config.space/float_size)
 		margin = 0
-		if not options.empty
-			element.addClass('group')
 		index = 0
 		for i, fl of flow
 			i = parseInt(i)
-			if i>0 and config.space
-				index++
-				if not options.empty
-					$('<div/>').appendTo(element).addClass('col').width(config.space).html('&nbsp;')
-			width = lsizes[i]
-			el = @child(element, '.col', index) ? $('<div/>').addClass('col').appendTo(element).width(width)
-			if i is flow.length-1
-				if not options.empty
+			last = i is flow.length-1
+			el = null
+			if not options.empty
+				# First run - create all divs
+				if i>0 and config.space
+					#Create space between cols
+					$('<div/>').appendTo(element).addClass('col').width(space_size).html('&nbsp;')
+					margin += space_size
+				width = lsizes[i]
+				if last
+					# Fix last col
+					width = w-margin
+				el = $('<div/>').addClass('col col_data').appendTo(element).width(width)
+				@fix_decoration item, fl, el
+				diff = el.outerWidth() - el.innerWidth()
+				if diff > 0
+					el.width(el.innerWidth()-diff)
+				if last
 					$('<div style="clear: both;"/>').appendTo(element)
-			index++
-			margin += width
-			do (i) =>
+				margin += width
+			else
+				el = @child(element, '.col_data', i)
+			do (last) =>
 				@renderer.get(fl.type).render item, fl, el, options, () =>
-					if i is flow.length-1
+					if last
 						handler null
 
 class ListElement extends UIElement
@@ -524,7 +673,7 @@ class ListElement extends UIElement
 			# 	# el.draggable('destroy')
 			# 	# el.click(ev)
 			# el.draggable({revert: true})
-		@renderer.get('simple').render item, config, el, {empty: false, readonly: options.disable}, () =>
+		@renderer.get('simple').render item, config, el, {empty: false, readonly: options.disable, text_option: if options.empty then item.area else ''}, () =>
 			handler el
 
 	_fill_empty: (config, element, parent, handler) ->
@@ -555,7 +704,7 @@ class ListElement extends UIElement
 			for i, itm of items
 				# log 'Render', i, itm.text, itm.place
 				@_render itm, config, element, {disable: false, draggable: true}, () =>
-			@_render {area: config.area}, config, element, {disable: false}, () =>
+			@_render {area: config.area}, config, element, {disable: false, empty: true}, () =>
 				@renderer.fix_grid element, config
 				handler null
 
@@ -574,6 +723,7 @@ class Renderer
 			new CheckElement this
 			new MarkElement this
 			new DateElement this
+			new TimeElement this
 		]
 		@root.data('sheet', @data)
 
@@ -665,18 +815,14 @@ class Renderer
 			if err then return @ui.show_error err
 			@render null
 
+
 	text_editor: (element, item, property, handler) ->
 		if not property
-			return
+			return null
 		element.attr('contentEditable', true)
 		old_value = item[property] ? ''
 		element.text(old_value)
-		element.bind 'keypress', (event) =>
-			if event.keyCode is 13
-				element.blur()
-				event.preventDefault()
-				return false
-		element.bind 'blur', (event) =>
+		_on_finish_edit = () =>
 			value = element.text() ? ''
 			element.text value
 			if value is old_value
@@ -685,29 +831,43 @@ class Renderer
 				handler item, property, value
 			else
 				@on_edited item, property, value
+		element.bind 'keypress', (event) =>
+			if event.keyCode is 13
+				event.preventDefault()
+				_on_finish_edit null
+				return false
+		element.bind 'blur', (event) =>
+			_on_finish_edit null
+		return element
 
 	render: () ->
 		# @root.empty()
 		@root.addClass 'page_render'
+		focus = @root.find('*:focus')
 		@prev_content = @root.children()
 		@content = $('<div/>').addClass('page_content group').prependTo(@root)
 		@_load_items (data) =>
 			@notes = data
 			@get(@template.name).render @data, @template, @content, {empty: false}, () =>
-				@fix_height null
+				@fix_height () =>
+					if focus.attr('option')
+						@root.find('.text_editor[property='+focus.attr('property')+'][option='+focus.attr('option')+']').focus()
+					else
+						@root.find('.text_editor[property='+focus.attr('property')+'][item_id='+focus.attr('item_id')+']').focus()
 	
 	size_too_big: () ->
 		return @root.innerHeight()<@content.outerHeight(true)
 
-	fix_height: () ->
+	fix_height: (handler) ->
 		@have_space = no
 		@get(@template.name).render @data, @template, @content, {empty: true}, () =>
 			# log 'Fix done', @have_space
 			if @have_space 
-				@fix_height null
+				@fix_height handler
 			else
 				@prev_content.remove()
 				@root.removeClass 'page_render'
+				if handler then handler null
 	
 	_load_items: (handler) ->
 		@manager.getNotes @data.id, null, (err, data) =>
@@ -745,6 +905,14 @@ $(document).ready () ->
 	manager = new DataManager storage
 	ui = new UIManager manager
 	ui.start null
+
+	jqnet = new jQueryTransport 'http://localhost:8888'
+	oauth = new OAuthProvider {
+		clientID: '123456'
+	}, jqnet
+	oauth.tokenByUsernamePassword 'kostya', 'wellcome', (err) =>
+		log 'Auth result:', err
+
 	# renderer = new Renderer $('#page1'), w1, {},
 	# 	dt: new Date().getTime()
 	# renderer.render null

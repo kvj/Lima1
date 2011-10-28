@@ -89,10 +89,10 @@ body {
 }
 
 .title0_editor {
-	margin-left: 3px;
+	margin-left: 0.5em;
 	border-bottom: 1px solid #222222;
 	width: 100%;
-	min-width: 3em;
+	min-width: 5em;
 }
 
 .hr {
@@ -208,8 +208,8 @@ body {
 }
 
 .check_editor {
-	width: 1.3em;
-	height: 1.3em;
+	width: 1.1em;
+	height: 1.1em;
 	margin-left: -0.5em;
 	margin-top: 1px;
 	position: relative;
@@ -218,6 +218,7 @@ body {
 	border-bottom: 2px solid #dddddd;
 	border-right: 2px solid #dddddd;
 	z-index: 2;
+	cursor: pointer;
 }
 
 .mark_editor {
@@ -228,19 +229,27 @@ body {
 	position: relative;
 	border: 1px solid #dddddd;
 	background-color: #ffffff;
+	cursor: pointer;
 }
 
 .mark1 {
-	background-color: #aa0000;
+	background-color: #ffaaaa;
 }
 
 .mark2 {
-	background-color: #00aa00;
+	background-color: #ddffdd;
 }
 
 .date_editor {
-	width: 100%;
-	height: 100%;
+	min-height: 1.5em;
+	text-align: center;
+	cursor: pointer;
+}
+
+.time_editor {
+	min-height: 1.5em;
+	text-align: center;
+	cursor: pointer;
 }
 
 .col {
@@ -362,4 +371,47 @@ li {
 
 .last_sheet {
 	border-width: 0px;
+}
+
+.bg1 {
+	background-color: #efefef;
+}
+
+.bg2 {
+	background-color: #dddddd;
+}
+
+.border1l {
+	border-left: 1px solid #dddddd;
+}
+
+.border1t {
+	border-top: 1px solid #dddddd;
+}
+
+.border1r {
+	border-right: 1px solid #dddddd;
+}
+
+.border1b {
+	border-bottom: 1px solid #dddddd;
+}
+
+.ui-timepicker {
+	width: 200px;
+	position: absolute;
+	padding: 10px;
+}
+
+.ui-timepicker-slider {
+	margin: 5px;
+}
+
+.ui-timepicker-caption {
+	text-align: center;
+	font-weight: bold;
+}
+
+.ui-timepicker-buttons {
+	text-align: center;
 }

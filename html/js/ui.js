@@ -1,13 +1,13 @@
 (function() {
-  var CheckElement, ColsElement, DateElement, HRElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, Title1Element, TitleElement, UIElement, w1, w2, w47, wnotes;
-  var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
+  var CheckElement, ColsElement, DateElement, HRElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, TimeElement, Title1Element, TitleElement, UIElement, w1, w2, w47, wnotes;
+  var __slice = Array.prototype.slice, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
     ctor.prototype = parent.prototype;
     child.prototype = new ctor;
     child.__super__ = parent.prototype;
     return child;
-  }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __slice = Array.prototype.slice;
+  }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
   w2 = {
     "defaults": {
       "title": "Actions"
@@ -22,16 +22,15 @@
         "type": "hr"
       }, {
         "type": "list",
-        "grid": 1,
         "area": "main",
         "config": {
-          "grid": 1,
+          "grid": 2,
           "delimiter": 1
         },
         "flow": [
           {
             "type": "cols",
-            "size": [20, 1, 35],
+            "size": [0.05, 0.8, 0.15],
             "flow": [
               {
                 "type": "check",
@@ -41,12 +40,13 @@
                 "edit": "@:text"
               }, {
                 "type": "date",
-                "edit": "@:due"
+                "edit": "@:due",
+                "border": "1lb"
               }
             ]
           }, {
             "type": "cols",
-            "size": [15, 1],
+            "size": [0.05, 0.95],
             "flow": [
               {
                 "type": "mark",
@@ -110,8 +110,8 @@
         "name": "${dt:(e1)dd} Monday"
       }, {
         "type": "cols",
-        "size": [0.5, 0.5],
-        "space": 10,
+        "size": [0.55, 0.5],
+        "space": 0.05,
         "flow": [
           {
             "type": "list",
@@ -124,8 +124,18 @@
             },
             "flow": [
               {
-                "type": "text",
-                "edit": "@:text"
+                "type": "cols",
+                "size": [0.15, 0.85],
+                "flow": [
+                  {
+                    "type": "time",
+                    "edit": "@:time",
+                    "bg": 1
+                  }, {
+                    "type": "text",
+                    "edit": "@:text"
+                  }
+                ]
               }
             ]
           }, {
@@ -141,7 +151,7 @@
                 "flow": [
                   {
                     "type": "cols",
-                    "size": [15, 1],
+                    "size": [0.1, 0.9],
                     "flow": [
                       {
                         "type": "check",
@@ -173,8 +183,8 @@
         "name": "${dt:(e2)dd} Tuesday"
       }, {
         "type": "cols",
-        "size": [0.5, 0.5],
-        "space": 10,
+        "size": [0.55, 0.5],
+        "space": 0.05,
         "flow": [
           {
             "type": "list",
@@ -187,8 +197,18 @@
             },
             "flow": [
               {
-                "type": "text",
-                "edit": "@:text"
+                "type": "cols",
+                "size": [0.15, 0.85],
+                "flow": [
+                  {
+                    "type": "time",
+                    "edit": "@:time",
+                    "bg": 1
+                  }, {
+                    "type": "text",
+                    "edit": "@:text"
+                  }
+                ]
               }
             ]
           }, {
@@ -204,7 +224,7 @@
                 "flow": [
                   {
                     "type": "cols",
-                    "size": [15, 1],
+                    "size": [0.1, 0.9],
                     "flow": [
                       {
                         "type": "check",
@@ -236,8 +256,8 @@
         "name": "${dt:(e3)dd} Wednesday"
       }, {
         "type": "cols",
-        "size": [0.5, 0.5],
-        "space": 10,
+        "size": [0.55, 0.5],
+        "space": 0.05,
         "flow": [
           {
             "type": "list",
@@ -250,8 +270,18 @@
             },
             "flow": [
               {
-                "type": "text",
-                "edit": "@:text"
+                "type": "cols",
+                "size": [0.15, 0.85],
+                "flow": [
+                  {
+                    "type": "time",
+                    "edit": "@:time",
+                    "bg": 1
+                  }, {
+                    "type": "text",
+                    "edit": "@:text"
+                  }
+                ]
               }
             ]
           }, {
@@ -267,7 +297,7 @@
                 "flow": [
                   {
                     "type": "cols",
-                    "size": [15, 1],
+                    "size": [0.1, 0.9],
                     "flow": [
                       {
                         "type": "check",
@@ -320,8 +350,8 @@
         "name": "${dt:(e4)dd} Thursday"
       }, {
         "type": "cols",
-        "size": [0.5, 0.5],
-        "space": 10,
+        "size": [0.55, 0.5],
+        "space": 0.05,
         "flow": [
           {
             "type": "list",
@@ -334,8 +364,18 @@
             },
             "flow": [
               {
-                "type": "text",
-                "edit": "@:text"
+                "type": "cols",
+                "size": [0.15, 0.85],
+                "flow": [
+                  {
+                    "type": "time",
+                    "edit": "@:time",
+                    "bg": 1
+                  }, {
+                    "type": "text",
+                    "edit": "@:text"
+                  }
+                ]
               }
             ]
           }, {
@@ -351,7 +391,7 @@
                 "flow": [
                   {
                     "type": "cols",
-                    "size": [15, 1],
+                    "size": [0.1, 0.9],
                     "flow": [
                       {
                         "type": "check",
@@ -383,8 +423,8 @@
         "name": "${dt:(e5)dd} Friday"
       }, {
         "type": "cols",
-        "size": [0.5, 0.5],
-        "space": 10,
+        "size": [0.55, 0.5],
+        "space": 0.05,
         "flow": [
           {
             "type": "list",
@@ -397,8 +437,18 @@
             },
             "flow": [
               {
-                "type": "text",
-                "edit": "@:text"
+                "type": "cols",
+                "size": [0.15, 0.85],
+                "flow": [
+                  {
+                    "type": "time",
+                    "edit": "@:time",
+                    "bg": 1
+                  }, {
+                    "type": "text",
+                    "edit": "@:text"
+                  }
+                ]
               }
             ]
           }, {
@@ -414,7 +464,7 @@
                 "flow": [
                   {
                     "type": "cols",
-                    "size": [15, 1],
+                    "size": [0.1, 0.9],
                     "flow": [
                       {
                         "type": "check",
@@ -446,8 +496,8 @@
         "name": "${dt:(e6)dd}, ${dt:(e7)dd} Weekend"
       }, {
         "type": "cols",
-        "size": [0.5, 0.5],
-        "space": 10,
+        "size": [0.55, 0.5],
+        "space": 0.05,
         "flow": [
           {
             "type": "list",
@@ -457,8 +507,18 @@
             "delimiter": 1,
             "flow": [
               {
-                "type": "text",
-                "edit": "@:text"
+                "type": "cols",
+                "size": [0.15, 0.85],
+                "flow": [
+                  {
+                    "type": "time",
+                    "edit": "@:time",
+                    "bg": 1
+                  }, {
+                    "type": "text",
+                    "edit": "@:text"
+                  }
+                ]
               }
             ]
           }, {
@@ -471,7 +531,7 @@
                 "flow": [
                   {
                     "type": "cols",
-                    "size": [15, 1],
+                    "size": [0.1, 0.9],
                     "flow": [
                       {
                         "type": "check",
@@ -514,6 +574,21 @@
         return null;
       }
     };
+    UIElement.prototype.fix_decoration = function(item, config, element) {
+      var ch, chars, type, _i, _len, _ref, _results;
+      if (config.bg) {
+        element.addClass('bg' + config.bg);
+      }
+      if (config.border) {
+        _ref = config.border.split(''), type = _ref[0], chars = 2 <= _ref.length ? __slice.call(_ref, 1) : [];
+        _results = [];
+        for (_i = 0, _len = chars.length; _i < _len; _i++) {
+          ch = chars[_i];
+          _results.push(element.addClass('border' + type + ch));
+        }
+        return _results;
+      }
+    };
     UIElement.prototype.render = function(item, config, element, options, handler) {
       return handler(null);
     };
@@ -538,6 +613,7 @@
         _results.push(__bind(function(i) {
           var el, _ref2;
           el = (_ref2 = this.child(element, '.simple', i)) != null ? _ref2 : $('<div/>').addClass('simple').appendTo(element);
+          this.fix_decoration(item, fl, el);
           return this.renderer.get(fl.type).render(item, fl, el, options, __bind(function() {
             if (i === flow.length - 1) {
               this.renderer.fix_grid(element, config.type === 'list' ? config.config : config);
@@ -577,13 +653,17 @@
     }
     Textlement.prototype.name = 'text';
     Textlement.prototype.render = function(item, config, element, options, handler) {
-      var el;
+      var ed, el, property;
       if (options.empty) {
         return handler;
       }
       el = $('<div/>').addClass('text_editor').appendTo(element);
       if (config.edit && !options.readonly) {
-        this.renderer.text_editor(el, item, this.renderer.replace(config.edit));
+        property = this.renderer.replace(config.edit);
+        ed = this.renderer.text_editor(el, item, property);
+        ed.attr('item_id', item.id);
+        ed.attr('property', property);
+        ed.attr('option', options.text_option);
       }
       return handler(null);
     };
@@ -660,17 +740,154 @@
     };
     return DateElement;
   })();
+  TimeElement = (function() {
+    __extends(TimeElement, UIElement);
+    function TimeElement() {
+      TimeElement.__super__.constructor.apply(this, arguments);
+    }
+    TimeElement.prototype.name = 'time';
+    TimeElement.prototype._split_value = function(value) {
+      var _ref, _ref2;
+      return [parseInt((_ref = value != null ? value.substr(0, 2) : void 0) != null ? _ref : 0), parseInt((_ref2 = value != null ? value.substr(2) : void 0) != null ? _ref2 : 0)];
+    };
+    TimeElement.prototype.value_to_string = function(txt) {
+      var ap, hr, min, _ref;
+      if (!txt || txt.length !== 4) {
+        return '';
+      }
+      _ref = this._split_value(txt), hr = _ref[0], min = _ref[1];
+      ap = 'a';
+      if (hr === 0) {
+        hr = 12;
+      } else {
+        if (hr > 11) {
+          ap = 'p';
+          if (hr > 12) {
+            hr -= 12;
+          }
+        }
+      }
+      return '' + hr + (min > 0 ? ':' + min : '') + ap;
+    };
+    TimeElement.prototype.show_editor = function(value, element, handler) {
+      var buttons, caption_div, connect_to, el, hour_div, hr_val, min_val, minute_div, val, x, y, _on_change, _on_close, _ref;
+      connect_to = element.offset();
+      el = $('<div/>').addClass('ui-timepicker ui-corner-all ui-widget-content').appendTo(document.body);
+      x = Math.floor(connect_to.left - el.width() / 2);
+      if (x < 0) {
+        x = 0;
+      }
+      y = connect_to.top + element.height();
+      caption_div = $('<div/>').addClass('ui-timepicker-caption').appendTo(el);
+      hour_div = $('<div/>').addClass('ui-timepicker-slider').appendTo(el);
+      minute_div = $('<div/>').addClass('ui-timepicker-slider').appendTo(el);
+      val = value;
+      _on_change = __bind(function(hour, minute) {
+        var hr, min;
+        hr = parseInt(hour != null ? hour : hour_div.slider('value'));
+        min = parseInt(minute != null ? minute : minute_div.slider('value'));
+        val = '' + (hr < 10 ? '0' : '') + hr + (min < 10 ? '0' : '') + min;
+        return caption_div.text(this.value_to_string(val));
+      }, this);
+      _ref = this._split_value(value), hr_val = _ref[0], min_val = _ref[1];
+      hour_div.slider({
+        min: 0,
+        max: 23,
+        step: 1,
+        value: hr_val,
+        slide: __bind(function(event, ui) {
+          return _on_change(ui.value, null);
+        }, this)
+      });
+      minute_div.slider({
+        min: 0,
+        max: 45,
+        step: 15,
+        value: min_val,
+        slide: __bind(function(event, ui) {
+          return _on_change(null, ui.value);
+        }, this)
+      });
+      _on_close = __bind(function() {
+        return el.remove();
+      }, this);
+      buttons = $('<div/>').addClass('ui-timepicker-buttons').appendTo(el);
+      $('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('OK').bind('click', __bind(function() {
+        _on_close(null);
+        return handler(val);
+      }, this));
+      $('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('Cancel').bind('click', __bind(function() {
+        return _on_close(null);
+      }, this));
+      _on_change(null);
+      buttons.find('button').button();
+      return el.css('left', x).css('top', y);
+    };
+    TimeElement.prototype.render = function(item, config, element, options, handler) {
+      var el, parts, property;
+      if (options.empty) {
+        return handler;
+      }
+      el = $('<div/>').addClass('time_editor').appendTo(element);
+      property = this.renderer.replace(config.edit);
+      parts = (this.value_to_string(item[property])).split(':');
+      if (parts.length === 2) {
+        el.html(parts[0] + '<br/>' + parts[1]);
+      } else {
+        el.text(parts[0]);
+      }
+      el.bind('click', __bind(function(e) {
+        if (e.shiftKey) {
+          return this.renderer.on_edited(item, property, null);
+        } else {
+          return this.show_editor(item[property], el, __bind(function(time) {
+            return this.renderer.on_edited(item, property, time);
+          }, this));
+        }
+      }, this));
+      $('<div class="clear"/>').appendTo(element);
+      return handler(null);
+    };
+    return TimeElement;
+  })();
   MarkElement = (function() {
     __extends(MarkElement, UIElement);
     function MarkElement() {
       MarkElement.__super__.constructor.apply(this, arguments);
     }
     MarkElement.prototype.name = 'mark';
+    MarkElement.prototype._show_value = function(value, el) {
+      if (!value) {
+        return true;
+      }
+      if (value === 1 || value === 2) {
+        el.addClass('mark' + value);
+        return true;
+      }
+      return false;
+    };
     MarkElement.prototype.render = function(item, config, element, options, handler) {
+      var el, property, value;
       if (options.empty) {
         return handler;
       }
-      $('<div/>').addClass('mark_editor').appendTo(element);
+      property = this.renderer.replace(config.edit);
+      value = item[property];
+      el = $('<div/>').addClass('mark_editor').appendTo(element);
+      this._show_value(value, el);
+      el.bind('click', __bind(function(event) {
+        if (!value) {
+          value = 1;
+        } else {
+          if (value === 1) {
+            value = 2;
+          } else {
+            value = null;
+          }
+        }
+        this._show_value(value, el);
+        return this.renderer.on_edited(item, property, value);
+      }, this));
       return handler(null);
     };
     return MarkElement;
@@ -715,67 +932,75 @@
     }
     ColsElement.prototype.name = 'cols';
     ColsElement.prototype.render = function(item, config, element, options, handler) {
-      var el, fixed_size, fl, float_size, flow, i, index, lsizes, margin, sizes, sz, w, width, _i, _len, _ref, _ref2, _ref3, _results;
+      var diff, el, fl, float_size, flow, i, index, last, lsizes, margin, sizes, space_size, sz, w, width, _i, _len, _ref, _ref2, _results;
       flow = (_ref = config.flow) != null ? _ref : [];
       sizes = (_ref2 = config.size) != null ? _ref2 : [];
       if (flow.length !== sizes.length) {
         return handler;
       }
       w = element.innerWidth() - 4;
-      fixed_size = 0;
-      if (config.space) {
-        fixed_size += config.space * (flow.length - 1);
+      if (!options.empty) {
+        element.addClass('group');
       }
       float_size = 0;
+      if (config.space) {
+        float_size += config.space * (flow.length - 1);
+      }
       lsizes = [];
       for (_i = 0, _len = sizes.length; _i < _len; _i++) {
         sz = sizes[_i];
         lsizes.push(sz);
-        if (sz > 1) {
-          fixed_size += sz;
-        } else {
-          float_size += sz;
-        }
+        float_size += sz;
       }
+      space_size = 0;
       if (float_size > 0) {
         for (i in lsizes) {
           sz = lsizes[i];
           if (sz <= 1) {
-            lsizes[i] = Math.floor((w - fixed_size) * sz / float_size);
+            lsizes[i] = Math.floor(w * sz / float_size);
           }
+        }
+        if (config.space) {
+          space_size = Math.floor(w * config.space / float_size);
         }
       }
       margin = 0;
-      if (!options.empty) {
-        element.addClass('group');
-      }
       index = 0;
       _results = [];
       for (i in flow) {
         fl = flow[i];
         i = parseInt(i);
-        if (i > 0 && config.space) {
-          index++;
-          if (!options.empty) {
-            $('<div/>').appendTo(element).addClass('col').width(config.space).html('&nbsp;');
+        last = i === flow.length - 1;
+        el = null;
+        if (!options.empty) {
+          if (i > 0 && config.space) {
+            $('<div/>').appendTo(element).addClass('col').width(space_size).html('&nbsp;');
+            margin += space_size;
           }
-        }
-        width = lsizes[i];
-        el = (_ref3 = this.child(element, '.col', index)) != null ? _ref3 : $('<div/>').addClass('col').appendTo(element).width(width);
-        if (i === flow.length - 1) {
-          if (!options.empty) {
+          width = lsizes[i];
+          if (last) {
+            width = w - margin;
+          }
+          el = $('<div/>').addClass('col col_data').appendTo(element).width(width);
+          this.fix_decoration(item, fl, el);
+          diff = el.outerWidth() - el.innerWidth();
+          if (diff > 0) {
+            el.width(el.innerWidth() - diff);
+          }
+          if (last) {
             $('<div style="clear: both;"/>').appendTo(element);
           }
+          margin += width;
+        } else {
+          el = this.child(element, '.col_data', i);
         }
-        index++;
-        margin += width;
-        _results.push(__bind(function(i) {
+        _results.push(__bind(function(last) {
           return this.renderer.get(fl.type).render(item, fl, el, options, __bind(function() {
-            if (i === flow.length - 1) {
+            if (last) {
               return handler(null);
             }
           }, this));
-        }, this)(i));
+        }, this)(last));
       }
       return _results;
     };
@@ -835,7 +1060,8 @@
       });
       return this.renderer.get('simple').render(item, config, el, {
         empty: false,
-        readonly: options.disable
+        readonly: options.disable,
+        text_option: options.empty ? item.area : ''
       }, __bind(function() {
         return handler(el);
       }, this));
@@ -885,7 +1111,8 @@
         return this._render({
           area: config.area
         }, config, element, {
-          disable: false
+          disable: false,
+          empty: true
         }, __bind(function() {
           this.renderer.fix_grid(element, config);
           return handler(null);
@@ -902,7 +1129,7 @@
       this.template = template;
       this.data = data;
       this.env = env;
-      this.elements = [new SimpleElement(this), new TitleElement(this), new HRElement(this), new Title1Element(this), new ColsElement(this), new ListElement(this), new Textlement(this), new CheckElement(this), new MarkElement(this), new DateElement(this)];
+      this.elements = [new SimpleElement(this), new TitleElement(this), new HRElement(this), new Title1Element(this), new ColsElement(this), new ListElement(this), new Textlement(this), new CheckElement(this), new MarkElement(this), new DateElement(this), new TimeElement(this)];
       this.root.data('sheet', this.data);
     }
     Renderer.prototype.fix_grid = function(element, config) {
@@ -1032,21 +1259,14 @@
       }, this));
     };
     Renderer.prototype.text_editor = function(element, item, property, handler) {
-      var old_value, _ref;
+      var old_value, _on_finish_edit, _ref;
       if (!property) {
-        return;
+        return null;
       }
       element.attr('contentEditable', true);
       old_value = (_ref = item[property]) != null ? _ref : '';
       element.text(old_value);
-      element.bind('keypress', __bind(function(event) {
-        if (event.keyCode === 13) {
-          element.blur();
-          event.preventDefault();
-          return false;
-        }
-      }, this));
-      return element.bind('blur', __bind(function(event) {
+      _on_finish_edit = __bind(function() {
         var value, _ref2;
         value = (_ref2 = element.text()) != null ? _ref2 : '';
         element.text(value);
@@ -1058,10 +1278,23 @@
         } else {
           return this.on_edited(item, property, value);
         }
+      }, this);
+      element.bind('keypress', __bind(function(event) {
+        if (event.keyCode === 13) {
+          event.preventDefault();
+          _on_finish_edit(null);
+          return false;
+        }
       }, this));
+      element.bind('blur', __bind(function(event) {
+        return _on_finish_edit(null);
+      }, this));
+      return element;
     };
     Renderer.prototype.render = function() {
+      var focus;
       this.root.addClass('page_render');
+      focus = this.root.find('*:focus');
       this.prev_content = this.root.children();
       this.content = $('<div/>').addClass('page_content group').prependTo(this.root);
       return this._load_items(__bind(function(data) {
@@ -1069,23 +1302,32 @@
         return this.get(this.template.name).render(this.data, this.template, this.content, {
           empty: false
         }, __bind(function() {
-          return this.fix_height(null);
+          return this.fix_height(__bind(function() {
+            if (focus.attr('option')) {
+              return this.root.find('.text_editor[property=' + focus.attr('property') + '][option=' + focus.attr('option') + ']').focus();
+            } else {
+              return this.root.find('.text_editor[property=' + focus.attr('property') + '][item_id=' + focus.attr('item_id') + ']').focus();
+            }
+          }, this));
         }, this));
       }, this));
     };
     Renderer.prototype.size_too_big = function() {
       return this.root.innerHeight() < this.content.outerHeight(true);
     };
-    Renderer.prototype.fix_height = function() {
+    Renderer.prototype.fix_height = function(handler) {
       this.have_space = false;
       return this.get(this.template.name).render(this.data, this.template, this.content, {
         empty: true
       }, __bind(function() {
         if (this.have_space) {
-          return this.fix_height(null);
+          return this.fix_height(handler);
         } else {
           this.prev_content.remove();
-          return this.root.removeClass('page_render');
+          this.root.removeClass('page_render');
+          if (handler) {
+            return handler(null);
+          }
         }
       }, this));
     };
@@ -1124,11 +1366,18 @@
   };
   window.Renderer = Renderer;
   $(document).ready(function() {
-    var db, manager, storage, ui;
+    var db, jqnet, manager, oauth, storage, ui;
     db = new HTML5Provider('test.db', '1.1');
     storage = new StorageProvider(null, db);
     manager = new DataManager(storage);
     ui = new UIManager(manager);
-    return ui.start(null);
+    ui.start(null);
+    jqnet = new jQueryTransport('http://localhost:8888');
+    oauth = new OAuthProvider({
+      clientID: '123456'
+    }, jqnet);
+    return oauth.tokenByUsernamePassword('kostya', 'wellcome', __bind(function(err) {
+      return log('Auth result:', err);
+    }, this));
   });
 }).call(this);
