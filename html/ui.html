@@ -20,6 +20,7 @@
 				<button id="new_sheet_button">New page</button>
 				<button id="templates_button">Templates</button>
 				<span id="trash">Trash</span>
+				<button id="sync_button">Sync</button>
 			</div>
 			<div id="main">
 				<div id="left" class="left">
@@ -35,6 +36,15 @@
 		</div>
 		<div id="new_sheet_dialog" style="display: none;" title="New page">
 			<div id="new_sheet_templates"></div>
+		</div>
+		<div id="login_dialog" style="display: none;" title="Login">
+			<div class="form" id="login_form">
+				<label for="username">Login:</label>
+				<input type="text" id="username"/>
+				<label for="password">Password:</label>
+				<input type="password" id="password"/>
+				<button id="login_button">Login</button>
+			</div>
 		</div>
 		<div id="templates_dialog" style="display: none;" title="Templates">
 			<div id="left_t" class="left">

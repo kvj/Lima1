@@ -18,6 +18,7 @@ import org.apache.amber.oauth2.common.error.OAuthError;
 import org.apache.amber.oauth2.common.exception.OAuthProblemException;
 import org.apache.amber.oauth2.common.message.OAuthResponse;
 import org.apache.amber.oauth2.common.message.types.GrantType;
+import org.kvj.lima1.gae.sync.data.UserStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,15 +27,16 @@ public class OAuthTokenServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	private Logger log = LoggerFactory.getLogger(OAuthTokenServlet.class);
 
-	private boolean checkUserNamePassword(OAuthTokenRequest request,
+	private String checkUserNamePassword(OAuthTokenRequest request,
 			String token) {
-		System.err.println("Checking " + request.getUsername() + " and "
+		log.info("Checking " + request.getUsername() + " and "
 				+ request.getPassword()+", save: "+token);
-		return true;
+		return UserStorage.authorizeUser(request.getUsername(), request.getPassword(), token);
 	}
 
 	private void writeOAuthResponse(OAuthResponse r, HttpServletResponse response) throws IOException {
 		response.setStatus(r.getResponseStatus());
+		response.setContentType("application/json");
 		PrintWriter pw = response.getWriter();
 		pw.print(r.getBody());
 		pw.flush();
@@ -53,18 +55,19 @@ public class OAuthTokenServlet extends HttpServlet {
 				oauthRequest = new OAuthTokenRequest(request);
 				String accessToken = oauthIssuerImpl.accessToken();
 				if (oauthRequest.getParam(OAuth.OAUTH_GRANT_TYPE).equals(GrantType.PASSWORD.toString())) {
-					if(!checkUserNamePassword(oauthRequest, accessToken)){
+					String message = checkUserNamePassword(oauthRequest, accessToken);
+					if(null != message){
 						OAuthResponse r = OAuthASResponse
 		                        .errorResponse(HttpServletResponse.SC_BAD_REQUEST)
 		                        .setError(OAuthError.TokenResponse.INVALID_GRANT)
-		                        .setErrorDescription("invalid username or password")
+		                        .setErrorDescription(message)
 		                        .buildJSONMessage();
 						writeOAuthResponse(r, response);
 						return;
 					}
 					OAuthResponse r = OAuthASResponse
 							.tokenResponse(HttpServletResponse.SC_OK)
-							.setAccessToken(accessToken).setExpiresIn("3600")
+							.setAccessToken(accessToken).setExpiresIn("0")
 							.buildJSONMessage();
 					writeOAuthResponse(r, response);
 					return;

@@ -1370,14 +1370,12 @@
     db = new HTML5Provider('test.db', '1.1');
     storage = new StorageProvider(null, db);
     manager = new DataManager(storage);
-    ui = new UIManager(manager);
-    ui.start(null);
     jqnet = new jQueryTransport('http://localhost:8888');
     oauth = new OAuthProvider({
-      clientID: '123456'
+      clientID: '123456',
+      token: manager.get('token')
     }, jqnet);
-    return oauth.tokenByUsernamePassword('kostya', 'wellcome', __bind(function(err) {
-      return log('Auth result:', err);
-    }, this));
+    ui = new UIManager(manager, oauth);
+    return ui.start(null);
   });
 }).call(this);

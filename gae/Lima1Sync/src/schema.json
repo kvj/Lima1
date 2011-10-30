@@ -1,0 +1,25 @@
+{
+"lima1": {
+	"_rev": 1,
+	"templates": {
+		"in": 10,
+		"out": 3,
+		"index": 0,
+		"texts": ["name", "tag"]
+	},
+	"sheets": {
+		"in": 3,
+		"out": 1,
+		"index": 1,
+		"numbers": ["template_id", "place"],
+		"texts": ["title", "code"]
+	},
+	"notes": {
+		"in": 3,
+		"out": 1,
+		"index": 2,
+		"numbers": ["sheet_id", "place"],
+		"texts": ["area", "text", "due"]
+	}
+}
+}

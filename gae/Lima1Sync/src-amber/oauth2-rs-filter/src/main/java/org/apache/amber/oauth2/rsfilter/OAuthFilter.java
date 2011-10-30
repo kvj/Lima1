@@ -29,6 +29,8 @@ import org.apache.amber.oauth2.common.message.OAuthResponse;
 import org.apache.amber.oauth2.common.message.types.ParameterStyle;
 import org.apache.amber.oauth2.rs.request.OAuthAccessResourceRequest;
 import org.apache.amber.oauth2.rs.response.OAuthRSResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -44,6 +46,7 @@ import java.security.Principal;
  */
 public class OAuthFilter implements Filter {
 
+	private Logger log = LoggerFactory.getLogger(getClass());
     public static final String OAUTH_RS_PROVIDER_CLASS = "oauth.rs.provider-class";
 
     public static final String RS_REALM = "oauth.rs.realm";
@@ -100,15 +103,19 @@ public class OAuthFilter implements Filter {
 
         try {
 
+    		log.info("Filtering {}", req.getRequestURI());
             // Make an OAuth Request out of this servlet request
             OAuthAccessResourceRequest oauthRequest = new OAuthAccessResourceRequest(req,
                 parameterStyles);
 
             // Get the access token
             String accessToken = oauthRequest.getAccessToken();
+            log.info("Filtering token: {}", accessToken);
 
             final OAuthDecision decision = provider.validateRequest(realm, accessToken, req);
-
+            if (!decision.isAuthorized()) {
+				throw new OAuthSystemException("Invalid token");
+			}
             final Principal principal = decision.getPrincipal();
 
             request = new HttpServletRequestWrapper((HttpServletRequest)request) {
@@ -124,6 +131,7 @@ public class OAuthFilter implements Filter {
             };
 
             request.setAttribute(OAuth.OAUTH_CLIENT_ID, decision.getOAuthClient().getClientId());
+            request.setAttribute(OAuth.OAUTH_TOKEN, accessToken);
 
             chain.doFilter(request, response);
             return;
@@ -131,6 +139,7 @@ public class OAuthFilter implements Filter {
         } catch (OAuthSystemException e1) {
             throw new ServletException(e1);
         } catch (OAuthProblemException e) {
+        	log.error("OAuth exception", e);
             respondWithError(res, e);
             return;
         }

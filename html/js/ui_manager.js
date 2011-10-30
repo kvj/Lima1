@@ -120,8 +120,9 @@
     return DateProtocol;
   })();
   UIManager = (function() {
-    function UIManager(manager) {
+    function UIManager(manager, oauth) {
       this.manager = manager;
+      this.oauth = oauth;
       this.protocols = {
         "dt": new DateProtocol(null),
         "@": new ItemProtocol(null)
@@ -175,7 +176,50 @@
           return false;
         }, this)
       });
+      this.oauth.on_new_token = __bind(function(token) {
+        log('Save token:', token);
+        return this.manager.set('token', token);
+      }, this);
+      this.oauth.on_token_error = __bind(function() {
+        log('Time to show dialog');
+        return this.login(null);
+      }, this);
+      $('#sync_button').bind('click', __bind(function() {
+        return this.sync(null);
+      }, this));
+      $('#login_button').bind('click', __bind(function() {
+        return this.do_login(null);
+      }, this));
     }
+    UIManager.prototype.do_login = function() {
+      var password, username;
+      username = $('#username').val();
+      password = $('#password').val();
+      return this.oauth.tokenByUsernamePassword(username, password, __bind(function(err) {
+        log('Auth result:', err);
+        if (err) {
+          return this.show_error(err);
+        }
+        return this.sync(null);
+      }, this));
+    };
+    UIManager.prototype.sync = function() {
+      log('Syncing...');
+      return this.manager.sync(this.oauth, __bind(function(err) {
+        if (err) {
+          return this.show_error(err);
+        }
+      }, this));
+    };
+    UIManager.prototype.login = function() {
+      $('#login_dialog').dialog({
+        width: 300,
+        height: 200,
+        modal: true
+      });
+      $('#username').val('').focus();
+      return $('#password').val('');
+    };
     UIManager.prototype.replace = function(text, item, env) {
       var exp, m, name, p, value, _ref;
       exp = /^([a-z\@]+\:)([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)$/;

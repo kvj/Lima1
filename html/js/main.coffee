@@ -17,13 +17,14 @@ class DBProvider
 		null
 
 class HTML5Provider extends DBProvider
-	open: (clean = true, handler) ->
+	open: (clean, handler) ->
 		return handler 'HTML5 DB not supported' unless window and window.openDatabase
 		log 'Ready to open'
 		try
 			@db = window.openDatabase @name, '', @name, 1024 * 1024 * 10
 			log 'Opened', @db.version, @version
 			@version_match = @db.version is @version
+			@clean = clean
 			handler null
 		catch error
 			handler error.message
@@ -61,7 +62,7 @@ class HTML5Provider extends DBProvider
 			log	'SQL result', err, res, tr
 			if err
 				return handler err
-			if not @version_match
+			if not @version_match or @clean
 				# drop tables/etc
 				create_at = (index) =>
 					if index < schema.length
@@ -96,25 +97,108 @@ class HTML5Provider extends DBProvider
 			else
 				handler null, false
 
+	get: (name, def) ->
+		return window?.localStorage[name] ? def
+
+	set: (name, value) ->
+		window?.localStorage[name] = value
+
 class StorageProvider
 
-	schema: ['create table if not exists updates (id integer primary key, version_in integer, version_out integer, version text)', 'create table if not exists data (id integer primary key, status integer default 0, updated integer default 0, own integer default 1, stream text, data text, i0 integer, i1 integer, i2 integer, i3 integer, i4 integer, i5 integer, i6 integer, i7 integer, i8 integer, i9 integer, t0 text, t1 text, t2 text, t3 text, t4 text, t5 text, t6 text, t7 text, t8 text, t9 text)']
+	last_id: 0
+	db_schema: ['create table if not exists updates (id integer primary key, version_in integer, version_out integer, version text)', 'create table if not exists data (id integer primary key, status integer default 0, updated integer default 0, own integer default 1, stream text, data text, i0 integer, i1 integer, i2 integer, i3 integer, i4 integer, i5 integer, i6 integer, i7 integer, i8 integer, i9 integer, t0 text, t1 text, t2 text, t3 text, t4 text, t5 text, t6 text, t7 text, t8 text, t9 text)']
 
 	constructor: (@connection, @db) ->
 
 	open: (handler) ->
-		@db.open true, (err) =>
+		@db.open false, (err) =>
 			log 'Open result:', err
 			if not err
-				@db.verify @schema, (err, reset) =>
+				@db.verify @db_schema, (err, reset) =>
 					log 'Verify result', err, reset
 					handler err
 	
+	_precheck: (stream, handler) ->
+		log '_precheck', @schema, stream
+		if not @schema 
+			handler 'Not synchronized'
+			return false
+		if not @schema[stream] 
+			handler 'Unsupported stream'
+			return false
+		return true
+	
+	sync: (app, oauth, handler) ->
+		log 'Starting sync...', app
+		reset_schema = no
+		in_from = 0
+		out_from = 0
+		finish_sync = (err) =>
+			@db.query 'insert into updates (id, version_in, version_out) values (?, ?, ?)', [@_id(), in_from, out_from], () =>
+				handler err
+		receive_out = () =>
+			log 'Receive out not implented - stop'
+			finish_sync null
+		send_in = () =>
+			slots = @schema._slots ? 10
+			@db.query 'select id, stream, data, updated, status from data where own=? and updated>? order by updated limit '+slots, [1, in_from], (err, data) =>
+				if err then return handler err
+				result = []
+				slots_used = 0
+				for i, item of data
+					slots_needed = @schema[item.stream]?.in ? 1
+					if slots_needed+slots_used>slots then break
+					slots_used += slots_needed
+					result.push {
+						s: item.stream
+						st: item.status
+						u: item.updated
+						o: item.data
+						i: item.id
+					}
+					in_from = item.updated
+				if result.length is 0
+					if reset_schema then do_reset_schema null else receive_out null
+					return
+				oauth.rest app, '/rest/in?', JSON.stringify({a: result}), (err, res) =>
+					log 'After in:', err, res
+					if err then return finish_sync err
+					send_in null
+		do_reset_schema = () =>
+			@db.clean = true
+			@db.verify @db_schema, (err, reset) =>
+				log 'Verify result', err, reset
+				if err then return finish_sync err
+				receive_out null
+		get_last_sync = () =>
+			@db.query 'select * from updates order by id desc', [], (err, data) =>
+				if err then return handler err
+				if data.length>0
+					in_from = data[0].version_in
+					out_from = data[0].version_out
+				log 'Start sync with', in_from, out_from
+				send_in null
+		oauth.rest app, '/rest/schema?', null, (err, schema) =>
+			log 'After schema', err, schema
+			if err then return handler err
+			if not @schema or @schema._rev isnt schema._rev
+				@db.set 'schema', JSON.stringify(schema)
+				@schema = schema
+				reset_schema = yes
+			get_last_sync null
+
+	_id: (id) ->
+		if not id
+			id = new Date().getTime()
+		while id<=@last_id
+			id++
+		@last_id = id
+		return id
+
 	create: (stream, object, handler) ->
-		if not @schema[stream]
-			return handler 'Unsupported stream'
+		if not @_precheck stream, handler then return
 		if not object.id
-		  object.id = new Date().getTime()+(@schema[stream].index ? 0)
+		  object.id = @_id new Date().getTime()
 		questions = '?, ?, ?, ?, ?, ?'
 		fields = 'id, status, updated, own, stream, data'
 		values = [object.id, 1, object.id, 1, stream, JSON.stringify(object)]
@@ -134,13 +218,12 @@ class StorageProvider
 			else handler null, object
 
 	update: (stream, object, handler) ->
-		if not @schema[stream]
-			return handler 'Unsupported stream'
+		if not @_precheck stream, handler then return
 		if not object or not object.id
 			return handler 'Invalid object ID'
 		# prepare SQL
 		fields = 'status=?, updated=?, own=?, data=?'
-		values = [2, new Date().getTime(), 1, JSON.stringify(object)]
+		values = [2, @_id(new Date().getTime()), 1, JSON.stringify(object)]
 		numbers = @schema[stream].numbers ? []
 		texts = @schema[stream].texts ? []
 		for i in [0...numbers.length]
@@ -155,16 +238,14 @@ class StorageProvider
 			handler err
 
 	remove: (stream, object, handler) ->
-		if not @schema[stream]
-		  return handler 'Unsupported stream'
+		if not @_precheck stream, handler then return
 		if not object or not object.id
 			return handler 'Invalid object ID'
-		@db.query 'update data set status=?, updated=?, own=? where  id=? and stream=?', [3, new Date().getTime(), 1, object.id, stream], (err) =>
+		@db.query 'update data set status=?, updated=?, own=? where  id=? and stream=?', [3, @_id(new Date().getTime()), 1, object.id, stream], (err) =>
 			handler err
 
 	select: (stream, query, handler, options) ->
-		if not @schema[stream]
-			return handler 'Unsupported stream'
+		if not @_precheck stream, handler then return
 		numbers = @schema[stream].numbers ? []
 		fields = id: 'id'
 		for own i, name of @schema[stream].texts ? []
@@ -222,18 +303,9 @@ class DataManager
 		@storage.open (err) =>
 			log 'Open result', err 
 			if err then return handler err
-			@storage.schema = 
-				templates:
-					index: 0
-					texts: ['name', 'tag']
-				sheets:
-					index: 1
-					numbers: ['template_id', 'place']
-					texts: ['title', 'code']
-				notes:
-					index: 2
-					numbers: ['sheet_id', 'place']
-					texts: ['area', 'text', 'due']
+			try
+				@storage.schema = JSON.parse(@get 'schema')
+			catch e
 			handler null
 
 	_resort: (array, result) ->
@@ -335,6 +407,17 @@ class DataManager
 
 	saveNote: (object, handler) ->
 		@_save 'notes', object, handler
+	
+	get: (name, def) ->
+		return @storage.db.get name, def
+
+	set: (name, value) ->
+		return @storage.db.set name, value
+
+	sync: (oauth, handler) ->
+		return @storage.sync 'lima1', oauth, (error, schema) =>
+			if schema then @set 'schema', JSON.stringify(schema)
+			handler error
 
 window.HTML5Provider = HTML5Provider
 window.StorageProvider = StorageProvider

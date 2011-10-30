@@ -39,9 +39,6 @@
       HTML5Provider.__super__.constructor.apply(this, arguments);
     }
     HTML5Provider.prototype.open = function(clean, handler) {
-      if (clean == null) {
-        clean = true;
-      }
       if (!(window && window.openDatabase)) {
         return handler('HTML5 DB not supported');
       }
@@ -50,6 +47,7 @@
         this.db = window.openDatabase(this.name, '', this.name, 1024 * 1024 * 10);
         log('Opened', this.db.version, this.version);
         this.version_match = this.db.version === this.version;
+        this.clean = clean;
         return handler(null);
       } catch (error) {
         return handler(error.message);
@@ -100,7 +98,7 @@
         if (err) {
           return handler(err);
         }
-        if (!this.version_match) {
+        if (!this.version_match || this.clean) {
           create_at = __bind(function(index) {
             if (index < schema.length) {
               return this.query(schema[index], [], __bind(function(err) {
@@ -144,47 +142,173 @@
         }
       }, this));
     };
+    HTML5Provider.prototype.get = function(name, def) {
+      var _ref;
+      return (_ref = typeof window !== "undefined" && window !== null ? window.localStorage[name] : void 0) != null ? _ref : def;
+    };
+    HTML5Provider.prototype.set = function(name, value) {
+      return typeof window !== "undefined" && window !== null ? window.localStorage[name] = value : void 0;
+    };
     return HTML5Provider;
   })();
   StorageProvider = (function() {
-    StorageProvider.prototype.schema = ['create table if not exists updates (id integer primary key, version_in integer, version_out integer, version text)', 'create table if not exists data (id integer primary key, status integer default 0, updated integer default 0, own integer default 1, stream text, data text, i0 integer, i1 integer, i2 integer, i3 integer, i4 integer, i5 integer, i6 integer, i7 integer, i8 integer, i9 integer, t0 text, t1 text, t2 text, t3 text, t4 text, t5 text, t6 text, t7 text, t8 text, t9 text)'];
+    StorageProvider.prototype.last_id = 0;
+    StorageProvider.prototype.db_schema = ['create table if not exists updates (id integer primary key, version_in integer, version_out integer, version text)', 'create table if not exists data (id integer primary key, status integer default 0, updated integer default 0, own integer default 1, stream text, data text, i0 integer, i1 integer, i2 integer, i3 integer, i4 integer, i5 integer, i6 integer, i7 integer, i8 integer, i9 integer, t0 text, t1 text, t2 text, t3 text, t4 text, t5 text, t6 text, t7 text, t8 text, t9 text)'];
     function StorageProvider(connection, db) {
       this.connection = connection;
       this.db = db;
     }
     StorageProvider.prototype.open = function(handler) {
-      return this.db.open(true, __bind(function(err) {
+      return this.db.open(false, __bind(function(err) {
         log('Open result:', err);
         if (!err) {
-          return this.db.verify(this.schema, __bind(function(err, reset) {
+          return this.db.verify(this.db_schema, __bind(function(err, reset) {
             log('Verify result', err, reset);
             return handler(err);
           }, this));
         }
       }, this));
     };
-    StorageProvider.prototype.create = function(stream, object, handler) {
-      var fields, i, numbers, questions, texts, values, _ref, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7;
+    StorageProvider.prototype._precheck = function(stream, handler) {
+      log('_precheck', this.schema, stream);
+      if (!this.schema) {
+        handler('Not synchronized');
+        return false;
+      }
       if (!this.schema[stream]) {
-        return handler('Unsupported stream');
+        handler('Unsupported stream');
+        return false;
+      }
+      return true;
+    };
+    StorageProvider.prototype.sync = function(app, oauth, handler) {
+      var do_reset_schema, finish_sync, get_last_sync, in_from, out_from, receive_out, reset_schema, send_in;
+      log('Starting sync...', app);
+      reset_schema = false;
+      in_from = 0;
+      out_from = 0;
+      finish_sync = __bind(function(err) {
+        return this.db.query('insert into updates (id, version_in, version_out) values (?, ?, ?)', [this._id(), in_from, out_from], __bind(function() {
+          return handler(err);
+        }, this));
+      }, this);
+      receive_out = __bind(function() {
+        log('Receive out not implented - stop');
+        return finish_sync(null);
+      }, this);
+      send_in = __bind(function() {
+        var slots, _ref;
+        slots = (_ref = this.schema._slots) != null ? _ref : 10;
+        return this.db.query('select id, stream, data, updated, status from data where own=? and updated>? order by updated limit ' + slots, [1, in_from], __bind(function(err, data) {
+          var i, item, result, slots_needed, slots_used, _ref2, _ref3;
+          if (err) {
+            return handler(err);
+          }
+          result = [];
+          slots_used = 0;
+          for (i in data) {
+            item = data[i];
+            slots_needed = (_ref2 = (_ref3 = this.schema[item.stream]) != null ? _ref3["in"] : void 0) != null ? _ref2 : 1;
+            if (slots_needed + slots_used > slots) {
+              break;
+            }
+            slots_used += slots_needed;
+            result.push({
+              s: item.stream,
+              st: item.status,
+              u: item.updated,
+              o: item.data,
+              i: item.id
+            });
+            in_from = item.updated;
+          }
+          if (result.length === 0) {
+            if (reset_schema) {
+              do_reset_schema(null);
+            } else {
+              receive_out(null);
+            }
+            return;
+          }
+          return oauth.rest(app, '/rest/in?', JSON.stringify({
+            a: result
+          }), __bind(function(err, res) {
+            log('After in:', err, res);
+            if (err) {
+              return finish_sync(err);
+            }
+            return send_in(null);
+          }, this));
+        }, this));
+      }, this);
+      do_reset_schema = __bind(function() {
+        this.db.clean = true;
+        return this.db.verify(this.db_schema, __bind(function(err, reset) {
+          log('Verify result', err, reset);
+          if (err) {
+            return finish_sync(err);
+          }
+          return receive_out(null);
+        }, this));
+      }, this);
+      get_last_sync = __bind(function() {
+        return this.db.query('select * from updates order by id desc', [], __bind(function(err, data) {
+          if (err) {
+            return handler(err);
+          }
+          if (data.length > 0) {
+            in_from = data[0].version_in;
+            out_from = data[0].version_out;
+          }
+          log('Start sync with', in_from, out_from);
+          return send_in(null);
+        }, this));
+      }, this);
+      return oauth.rest(app, '/rest/schema?', null, __bind(function(err, schema) {
+        log('After schema', err, schema);
+        if (err) {
+          return handler(err);
+        }
+        if (!this.schema || this.schema._rev !== schema._rev) {
+          this.db.set('schema', JSON.stringify(schema));
+          this.schema = schema;
+          reset_schema = true;
+        }
+        return get_last_sync(null);
+      }, this));
+    };
+    StorageProvider.prototype._id = function(id) {
+      if (!id) {
+        id = new Date().getTime();
+      }
+      while (id <= this.last_id) {
+        id++;
+      }
+      this.last_id = id;
+      return id;
+    };
+    StorageProvider.prototype.create = function(stream, object, handler) {
+      var fields, i, numbers, questions, texts, values, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
+      if (!this._precheck(stream, handler)) {
+        return;
       }
       if (!object.id) {
-        object.id = new Date().getTime() + ((_ref = this.schema[stream].index) != null ? _ref : 0);
+        object.id = this._id(new Date().getTime());
       }
       questions = '?, ?, ?, ?, ?, ?';
       fields = 'id, status, updated, own, stream, data';
       values = [object.id, 1, object.id, 1, stream, JSON.stringify(object)];
-      numbers = (_ref2 = this.schema[stream].numbers) != null ? _ref2 : [];
-      texts = (_ref3 = this.schema[stream].texts) != null ? _ref3 : [];
-      for (i = 0, _ref4 = numbers.length; 0 <= _ref4 ? i < _ref4 : i > _ref4; 0 <= _ref4 ? i++ : i--) {
+      numbers = (_ref = this.schema[stream].numbers) != null ? _ref : [];
+      texts = (_ref2 = this.schema[stream].texts) != null ? _ref2 : [];
+      for (i = 0, _ref3 = numbers.length; 0 <= _ref3 ? i < _ref3 : i > _ref3; 0 <= _ref3 ? i++ : i--) {
         questions += ', ?';
         fields += ', i' + i;
-        values.push((_ref5 = object[numbers[i]]) != null ? _ref5 : null);
+        values.push((_ref4 = object[numbers[i]]) != null ? _ref4 : null);
       }
-      for (i = 0, _ref6 = texts.length; 0 <= _ref6 ? i < _ref6 : i > _ref6; 0 <= _ref6 ? i++ : i--) {
+      for (i = 0, _ref5 = texts.length; 0 <= _ref5 ? i < _ref5 : i > _ref5; 0 <= _ref5 ? i++ : i--) {
         questions += ', ?';
         fields += ', t' + i;
-        values.push((_ref7 = object[texts[i]]) != null ? _ref7 : null);
+        values.push((_ref6 = object[texts[i]]) != null ? _ref6 : null);
       }
       return this.db.query('insert into data (' + fields + ') values (' + questions + ')', values, __bind(function(err) {
         if (err) {
@@ -196,14 +320,14 @@
     };
     StorageProvider.prototype.update = function(stream, object, handler) {
       var fields, i, numbers, texts, values, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
-      if (!this.schema[stream]) {
-        return handler('Unsupported stream');
+      if (!this._precheck(stream, handler)) {
+        return;
       }
       if (!object || !object.id) {
         return handler('Invalid object ID');
       }
       fields = 'status=?, updated=?, own=?, data=?';
-      values = [2, new Date().getTime(), 1, JSON.stringify(object)];
+      values = [2, this._id(new Date().getTime()), 1, JSON.stringify(object)];
       numbers = (_ref = this.schema[stream].numbers) != null ? _ref : [];
       texts = (_ref2 = this.schema[stream].texts) != null ? _ref2 : [];
       for (i = 0, _ref3 = numbers.length; 0 <= _ref3 ? i < _ref3 : i > _ref3; 0 <= _ref3 ? i++ : i--) {
@@ -221,20 +345,20 @@
       }, this));
     };
     StorageProvider.prototype.remove = function(stream, object, handler) {
-      if (!this.schema[stream]) {
-        return handler('Unsupported stream');
+      if (!this._precheck(stream, handler)) {
+        return;
       }
       if (!object || !object.id) {
         return handler('Invalid object ID');
       }
-      return this.db.query('update data set status=?, updated=?, own=? where  id=? and stream=?', [3, new Date().getTime(), 1, object.id, stream], __bind(function(err) {
+      return this.db.query('update data set status=?, updated=?, own=? where  id=? and stream=?', [3, this._id(new Date().getTime()), 1, object.id, stream], __bind(function(err) {
         return handler(err);
       }, this));
     };
     StorageProvider.prototype.select = function(stream, query, handler, options) {
       var ar, arr, array_to_query, fields, i, name, numbers, order, values, where, _i, _len, _ref, _ref2, _ref3, _ref4, _ref5;
-      if (!this.schema[stream]) {
-        return handler('Unsupported stream');
+      if (!this._precheck(stream, handler)) {
+        return;
       }
       numbers = (_ref = this.schema[stream].numbers) != null ? _ref : [];
       fields = {
@@ -331,22 +455,11 @@
         if (err) {
           return handler(err);
         }
-        this.storage.schema = {
-          templates: {
-            index: 0,
-            texts: ['name', 'tag']
-          },
-          sheets: {
-            index: 1,
-            numbers: ['template_id', 'place'],
-            texts: ['title', 'code']
-          },
-          notes: {
-            index: 2,
-            numbers: ['sheet_id', 'place'],
-            texts: ['area', 'text', 'due']
-          }
-        };
+        try {
+          this.storage.schema = JSON.parse(this.get('schema'));
+        } catch (e) {
+
+        }
         return handler(null);
       }, this));
     };
@@ -508,6 +621,20 @@
     };
     DataManager.prototype.saveNote = function(object, handler) {
       return this._save('notes', object, handler);
+    };
+    DataManager.prototype.get = function(name, def) {
+      return this.storage.db.get(name, def);
+    };
+    DataManager.prototype.set = function(name, value) {
+      return this.storage.db.set(name, value);
+    };
+    DataManager.prototype.sync = function(oauth, handler) {
+      return this.storage.sync('lima1', oauth, __bind(function(error, schema) {
+        if (schema) {
+          this.set('schema', JSON.stringify(schema));
+        }
+        return handler(error);
+      }, this));
     };
     return DataManager;
   })();

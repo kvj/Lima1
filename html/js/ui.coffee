@@ -903,15 +903,13 @@ $(document).ready () ->
 	db = new HTML5Provider 'test.db', '1.1'
 	storage = new StorageProvider null, db
 	manager = new DataManager storage
-	ui = new UIManager manager
-	ui.start null
-
 	jqnet = new jQueryTransport 'http://localhost:8888'
 	oauth = new OAuthProvider {
 		clientID: '123456'
+		token: manager.get('token')
 	}, jqnet
-	oauth.tokenByUsernamePassword 'kostya', 'wellcome', (err) =>
-		log 'Auth result:', err
+	ui = new UIManager manager, oauth
+	ui.start null
 
 	# renderer = new Renderer $('#page1'), w1, {},
 	# 	dt: new Date().getTime()

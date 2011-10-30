@@ -13,6 +13,7 @@ class jQueryTransport extends NetTransport
 			url: @uri+config?.uri
 			type: config?.type ? 'GET'
 			data: config?.data ? null
+			contentType: config?.contentType ? null
 			error: (err, status, text) =>
 				log 'jQuery error:', err, status, text
 				data = null
@@ -20,9 +21,12 @@ class jQueryTransport extends NetTransport
 					try
 						data = JSON.parse err.responseText
 					catch e
-				handler (text ? 'HTTP error'), data
+				handler (text or 'HTTP error'), data
 			success: (data) =>
 				if not data then return handler 'No data'
+				try
+					data = JSON.parse data
+				catch e
 				handler null, data
 		})
 
@@ -31,6 +35,21 @@ class OAuthProvider
 	constructor: (@config, @transport) ->
 		@tokenURL = @config?.tokenURL ? '/token'
 		@clientID = @config?.clientID ? 'no_client_id'
+		@token = @config?.token
+	
+	rest: (app, path, body, handler) ->
+		@transport.request {
+			uri: "#{path}app=#{app}&oauth_token=#{@token}"
+			type: if body then 'POST' else 'GET'
+			data: body
+			contentType: if body then 'text/plain' else null
+		}, (error, data) =>
+			log 'Rest response:', error, data
+			if error
+				@on_token_error null 
+				return handler error
+			handler null, data
+
 
 	tokenByUsernamePassword: (username, password, handler) ->
 		url = @tokenURL
@@ -45,6 +64,15 @@ class OAuthProvider
 			}
 		}, (error, data) =>
 			log 'Response:', error, data
+			if error then return handler error
+			@token = data.access_token
+			@on_new_token @token
+			handler null, data
+
+	on_token_error: () ->
+
+	on_new_token: () ->
+
 
 window.jQueryTransport = jQueryTransport
 window.OAuthProvider = OAuthProvider

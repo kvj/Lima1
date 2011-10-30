@@ -73,7 +73,7 @@ class DateProtocol extends Protocol
 		dt.format format
 
 class UIManager
-	constructor: (@manager) ->
+	constructor: (@manager, @oauth) ->
 		@protocols = {
 			"dt": new DateProtocol null
 			"@": new ItemProtocol null
@@ -120,6 +120,40 @@ class UIManager
 				@open_link 'dt:'+dt
 				return false
 		});
+		@oauth.on_new_token = (token) =>
+			log 'Save token:', token
+			@manager.set 'token', token
+		@oauth.on_token_error = () =>
+			log 'Time to show dialog'
+			@login null
+		$('#sync_button').bind 'click', () =>
+			@sync null
+		$('#login_button').bind 'click', () =>
+			@do_login null
+		# @oauth.tokenByUsernamePassword 'kostya', 'wellcome', (err) =>
+		# 	log 'Auth result:', err
+
+	do_login: () ->
+		username = $('#username').val()
+		password = $('#password').val()
+		@oauth.tokenByUsernamePassword username, password, (err) =>
+			log 'Auth result:', err
+			if err then return @show_error err
+			@sync null
+
+	sync: () ->
+		log 'Syncing...'
+		@manager.sync @oauth, (err) =>
+			if err then return @show_error err
+
+	login: () ->
+		$('#login_dialog').dialog({
+			width: 300
+			height: 200
+			modal: true
+		})
+		$('#username').val('').focus()
+		$('#password').val('')
 
 	replace: (text, item, env) ->
 		exp = ///^
