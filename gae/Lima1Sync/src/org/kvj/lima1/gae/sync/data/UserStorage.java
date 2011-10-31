@@ -66,7 +66,7 @@ public class UserStorage {
 				return "Password is incorrect";
 			}
 			log.info("Storing token");
-			Entity tokenEntity = new Entity("Token");
+			Entity tokenEntity = new Entity("Token", user.getKey());
 			tokenEntity.setProperty("token", token);
 			tokenEntity.setProperty("user", user.getKey());
 			tokenEntity.setProperty("issued", new Date().getTime());
@@ -93,7 +93,7 @@ public class UserStorage {
 					addFilter("token", FilterOperator.EQUAL, token);
 			Entity tokenEntity = datastore.prepare(searchToken).asSingleEntity();
 			if (null == tokenEntity) {
-				log.info("Token {} not found - error", token);
+				log.warn("Token {} not found - error", token);
 				return null;
 			}
 			log.info("Updating token");

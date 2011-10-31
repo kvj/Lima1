@@ -1,4 +1,4 @@
-w2 = {
+wactions = {
 	"defaults": {
 		"title": "Actions"
 	},
@@ -26,6 +26,32 @@ w2 = {
 			]
 		}
 	]	
+}
+
+swimpleactions = {
+	"defaults": {
+		"title": "To-Do"
+	},
+	"direct": true,
+	"flow": [
+		{"type": "title", "name": "Actions", "edit":"@:title"},
+		{"type": "hr"},
+		{
+			"type": "list",
+			"area": "main",
+			"config": {
+				"grid": 1,
+				"delimiter": 1
+			},
+			"flow": [
+				{"type": "cols", "size": [0.05, 0.8, 0.15], "flow": [
+					{"type": "check", "edit": "@:done"},
+					{"type": "text", "edit": "@:text"},
+					{"type": "date", "edit": "@:due", "border": "1l"}
+				]}
+			]
+		}
+	]
 }
 
 wnotes = {
@@ -836,8 +862,8 @@ class Renderer
 				event.preventDefault()
 				_on_finish_edit null
 				return false
-		element.bind 'blur', (event) =>
-			_on_finish_edit null
+		# element.bind 'blur', (event) =>
+		# 	_on_finish_edit null
 		return element
 
 	render: () ->
@@ -903,9 +929,10 @@ $(document).ready () ->
 	db = new HTML5Provider 'test.db', '1.1'
 	storage = new StorageProvider null, db
 	manager = new DataManager storage
-	jqnet = new jQueryTransport 'http://localhost:8888'
+	# 'http://localhost:8888'
+	jqnet = new jQueryTransport 'http://lima1sync.appspot.com'
 	oauth = new OAuthProvider {
-		clientID: '123456'
+		clientID: 'lima1web'
 		token: manager.get('token')
 	}, jqnet
 	ui = new UIManager manager, oauth

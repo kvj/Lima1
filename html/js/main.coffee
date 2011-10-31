@@ -119,7 +119,6 @@ class StorageProvider
 					handler err
 	
 	_precheck: (stream, handler) ->
-		log '_precheck', @schema, stream
 		if not @schema 
 			handler 'Not synchronized'
 			return false
@@ -133,16 +132,49 @@ class StorageProvider
 		reset_schema = no
 		in_from = 0
 		out_from = 0
+		out_items = 0
+		in_items = 0
 		finish_sync = (err) =>
+			if err then return handler err
 			@db.query 'insert into updates (id, version_in, version_out) values (?, ?, ?)', [@_id(), in_from, out_from], () =>
-				handler err
+				@db.query 'delete from data where status=?', [3], () =>
+					handler err, {
+						in: in_items
+						out: out_items
+					}
 		receive_out = () =>
-			log 'Receive out not implented - stop'
-			finish_sync null
+			oauth.rest app, "/rest/out?from=#{out_from}&", null, (err, res) =>
+				# log 'After out:', err, res
+				if err then return finish_sync err
+				arr = res.a
+				if arr.length is 0
+					out_from = res.u
+					finish_sync null
+				else
+					for i, item of arr
+						last = parseInt(i) is arr.length-1
+						object = null
+						out_from = item.u
+						in_items++
+						try
+							object = JSON.parse(item.o)
+						catch e
+							log 'Error parsing object', e
+						do (last) =>
+							# log 'Saving', item
+							@create item.s, object, (err) =>
+								# log 'After create', err
+								if last then receive_out null
+							, {
+								status: item.st
+								updated: item.u
+								own: 0
+								internal: yes
+							}
 		send_in = () =>
 			slots = @schema._slots ? 10
 			@db.query 'select id, stream, data, updated, status from data where own=? and updated>? order by updated limit '+slots, [1, in_from], (err, data) =>
-				if err then return handler err
+				if err then return finish_sync err
 				result = []
 				slots_used = 0
 				for i, item of data
@@ -157,35 +189,40 @@ class StorageProvider
 						i: item.id
 					}
 					in_from = item.updated
+					out_items++ 
 				if result.length is 0
 					if reset_schema then do_reset_schema null else receive_out null
 					return
 				oauth.rest app, '/rest/in?', JSON.stringify({a: result}), (err, res) =>
-					log 'After in:', err, res
+					# log 'After in:', err, res
 					if err then return finish_sync err
 					send_in null
 		do_reset_schema = () =>
 			@db.clean = true
 			@db.verify @db_schema, (err, reset) =>
-				log 'Verify result', err, reset
+				# log 'Verify result', err, reset
 				if err then return finish_sync err
+				out_from = 0
 				receive_out null
 		get_last_sync = () =>
 			@db.query 'select * from updates order by id desc', [], (err, data) =>
-				if err then return handler err
+				if err then return finish_sync err
 				if data.length>0
-					in_from = data[0].version_in
-					out_from = data[0].version_out
+					in_from = data[0].version_in or 0
+					out_from = data[0].version_out or 0
 				log 'Start sync with', in_from, out_from
 				send_in null
 		oauth.rest app, '/rest/schema?', null, (err, schema) =>
-			log 'After schema', err, schema
-			if err then return handler err
+			# log 'After schema', err, schema
+			if err then return finish_sync err
 			if not @schema or @schema._rev isnt schema._rev
 				@db.set 'schema', JSON.stringify(schema)
 				@schema = schema
 				reset_schema = yes
 			get_last_sync null
+		, {
+			check: true
+		}
 
 	_id: (id) ->
 		if not id
@@ -195,13 +232,15 @@ class StorageProvider
 		@last_id = id
 		return id
 
-	create: (stream, object, handler) ->
+	on_change: (type, stream, id) ->
+
+	create: (stream, object, handler, options) ->
 		if not @_precheck stream, handler then return
 		if not object.id
-		  object.id = @_id new Date().getTime()
+		  object.id = @_id()
 		questions = '?, ?, ?, ?, ?, ?'
 		fields = 'id, status, updated, own, stream, data'
-		values = [object.id, 1, object.id, 1, stream, JSON.stringify(object)]
+		values = [object.id, options?.status ? 1, options?.updated ? object.id, options?.own ? 1, stream, JSON.stringify(object)]
 		numbers = @schema[stream].numbers ? []
 		texts = @schema[stream].texts ? []
 		for i in [0...numbers.length]
@@ -212,10 +251,12 @@ class StorageProvider
 			questions += ', ?'
 			fields += ', t'+i
 			values.push object[texts[i]] ? null
-		@db.query 'insert into data ('+fields+') values ('+questions+')', values, (err) =>
+		@db.query 'insert or replace into data ('+fields+') values ('+questions+')', values, (err) =>
 			if err
 				handler err
-			else handler null, object
+			else 
+				if not options?.internal then @on_change 'create', stream, object.id
+				handler null, object
 
 	update: (stream, object, handler) ->
 		if not @_precheck stream, handler then return
@@ -223,7 +264,7 @@ class StorageProvider
 			return handler 'Invalid object ID'
 		# prepare SQL
 		fields = 'status=?, updated=?, own=?, data=?'
-		values = [2, @_id(new Date().getTime()), 1, JSON.stringify(object)]
+		values = [2, @_id(), 1, JSON.stringify(object)]
 		numbers = @schema[stream].numbers ? []
 		texts = @schema[stream].texts ? []
 		for i in [0...numbers.length]
@@ -235,6 +276,8 @@ class StorageProvider
 		values.push object.id
 		values.push stream
 		@db.query 'update data set '+fields+' where id=? and stream=?', values, (err) =>
+			if not err
+				@on_change 'update', stream, object.id
 			handler err
 
 	remove: (stream, object, handler) ->
@@ -242,6 +285,8 @@ class StorageProvider
 		if not object or not object.id
 			return handler 'Invalid object ID'
 		@db.query 'update data set status=?, updated=?, own=? where  id=? and stream=?', [3, @_id(new Date().getTime()), 1, object.id, stream], (err) =>
+			if not err
+				@on_change 'remove', stream, object.id
 			handler err
 
 	select: (stream, query, handler, options) ->
@@ -298,15 +343,34 @@ class DataManager
 	
 	place_field: 'place'
 	place_step: 100
+	sync_timeout: 30
+	timeout_id: null
 
 	open: (handler) ->
 		@storage.open (err) =>
 			log 'Open result', err 
 			if err then return handler err
+			@storage.on_change = () =>
+				@schedule_sync null
 			try
 				@storage.schema = JSON.parse(@get 'schema')
 			catch e
 			handler null
+
+	unschedule_sync: () ->
+		log 'Terminating schedule', @timeout_id
+		if @timeout_id
+			clearTimeout @timeout_id
+			@timeout_id = null
+
+	schedule_sync: () ->
+		@unschedule_sync null
+		log 'Scheduling sync', @sync_timeout
+		@timeout_id = setTimeout () =>
+			@on_scheduled_sync null
+		, 1000*@sync_timeout
+
+	on_scheduled_sync: () ->
 
 	_resort: (array, result) ->
 		place = @place_step
@@ -415,9 +479,10 @@ class DataManager
 		return @storage.db.set name, value
 
 	sync: (oauth, handler) ->
-		return @storage.sync 'lima1', oauth, (error, schema) =>
-			if schema then @set 'schema', JSON.stringify(schema)
-			handler error
+		return @storage.sync 'lima1', oauth, (err, data) =>
+			if not err and @timeout_id
+				@unschedule_sync null
+			handler err, data
 
 window.HTML5Provider = HTML5Provider
 window.StorageProvider = StorageProvider

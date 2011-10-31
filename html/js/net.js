@@ -29,7 +29,7 @@
         url: this.uri + (config != null ? config.uri : void 0),
         type: (_ref = config != null ? config.type : void 0) != null ? _ref : 'GET',
         data: (_ref2 = config != null ? config.data : void 0) != null ? _ref2 : null,
-        contentType: (_ref3 = config != null ? config.contentType : void 0) != null ? _ref3 : null,
+        contentType: (_ref3 = config != null ? config.contentType : void 0) != null ? _ref3 : void 0,
         error: __bind(function(err, status, text) {
           var data;
           log('jQuery error:', err, status, text);
@@ -67,7 +67,7 @@
       this.clientID = (_ref3 = (_ref4 = this.config) != null ? _ref4.clientID : void 0) != null ? _ref3 : 'no_client_id';
       this.token = (_ref5 = this.config) != null ? _ref5.token : void 0;
     }
-    OAuthProvider.prototype.rest = function(app, path, body, handler) {
+    OAuthProvider.prototype.rest = function(app, path, body, handler, options) {
       return this.transport.request({
         uri: "" + path + "app=" + app + "&oauth_token=" + this.token,
         type: body ? 'POST' : 'GET',
@@ -76,7 +76,9 @@
       }, __bind(function(error, data) {
         log('Rest response:', error, data);
         if (error) {
-          this.on_token_error(null);
+          if (options != null ? options.check : void 0) {
+            this.on_token_error(null);
+          }
           return handler(error);
         }
         return handler(null, data);

@@ -13,7 +13,7 @@ class jQueryTransport extends NetTransport
 			url: @uri+config?.uri
 			type: config?.type ? 'GET'
 			data: config?.data ? null
-			contentType: config?.contentType ? null
+			contentType: config?.contentType ? undefined
 			error: (err, status, text) =>
 				log 'jQuery error:', err, status, text
 				data = null
@@ -37,7 +37,7 @@ class OAuthProvider
 		@clientID = @config?.clientID ? 'no_client_id'
 		@token = @config?.token
 	
-	rest: (app, path, body, handler) ->
+	rest: (app, path, body, handler, options) ->
 		@transport.request {
 			uri: "#{path}app=#{app}&oauth_token=#{@token}"
 			type: if body then 'POST' else 'GET'
@@ -46,7 +46,8 @@ class OAuthProvider
 		}, (error, data) =>
 			log 'Rest response:', error, data
 			if error
-				@on_token_error null 
+				if options?.check
+					@on_token_error null 
 				return handler error
 			handler null, data
 

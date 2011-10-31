@@ -1286,9 +1286,6 @@
           return false;
         }
       }, this));
-      element.bind('blur', __bind(function(event) {
-        return _on_finish_edit(null);
-      }, this));
       return element;
     };
     Renderer.prototype.render = function() {
@@ -1370,9 +1367,9 @@
     db = new HTML5Provider('test.db', '1.1');
     storage = new StorageProvider(null, db);
     manager = new DataManager(storage);
-    jqnet = new jQueryTransport('http://localhost:8888');
+    jqnet = new jQueryTransport('http://lima1sync.appspot.com');
     oauth = new OAuthProvider({
-      clientID: '123456',
+      clientID: 'lima1web',
       token: manager.get('token')
     }, jqnet);
     ui = new UIManager(manager, oauth);

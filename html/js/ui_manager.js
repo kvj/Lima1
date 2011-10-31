@@ -141,6 +141,10 @@
       $('#new_template_button').bind('click', __bind(function() {
         return this.new_template(null);
       }, this));
+      $('#reload_sheets_button').bind('click', __bind(function() {
+        this.load_templates(null);
+        return this.show_sheets(null);
+      }, this));
       $('#remove_template').bind('click', __bind(function() {
         return this.remove_template(null);
       }, this));
@@ -190,6 +194,9 @@
       $('#login_button').bind('click', __bind(function() {
         return this.do_login(null);
       }, this));
+      this.manager.on_scheduled_sync = __bind(function() {
+        return this.sync(null);
+      }, this);
     }
     UIManager.prototype.do_login = function() {
       var password, username;
@@ -200,15 +207,22 @@
         if (err) {
           return this.show_error(err);
         }
+        $('#login_dialog').dialog('close');
         return this.sync(null);
       }, this));
     };
     UIManager.prototype.sync = function() {
-      log('Syncing...');
-      return this.manager.sync(this.oauth, __bind(function(err) {
+      $('#sync_button').find('.ui-button-text').text('Sync in progress...');
+      return this.manager.sync(this.oauth, __bind(function(err, sync_data) {
+        var in_items, out_items, sync_at;
+        $('#sync_button').find('.ui-button-text').text('Sync');
         if (err) {
           return this.show_error(err);
         }
+        sync_at = new Date().format('M/d h:mma');
+        out_items = sync_data.out;
+        in_items = sync_data["in"];
+        return $('#sync_message').text("Sync done: " + sync_at + " sent: " + out_items + " received: " + in_items);
       }, this));
     };
     UIManager.prototype.login = function() {

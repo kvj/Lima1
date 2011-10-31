@@ -170,7 +170,6 @@
       }, this));
     };
     StorageProvider.prototype._precheck = function(stream, handler) {
-      log('_precheck', this.schema, stream);
       if (!this.schema) {
         handler('Not synchronized');
         return false;
@@ -182,19 +181,65 @@
       return true;
     };
     StorageProvider.prototype.sync = function(app, oauth, handler) {
-      var do_reset_schema, finish_sync, get_last_sync, in_from, out_from, receive_out, reset_schema, send_in;
+      var do_reset_schema, finish_sync, get_last_sync, in_from, in_items, out_from, out_items, receive_out, reset_schema, send_in;
       log('Starting sync...', app);
       reset_schema = false;
       in_from = 0;
       out_from = 0;
+      out_items = 0;
+      in_items = 0;
       finish_sync = __bind(function(err) {
-        return this.db.query('insert into updates (id, version_in, version_out) values (?, ?, ?)', [this._id(), in_from, out_from], __bind(function() {
+        if (err) {
           return handler(err);
+        }
+        return this.db.query('insert into updates (id, version_in, version_out) values (?, ?, ?)', [this._id(), in_from, out_from], __bind(function() {
+          return this.db.query('delete from data where status=?', [3], __bind(function() {
+            return handler(err, {
+              "in": in_items,
+              out: out_items
+            });
+          }, this));
         }, this));
       }, this);
       receive_out = __bind(function() {
-        log('Receive out not implented - stop');
-        return finish_sync(null);
+        return oauth.rest(app, "/rest/out?from=" + out_from + "&", null, __bind(function(err, res) {
+          var arr, i, item, last, object, _results;
+          if (err) {
+            return finish_sync(err);
+          }
+          arr = res.a;
+          if (arr.length === 0) {
+            out_from = res.u;
+            return finish_sync(null);
+          } else {
+            _results = [];
+            for (i in arr) {
+              item = arr[i];
+              last = parseInt(i) === arr.length - 1;
+              object = null;
+              out_from = item.u;
+              in_items++;
+              try {
+                object = JSON.parse(item.o);
+              } catch (e) {
+                log('Error parsing object', e);
+              }
+              _results.push(__bind(function(last) {
+                return this.create(item.s, object, __bind(function(err) {
+                  if (last) {
+                    return receive_out(null);
+                  }
+                }, this), {
+                  status: item.st,
+                  updated: item.u,
+                  own: 0,
+                  internal: true
+                });
+              }, this)(last));
+            }
+            return _results;
+          }
+        }, this));
       }, this);
       send_in = __bind(function() {
         var slots, _ref;
@@ -202,7 +247,7 @@
         return this.db.query('select id, stream, data, updated, status from data where own=? and updated>? order by updated limit ' + slots, [1, in_from], __bind(function(err, data) {
           var i, item, result, slots_needed, slots_used, _ref2, _ref3;
           if (err) {
-            return handler(err);
+            return finish_sync(err);
           }
           result = [];
           slots_used = 0;
@@ -221,6 +266,7 @@
               i: item.id
             });
             in_from = item.updated;
+            out_items++;
           }
           if (result.length === 0) {
             if (reset_schema) {
@@ -233,7 +279,6 @@
           return oauth.rest(app, '/rest/in?', JSON.stringify({
             a: result
           }), __bind(function(err, res) {
-            log('After in:', err, res);
             if (err) {
               return finish_sync(err);
             }
@@ -244,30 +289,29 @@
       do_reset_schema = __bind(function() {
         this.db.clean = true;
         return this.db.verify(this.db_schema, __bind(function(err, reset) {
-          log('Verify result', err, reset);
           if (err) {
             return finish_sync(err);
           }
+          out_from = 0;
           return receive_out(null);
         }, this));
       }, this);
       get_last_sync = __bind(function() {
         return this.db.query('select * from updates order by id desc', [], __bind(function(err, data) {
           if (err) {
-            return handler(err);
+            return finish_sync(err);
           }
           if (data.length > 0) {
-            in_from = data[0].version_in;
-            out_from = data[0].version_out;
+            in_from = data[0].version_in || 0;
+            out_from = data[0].version_out || 0;
           }
           log('Start sync with', in_from, out_from);
           return send_in(null);
         }, this));
       }, this);
       return oauth.rest(app, '/rest/schema?', null, __bind(function(err, schema) {
-        log('After schema', err, schema);
         if (err) {
-          return handler(err);
+          return finish_sync(err);
         }
         if (!this.schema || this.schema._rev !== schema._rev) {
           this.db.set('schema', JSON.stringify(schema));
@@ -275,7 +319,9 @@
           reset_schema = true;
         }
         return get_last_sync(null);
-      }, this));
+      }, this), {
+        check: true
+      });
     };
     StorageProvider.prototype._id = function(id) {
       if (!id) {
@@ -287,33 +333,37 @@
       this.last_id = id;
       return id;
     };
-    StorageProvider.prototype.create = function(stream, object, handler) {
-      var fields, i, numbers, questions, texts, values, _ref, _ref2, _ref3, _ref4, _ref5, _ref6;
+    StorageProvider.prototype.on_change = function(type, stream, id) {};
+    StorageProvider.prototype.create = function(stream, object, handler, options) {
+      var fields, i, numbers, questions, texts, values, _ref, _ref2, _ref3, _ref4, _ref5, _ref6, _ref7, _ref8, _ref9;
       if (!this._precheck(stream, handler)) {
         return;
       }
       if (!object.id) {
-        object.id = this._id(new Date().getTime());
+        object.id = this._id();
       }
       questions = '?, ?, ?, ?, ?, ?';
       fields = 'id, status, updated, own, stream, data';
-      values = [object.id, 1, object.id, 1, stream, JSON.stringify(object)];
-      numbers = (_ref = this.schema[stream].numbers) != null ? _ref : [];
-      texts = (_ref2 = this.schema[stream].texts) != null ? _ref2 : [];
-      for (i = 0, _ref3 = numbers.length; 0 <= _ref3 ? i < _ref3 : i > _ref3; 0 <= _ref3 ? i++ : i--) {
+      values = [object.id, (_ref = options != null ? options.status : void 0) != null ? _ref : 1, (_ref2 = options != null ? options.updated : void 0) != null ? _ref2 : object.id, (_ref3 = options != null ? options.own : void 0) != null ? _ref3 : 1, stream, JSON.stringify(object)];
+      numbers = (_ref4 = this.schema[stream].numbers) != null ? _ref4 : [];
+      texts = (_ref5 = this.schema[stream].texts) != null ? _ref5 : [];
+      for (i = 0, _ref6 = numbers.length; 0 <= _ref6 ? i < _ref6 : i > _ref6; 0 <= _ref6 ? i++ : i--) {
         questions += ', ?';
         fields += ', i' + i;
-        values.push((_ref4 = object[numbers[i]]) != null ? _ref4 : null);
+        values.push((_ref7 = object[numbers[i]]) != null ? _ref7 : null);
       }
-      for (i = 0, _ref5 = texts.length; 0 <= _ref5 ? i < _ref5 : i > _ref5; 0 <= _ref5 ? i++ : i--) {
+      for (i = 0, _ref8 = texts.length; 0 <= _ref8 ? i < _ref8 : i > _ref8; 0 <= _ref8 ? i++ : i--) {
         questions += ', ?';
         fields += ', t' + i;
-        values.push((_ref6 = object[texts[i]]) != null ? _ref6 : null);
+        values.push((_ref9 = object[texts[i]]) != null ? _ref9 : null);
       }
-      return this.db.query('insert into data (' + fields + ') values (' + questions + ')', values, __bind(function(err) {
+      return this.db.query('insert or replace into data (' + fields + ') values (' + questions + ')', values, __bind(function(err) {
         if (err) {
           return handler(err);
         } else {
+          if (!(options != null ? options.internal : void 0)) {
+            this.on_change('create', stream, object.id);
+          }
           return handler(null, object);
         }
       }, this));
@@ -327,7 +377,7 @@
         return handler('Invalid object ID');
       }
       fields = 'status=?, updated=?, own=?, data=?';
-      values = [2, this._id(new Date().getTime()), 1, JSON.stringify(object)];
+      values = [2, this._id(), 1, JSON.stringify(object)];
       numbers = (_ref = this.schema[stream].numbers) != null ? _ref : [];
       texts = (_ref2 = this.schema[stream].texts) != null ? _ref2 : [];
       for (i = 0, _ref3 = numbers.length; 0 <= _ref3 ? i < _ref3 : i > _ref3; 0 <= _ref3 ? i++ : i--) {
@@ -341,6 +391,9 @@
       values.push(object.id);
       values.push(stream);
       return this.db.query('update data set ' + fields + ' where id=? and stream=?', values, __bind(function(err) {
+        if (!err) {
+          this.on_change('update', stream, object.id);
+        }
         return handler(err);
       }, this));
     };
@@ -352,6 +405,9 @@
         return handler('Invalid object ID');
       }
       return this.db.query('update data set status=?, updated=?, own=? where  id=? and stream=?', [3, this._id(new Date().getTime()), 1, object.id, stream], __bind(function(err) {
+        if (!err) {
+          this.on_change('remove', stream, object.id);
+        }
         return handler(err);
       }, this));
     };
@@ -449,12 +505,17 @@
     }
     DataManager.prototype.place_field = 'place';
     DataManager.prototype.place_step = 100;
+    DataManager.prototype.sync_timeout = 30;
+    DataManager.prototype.timeout_id = null;
     DataManager.prototype.open = function(handler) {
       return this.storage.open(__bind(function(err) {
         log('Open result', err);
         if (err) {
           return handler(err);
         }
+        this.storage.on_change = __bind(function() {
+          return this.schedule_sync(null);
+        }, this);
         try {
           this.storage.schema = JSON.parse(this.get('schema'));
         } catch (e) {
@@ -463,6 +524,21 @@
         return handler(null);
       }, this));
     };
+    DataManager.prototype.unschedule_sync = function() {
+      log('Terminating schedule', this.timeout_id);
+      if (this.timeout_id) {
+        clearTimeout(this.timeout_id);
+        return this.timeout_id = null;
+      }
+    };
+    DataManager.prototype.schedule_sync = function() {
+      this.unschedule_sync(null);
+      log('Scheduling sync', this.sync_timeout);
+      return this.timeout_id = setTimeout(__bind(function() {
+        return this.on_scheduled_sync(null);
+      }, this), 1000 * this.sync_timeout);
+    };
+    DataManager.prototype.on_scheduled_sync = function() {};
     DataManager.prototype._resort = function(array, result) {
       var item, place, _i, _len, _results;
       place = this.place_step;
@@ -629,11 +705,11 @@
       return this.storage.db.set(name, value);
     };
     DataManager.prototype.sync = function(oauth, handler) {
-      return this.storage.sync('lima1', oauth, __bind(function(error, schema) {
-        if (schema) {
-          this.set('schema', JSON.stringify(schema));
+      return this.storage.sync('lima1', oauth, __bind(function(err, data) {
+        if (!err && this.timeout_id) {
+          this.unschedule_sync(null);
         }
-        return handler(error);
+        return handler(err, data);
       }, this));
     };
     return DataManager;

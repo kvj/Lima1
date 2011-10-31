@@ -91,6 +91,9 @@ class UIManager
 
 		$('#new_template_button').bind 'click', () =>
 			@new_template null
+		$('#reload_sheets_button').bind 'click', () =>
+			@load_templates null
+			@show_sheets null
 		$('#remove_template').bind 'click', () =>
 			@remove_template null
 		$('#save_template').bind 'click', () =>
@@ -130,6 +133,8 @@ class UIManager
 			@sync null
 		$('#login_button').bind 'click', () =>
 			@do_login null
+		@manager.on_scheduled_sync = () =>
+			@sync null
 		# @oauth.tokenByUsernamePassword 'kostya', 'wellcome', (err) =>
 		# 	log 'Auth result:', err
 
@@ -139,12 +144,19 @@ class UIManager
 		@oauth.tokenByUsernamePassword username, password, (err) =>
 			log 'Auth result:', err
 			if err then return @show_error err
+			$('#login_dialog').dialog('close')
 			@sync null
 
 	sync: () ->
-		log 'Syncing...'
-		@manager.sync @oauth, (err) =>
+		$('#sync_button').find('.ui-button-text').text('Sync in progress...')
+		@manager.sync @oauth, (err, sync_data) =>
+			# log 'After sync', err, sync_data
+			$('#sync_button').find('.ui-button-text').text('Sync')
 			if err then return @show_error err
+			sync_at = new Date().format('M/d h:mma')
+			out_items = sync_data.out
+			in_items = sync_data.in
+			$('#sync_message').text "Sync done: #{sync_at} sent: #{out_items} received: #{in_items}"
 
 	login: () ->
 		$('#login_dialog').dialog({
