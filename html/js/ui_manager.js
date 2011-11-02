@@ -121,6 +121,7 @@
   })();
   UIManager = (function() {
     function UIManager(manager, oauth) {
+      var pages;
       this.manager = manager;
       this.oauth = oauth;
       this.protocols = {
@@ -197,7 +198,28 @@
       this.manager.on_scheduled_sync = __bind(function() {
         return this.sync(null);
       }, this);
+      pages = parseInt(this.manager.get('pages', 2));
+      $('#page_slider').slider({
+        min: 1,
+        max: 4,
+        step: 1,
+        value: pages,
+        slide: __bind(function(event, ui) {
+          return this.show_pages(ui.value);
+        }, this)
+      });
+      this.show_pages(pages);
     }
+    UIManager.prototype.show_pages = function(count) {
+      var i;
+      for (i = 0; 0 <= count ? i < count : i > count; 0 <= count ? i++ : i--) {
+        $("#page" + i).show();
+      }
+      for (i = count; count <= 4 ? i < 4 : i > 4; count <= 4 ? i++ : i--) {
+        $("#page" + i).hide();
+      }
+      return this.manager.set('pages', count);
+    };
     UIManager.prototype.do_login = function() {
       var password, username;
       username = $('#username').val();

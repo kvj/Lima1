@@ -87,6 +87,7 @@ body {
 }
 
 .page {
+	display: none;
 	font-size: 1.1em;
 	margin: 20px;
 	border: 1px solid #aaaaaa;
@@ -431,5 +432,11 @@ li {
 }
 
 #sync_button {
+	float: right;
+}
+
+#page_slider {
+	margin: 10px;
+	width: 150px;
 	float: right;
 }

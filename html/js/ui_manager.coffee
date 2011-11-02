@@ -137,6 +137,23 @@ class UIManager
 			@sync null
 		# @oauth.tokenByUsernamePassword 'kostya', 'wellcome', (err) =>
 		# 	log 'Auth result:', err
+		pages = parseInt(@manager.get 'pages', 2)
+		$('#page_slider').slider {
+			min: 1
+			max: 4
+			step: 1
+			value: pages
+			slide: (event, ui) =>
+				@show_pages ui.value
+		}
+		@show_pages pages
+
+	show_pages: (count) ->
+		for i in [0...count]
+			$("#page#{i}").show()
+		for i in [count...4]
+			$("#page#{i}").hide()
+		@manager.set 'pages', count
 
 	do_login: () ->
 		username = $('#username').val()
