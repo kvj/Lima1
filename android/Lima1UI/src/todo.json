@@ -1,0 +1,29 @@
+{
+	"defaults": {
+		"title": "Actions"
+	},
+	"direct": true,
+	"flow": [
+		{"type": "title", "name": "Actions", "edit":"@:title"},
+		{"type": "hr"},
+		{
+			"type": "list",
+			"area": "main",
+			"config": {
+				"grid": 2,
+				"delimiter": 1
+			},
+			"flow": [
+				{"type": "cols", "size": [0.05, 0.8, 0.15], "flow": [
+					{"type": "check", "edit": "@:done"},
+					{"type": "text", "edit": "@:text"},
+					{"type": "date", "edit": "@:due", "border": "1lb"}
+				]},
+				{"type": "cols", "size": [0.05, 0.95], "flow": [
+					{"type": "mark", "edit": "@:mark"},
+					{"type": "text", "edit": "@:notes"}
+				]}
+			]
+		}
+	]	
+}

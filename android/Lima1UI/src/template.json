@@ -1,0 +1,138 @@
+{
+	"code": "w13:${dt:(e1)}",
+	"protocol": {
+		"dt": {
+			"e": [1, 2, 3]
+		}
+	},
+	"defaults": {
+		"title": "${dt:(e1)yyyy}: ${dt:(e1)MM/dd} - ${dt:(e3)MM/dd}",
+		"dt": "${dt:(e1)}"
+	},
+	"flow": [
+		{"type": "title", "name": "Week ${dt:ww}/${dt:yyyy}", "edit":"@:title"},
+		{"type": "title1", "name": "${dt:(e1)dd} Monday"},
+		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
+			{
+				"type": "list", 
+				"area": "d1",
+				"drag": "right",
+				"grid": 1,
+				"delimiter": 1,
+				"defaults": {"due": "${dt:(e1)}"},
+				"flow": [
+					{"type": "cols", "size": [0.15, 0.85], "flow": [
+						{"type": "time", "edit": "@:time", "bg": 1},
+						{"type": "text", "edit": "@:text"}
+					]}
+				]
+			}, {
+				"flow": [
+					{
+						"type": "list", 
+						"area": "t1",
+						"grid": 1,
+						"delimiter": 1,
+						"defaults": {"due": "${dt:(e1)}"},
+						"flow": [
+							{"type": "cols", "size": [0.1, 0.9], "flow": [
+								{"type": "check", "edit": "@:done"},
+								{"type": "text", "edit": "@:text"}
+							]}
+						]
+					}, {
+						"type": "list",
+						"area": "n1",
+						"grid": 2,
+						"delimiter": 2,
+						"flow": [
+							{"type": "text", "edit": "@:text"}
+						]
+					}
+				]
+			}
+		]},
+		{"type": "title1", "name": "${dt:(e2)dd} Tuesday"},
+		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
+			{
+				"type": "list", 
+				"area": "d2",
+				"drag": "right",
+				"grid": 1,
+				"delimiter": 1,
+				"defaults": {"due": "${dt:(e2)}"},
+				"flow": [
+					{"type": "cols", "size": [0.15, 0.85], "flow": [
+						{"type": "time", "edit": "@:time", "bg": 1},
+						{"type": "text", "edit": "@:text"}
+					]}
+				]
+			}, {
+				"flow": [
+					{
+						"type": "list", 
+						"area": "t2",
+						"grid": 1,
+						"delimiter": 1,
+						"defaults": {"due": "${dt:(e2)}"},
+						"flow": [
+							{"type": "cols", "size": [0.1, 0.9], "flow": [
+								{"type": "check", "edit": "@:done"},
+								{"type": "text", "edit": "@:text"}
+							]}
+						]
+					}, {
+						"type": "list",
+						"area": "n2",
+						"grid": 2,
+						"delimiter": 2,
+						"flow": [
+							{"type": "text", "edit": "@:text"}
+						]
+					}
+				]
+			}
+		]},
+		{"type": "title1", "name": "${dt:(e3)dd} Wednesday"},
+		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
+			{
+				"type": "list", 
+				"area": "d3",
+				"drag": "right",
+				"grid": 1,
+				"delimiter": 1,
+				"defaults": {"due": "${dt:(e3)}"},
+				"flow": [
+					{"type": "cols", "size": [0.15, 0.85], "flow": [
+						{"type": "time", "edit": "@:time", "bg": 1},
+						{"type": "text", "edit": "@:text"}
+					]}
+				]
+			}, {
+				"flow": [
+					{
+						"type": "list", 
+						"area": "t3",
+						"grid": 1,
+						"delimiter": 1,
+						"defaults": {"due": "${dt:(e3)}"},
+						"flow": [
+							{"type": "cols", "size": [0.1, 0.9], "flow": [
+								{"type": "check", "edit": "@:done"},
+								{"type": "text", "edit": "@:text"}
+							]}
+						]
+					}, {
+						"type": "list",
+						"area": "n3",
+						"grid": 2,
+						"delimiter": 2,
+						"flow": [
+							{"type": "text", "edit": "@:text"}
+						]
+					}
+				]
+			}
+		]}
+	]
+}

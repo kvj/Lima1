@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+	<style name="title0_text" parent="android:style/Widget.TextView">
+	    <item name="android:textSize">30sp</item>
+	</style>
+	<style name="title0_editor" parent="android:style/Widget.EditText">
+	</style>
+</resources>
