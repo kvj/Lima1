@@ -62,13 +62,14 @@
     };
     DateProtocol.prototype.prepare = function(config, value) {
       var dt;
-      dt = new Date();
-      dt.fromString(value.substr(value.indexOf(':') + 1));
-      return config.dt = dt;
+      if (!config.dt) {
+        dt = new Date();
+        dt.fromString(value.substr(value.indexOf(':') + 1));
+        return config.dt = dt.format('yyyyMMdd');
+      }
     };
     DateProtocol.prototype.accept = function(config, value) {
       var dt, method, type, val;
-      log('Check accept', value);
       dt = new Date();
       dt.fromString(value);
       for (type in config) {
@@ -85,12 +86,12 @@
         }
       }
       return {
-        dt: dt
+        dt: dt.format('yyyyMMdd')
       };
     };
     DateProtocol.prototype.convert = function(text, value) {
       var dt, exp, format, item, m, method, mexp, mm, mmm, modifiers, val, _i, _len;
-      dt = new Date(value.dt);
+      dt = new Date().fromString(value.dt);
       exp = /^(\((([ewmdy][+-]?[0-9]+)+)\))?([EwMdy\/\:\.]*)$/;
       m = text.match(exp);
       if (!m) {
@@ -106,7 +107,7 @@
           mmm = item.match(/([ewmdy])([+-]?)([0-9]+)/);
           if (mmm) {
             method = this.fromDateByType(mmm[1]);
-            val = parseInt(mmm[3]);
+            val = parseInt(mmm[3], 10);
             if (mmm[2]) {
               dt['set' + method](dt['get' + method]() + (mmm[2] === '+' ? val : -val));
             } else {
@@ -120,15 +121,16 @@
     return DateProtocol;
   })();
   UIManager = (function() {
+    UIManager.prototype.archive_state = null;
     function UIManager(manager, oauth) {
-      var pages;
+      var i, page, _fn;
       this.manager = manager;
       this.oauth = oauth;
+      this.scroll_sheets = __bind(this.scroll_sheets, this);
       this.protocols = {
         "dt": new DateProtocol(null),
         "@": new ItemProtocol(null)
       };
-      log('Create UI...');
       $('button').button();
       $('#templates_button').bind('click', __bind(function() {
         return this.edit_templates(null);
@@ -154,13 +156,24 @@
       }, this));
       $('#trash').droppable({
         accept: '.list_item, .sheet',
-        hoverClass: 'trash_drop',
+        hoverClass: 'toolbar_drop',
         tolerance: 'pointer',
         drop: __bind(function(event, ui) {
           this.remove_drop(ui.draggable);
           return event.preventDefault();
         }, this)
       });
+      $('#archive').droppable({
+        accept: '.sheet',
+        hoverClass: 'toolbar_drop',
+        tolerance: 'pointer',
+        drop: __bind(function(event, ui) {
+          this.archive_drop(ui.draggable);
+          return event.preventDefault();
+        }, this)
+      }).bind('click', __bind(function(event) {
+        return this.invert_archive(null);
+      }, this));
       $('.page').droppable({
         accept: '.sheet',
         hoverClass: 'page_drop',
@@ -182,11 +195,9 @@
         }, this)
       });
       this.oauth.on_new_token = __bind(function(token) {
-        log('Save token:', token);
         return this.manager.set('token', token);
       }, this);
       this.oauth.on_token_error = __bind(function() {
-        log('Time to show dialog');
         return this.login(null);
       }, this);
       $('#sync_button').bind('click', __bind(function() {
@@ -198,18 +209,40 @@
       this.manager.on_scheduled_sync = __bind(function() {
         return this.sync(null);
       }, this);
-      pages = parseInt(this.manager.get('pages', 2));
+      this.pages = parseInt(this.manager.get('pages', 2));
       $('#page_slider').slider({
         min: 1,
         max: 4,
         step: 1,
-        value: pages,
+        value: this.pages,
         slide: __bind(function(event, ui) {
           return this.show_pages(ui.value);
         }, this)
       });
-      this.show_pages(pages);
+      _fn = __bind(function(page) {
+        page.bind('mouseover', __bind(function(event) {
+          return page.children('.page_scroll').show();
+        }, this));
+        return page.bind('mouseout', __bind(function(event) {
+          return page.children('.page_scroll').hide();
+        }, this));
+      }, this);
+      for (i = 0; i < 4; i++) {
+        page = $("#page" + i);
+        _fn(page);
+      }
+      this.show_pages(this.pages);
     }
+    UIManager.prototype.invert_archive = function() {
+      if (this.archive_state === null) {
+        this.archive_state = 1;
+        $('#archive').text('Unarchive');
+      } else {
+        this.archive_state = null;
+        $('#archive').text('Archive');
+      }
+      return this.show_sheets(null);
+    };
     UIManager.prototype.show_pages = function(count) {
       var i;
       for (i = 0; 0 <= count ? i < count : i > count; 0 <= count ? i++ : i--) {
@@ -218,6 +251,7 @@
       for (i = count; count <= 4 ? i < 4 : i > 4; count <= 4 ? i++ : i--) {
         $("#page" + i).hide();
       }
+      this.pages = count;
       return this.manager.set('pages', count);
     };
     UIManager.prototype.do_login = function() {
@@ -256,7 +290,7 @@
       $('#username').val('').focus();
       return $('#password').val('');
     };
-    UIManager.prototype.replace = function(text, item, env) {
+    UIManager.prototype.replace = function(text, item) {
       var exp, m, name, p, value, _ref;
       exp = /^([a-z\@]+\:)([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)$/;
       if (m = text.match(exp)) {
@@ -265,7 +299,7 @@
         for (name in _ref) {
           p = _ref[name];
           if (name + ':' === m[1]) {
-            value = p.convert(m[2], env);
+            value = p.convert(m[2], item);
             break;
           }
         }
@@ -273,7 +307,7 @@
       }
       return text;
     };
-    UIManager.prototype.inject = function(txt, item, env) {
+    UIManager.prototype.inject = function(txt, item) {
       var exp, m, name, p, text, value, _ref;
       text = txt;
       exp = /\$\{([a-z\@]+\:)([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)\}/;
@@ -286,7 +320,7 @@
         for (name in _ref) {
           p = _ref[name];
           if (name + ':' === m[1]) {
-            value = p.convert(m[2], env);
+            value = p.convert(m[2], item);
             break;
           }
         }
@@ -313,7 +347,7 @@
             if (!config) {
               continue;
             }
-            code = this.inject(tmpl.code, {}, config);
+            code = this.inject(tmpl.code, config);
             if (code) {
               templates_found.push({
                 code: code,
@@ -348,8 +382,18 @@
         }
       }, this));
     };
+    UIManager.prototype.archive_drop = function(drag) {
+      var sheet;
+      sheet = drag.data('item');
+      sheet.archived = this.archive_state === 1 ? null : 1;
+      return this.manager.saveSheet(sheet, __bind(function(err) {
+        if (err) {
+          return this.show_error(err);
+        }
+        return this.show_sheets(null);
+      }, this));
+    };
     UIManager.prototype.remove_drop = function(drag) {
-      log('Remove', drag.data('type'));
       if (drag.data('type') === 'note') {
         drag.data('renderer').remove_note(drag.data('item'), drag);
       }
@@ -429,8 +473,14 @@
       }, this));
     };
     UIManager.prototype.show_error = function(message) {
+      var div;
       log('Error', message);
-      return alert(message);
+      div = $('<div/>').addClass('message error_message').text(message != null ? message : 'Error!').appendTo($('#messages')).delay(5000).fadeOut();
+      return __bind(function(div) {
+        return setTimeout(__bind(function() {
+          return div.remove();
+        }, this), 7000);
+      }, this)(div);
     };
     UIManager.prototype.template_selected = function() {
       var selected;
@@ -493,6 +543,31 @@
         return _results;
       }, this));
     };
+    UIManager.prototype.scroll_sheets = function(from, step) {
+      var i, j, _ref, _ref2;
+      if (step == null) {
+        step = 0;
+      }
+      if (!this.sheets) {
+        this.show_error('No data loaded');
+        return;
+      }
+      for (i = 0, _ref = this.sheets_displayed.length; 0 <= _ref ? i < _ref : i > _ref; 0 <= _ref ? i++ : i--) {
+        if (this.sheets_displayed[i].id === from) {
+          i += step;
+          if (i + this.pages >= this.sheets_displayed.length) {
+            i = this.sheets_displayed.length - this.pages;
+          }
+          if (i < 0) {
+            i = 0;
+          }
+          for (j = i, _ref2 = Math.min(this.pages + i, this.sheets_displayed.length); i <= _ref2 ? j < _ref2 : j > _ref2; i <= _ref2 ? j++ : j--) {
+            this.show_page(this.sheets_displayed[j].template_id, this.sheets_displayed[j], "#page" + (j - i));
+          }
+          return;
+        }
+      }
+    };
     UIManager.prototype.show_page = function(template_id, sheet, place) {
       var conf, config, name, p, renderer, template, _ref;
       if (place == null) {
@@ -513,10 +588,10 @@
           if (!p) {
             continue;
           }
-          p.prepare(config, sheet.code);
+          p.prepare(sheet, sheet.code);
         }
       }
-      renderer = new Renderer(this.manager, this, $(place), template, sheet, config);
+      renderer = new Renderer(this.manager, this, $(place), template, sheet);
       renderer.on_sheet_change = __bind(function() {
         return this.show_sheets(null);
       }, this);
@@ -524,9 +599,7 @@
     };
     UIManager.prototype.move_sheet = function(item, before) {
       var i, itm, last, to_save, _results;
-      log('Move sheet', item.title, 'before', before != null ? before.title : void 0);
       to_save = this.manager.sortArray(this.sheets, item, before);
-      log('After sort', item.place, to_save.length);
       to_save.push(item);
       _results = [];
       for (i in to_save) {
@@ -546,11 +619,12 @@
       var ul;
       ul = $('#sheets').empty();
       return this.manager.getSheets(__bind(function(err, data) {
-        var index, item, li, _fn, _fn2, _i, _len;
+        var index, item, li, _fn, _fn2, _i, _len, _ref;
         if (err) {
           return this.show_error(err);
         }
         this.sheets = data;
+        this.sheets_displayed = [];
         index = 0;
         _fn = __bind(function(item) {
           return li.droppable({
@@ -565,11 +639,15 @@
         }, this);
         _fn2 = __bind(function(item) {
           return li.bind('dblclick', __bind(function() {
-            return this.show_page(item.template_id, item);
+            return this.scroll_sheets(item.id);
           }, this));
         }, this);
         for (_i = 0, _len = data.length; _i < _len; _i++) {
           item = data[_i];
+          if (((_ref = item.archived) != null ? _ref : null) !== this.archive_state) {
+            continue;
+          }
+          this.sheets_displayed.push(item);
           li = $('<li/>').addClass('sheet').appendTo(ul);
           li.data('type', 'sheet');
           li.data('item', item);

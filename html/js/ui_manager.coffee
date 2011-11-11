@@ -27,12 +27,13 @@ class DateProtocol extends Protocol
 		method
 
 	prepare: (config, value) ->
-		dt = new Date()
-		dt.fromString value.substr(value.indexOf(':')+1)
-		config.dt = dt
+		if not config.dt
+			dt = new Date()
+			dt.fromString value.substr(value.indexOf(':')+1)
+			config.dt = dt.format('yyyyMMdd')
 
 	accept: (config, value) ->
-		log 'Check accept', value
+		# log 'Check accept', value
 		dt = new Date()
 		dt.fromString value
 		for type, value of config
@@ -43,10 +44,10 @@ class DateProtocol extends Protocol
 				continue
 			else
 				return no
-		return {dt: dt}
+		return {dt: dt.format('yyyyMMdd')}
 	
 	convert: (text, value) ->
-		dt = new Date value.dt #from int
+		dt = new Date().fromString(value.dt) #from int
 		exp = ///^						#start
 			(\(							#(
 			(([ewmdy][+-]?[0-9]+)+)	#e1d+2m0
@@ -64,7 +65,7 @@ class DateProtocol extends Protocol
 				mmm = item.match /([ewmdy])([+-]?)([0-9]+)/
 				if mmm
 					method = @fromDateByType mmm[1]
-					val = parseInt mmm[3]
+					val = parseInt mmm[3], 10
 					if mmm[2]
 						dt['set'+method](dt['get'+method]()+(if mmm[2] is '+' then val else -val))
 					else
@@ -73,12 +74,15 @@ class DateProtocol extends Protocol
 		dt.format format
 
 class UIManager
+
+	archive_state: null
+
 	constructor: (@manager, @oauth) ->
 		@protocols = {
 			"dt": new DateProtocol null
 			"@": new ItemProtocol null
 		}
-		log 'Create UI...'
+		# log 'Create UI...'
 		$('button').button();
 		$('#templates_button').bind 'click', () =>
 			@edit_templates null
@@ -100,12 +104,21 @@ class UIManager
 			@save_template null
 		$('#trash').droppable({
 			accept: '.list_item, .sheet',
-			hoverClass: 'trash_drop',
+			hoverClass: 'toolbar_drop',
 			tolerance: 'pointer',
 			drop: (event, ui) =>
 				@remove_drop ui.draggable
 				event.preventDefault()
 		});
+		$('#archive').droppable({
+			accept: '.sheet',
+			hoverClass: 'toolbar_drop',
+			tolerance: 'pointer',
+			drop: (event, ui) =>
+				@archive_drop ui.draggable
+				event.preventDefault()
+		}).bind 'click', (event) =>
+			@invert_archive null
 		$('.page').droppable({
 			accept: '.sheet',
 			hoverClass: 'page_drop',
@@ -124,10 +137,10 @@ class UIManager
 				return false
 		});
 		@oauth.on_new_token = (token) =>
-			log 'Save token:', token
+			# log 'Save token:', token
 			@manager.set 'token', token
 		@oauth.on_token_error = () =>
-			log 'Time to show dialog'
+			# log 'Time to show dialog'
 			@login null
 		$('#sync_button').bind 'click', () =>
 			@sync null
@@ -137,22 +150,39 @@ class UIManager
 			@sync null
 		# @oauth.tokenByUsernamePassword 'kostya', 'wellcome', (err) =>
 		# 	log 'Auth result:', err
-		pages = parseInt(@manager.get 'pages', 2)
+		@pages = parseInt(@manager.get 'pages', 2)
 		$('#page_slider').slider {
 			min: 1
 			max: 4
 			step: 1
-			value: pages
+			value: @pages
 			slide: (event, ui) =>
 				@show_pages ui.value
 		}
-		@show_pages pages
+		for i in [0...4]
+			page = $("#page#{i}")
+			do (page) =>
+				page.bind 'mouseover', (event) =>
+					page.children('.page_scroll').show()
+				page.bind 'mouseout', (event) =>
+					page.children('.page_scroll').hide()
+		@show_pages @pages
+
+	invert_archive: () ->
+		if @archive_state is null
+			@archive_state = 1
+			$('#archive').text 'Unarchive'
+		else
+			@archive_state = null
+			$('#archive').text 'Archive'
+		@show_sheets null
 
 	show_pages: (count) ->
 		for i in [0...count]
 			$("#page#{i}").show()
 		for i in [count...4]
 			$("#page#{i}").hide()
+		@pages = count
 		@manager.set 'pages', count
 
 	do_login: () ->
@@ -184,7 +214,8 @@ class UIManager
 		$('#username').val('').focus()
 		$('#password').val('')
 
-	replace: (text, item, env) ->
+	replace: (text, item) ->
+		# log 'Replace', text, item
 		exp = ///^
 			([a-z\@]+\:)					#protocol:
 			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
@@ -194,13 +225,14 @@ class UIManager
 			value = ''
 			for name, p of @protocols
 				if name+':' is m[1]
-					value = p.convert m[2], env
+					value = p.convert m[2], item
 					break
 			return value
 		return text
 	
-	inject: (txt, item, env) ->
+	inject: (txt, item) ->
 		text = txt
+		# log 'Inject', text, item
 		exp = ///
 			\$\{ 							#${
 			([a-z\@]+\:)					#protocol:
@@ -212,7 +244,7 @@ class UIManager
 			value = ''
 			for name, p of @protocols
 				if name+':' is m[1]
-					value = p.convert m[2], env
+					value = p.convert m[2], item
 					break
 			text = text.replace m[0], (value ? '')
 		return text
@@ -233,7 +265,7 @@ class UIManager
 				if tmpl.protocol and tmpl.protocol[name] and tmpl.code
 					config = p.accept tmpl.protocol[name], m[2]
 					if not config then continue
-					code = @inject tmpl.code, {}, config
+					code = @inject tmpl.code, config
 					if code
 						templates_found.push {code: code, template_id: id}
 		log 'Templates found:', templates_found
@@ -251,8 +283,16 @@ class UIManager
 				@show_page data[0].template_id, data[0]
 			else
 				@show_page template_id, {code: code}
+
+	archive_drop: (drag) ->
+		sheet = drag.data('item')
+		sheet.archived = if @archive_state is 1 then null else 1
+		@manager.saveSheet sheet, (err) =>
+			if err then return @show_error err
+			@show_sheets null
+
 	remove_drop: (drag) ->
-		log 'Remove', drag.data('type')
+		# log 'Remove', drag.data('type')
 		if drag.data('type') is 'note'
 			drag.data('renderer').remove_note drag.data('item'), drag
 		if drag.data('type') is 'sheet'
@@ -312,7 +352,11 @@ class UIManager
 
 	show_error: (message) ->
 		log 'Error', message
-		alert message
+		div = $('<div/>').addClass('message error_message').text(message ? 'Error!').appendTo($('#messages')).delay(5000).fadeOut()
+		do (div) =>
+			setTimeout () =>
+				div.remove()
+			, 7000
 
 	template_selected: () ->
 		selected = $('#templates').children('.ui-selected');
@@ -351,6 +395,21 @@ class UIManager
 				catch e
 					log 'JSON error', e
 
+	scroll_sheets: (from, step = 0) =>
+		# log 'scroll', from, step
+		if not @sheets
+			@show_error 'No data loaded'
+			return
+		for i in [0...@sheets_displayed.length]
+			if @sheets_displayed[i].id is from
+				i += step
+				if i+@pages >= @sheets_displayed.length
+					i = @sheets_displayed.length-@pages
+				if i<0 then i = 0
+				for j in [i...Math.min(@pages+i, @sheets_displayed.length)]
+					@show_page @sheets_displayed[j].template_id, @sheets_displayed[j], "#page#{j-i}"
+				return
+
 	show_page: (template_id, sheet, place = '#page0') ->
 		log 'Show page', template_id, sheet, place
 		if not @templates or not @templates[template_id]
@@ -362,16 +421,16 @@ class UIManager
 			for name, conf of template.protocol
 				p = @protocols[name]
 				if not p then continue
-				p.prepare config, sheet.code
-		renderer = new Renderer @manager, this, $(place), template, sheet, config
+				p.prepare sheet, sheet.code
+		renderer = new Renderer @manager, this, $(place), template, sheet
 		renderer.on_sheet_change = () =>
 			@show_sheets null
 		renderer.render null
 
 	move_sheet: (item, before) ->
-		log 'Move sheet', item.title, 'before', before?.title
+		# log 'Move sheet', item.title, 'before', before?.title
 		to_save = @manager.sortArray @sheets, item, before
-		log 'After sort', item.place, to_save.length
+		# log 'After sort', item.place, to_save.length
 		to_save.push item
 		for i, itm of to_save
 			last = parseInt(i) is to_save.length-1
@@ -385,8 +444,11 @@ class UIManager
 		@manager.getSheets (err, data) =>
 			if err then return @show_error(err)
 			@sheets = data
+			@sheets_displayed = []
 			index = 0
 			for item in data
+				if (item.archived ? null) isnt @archive_state then continue
+				@sheets_displayed.push item
 				# log 'Show sheet', item.title, item.place
 				li = $('<li/>').addClass('sheet').appendTo(ul)
 				li.data('type', 'sheet')
@@ -409,7 +471,7 @@ class UIManager
 				li.text(item.title)
 				do (item) =>
 					li.bind 'dblclick', () =>
-						@show_page item.template_id, item
+						@scroll_sheets item.id
 			li = $('<li/>').addClass('sheet last_sheet').appendTo(ul)
 			li.droppable({
 				accept: '.sheet',

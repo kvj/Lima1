@@ -16,12 +16,16 @@ class jQueryTransport extends NetTransport
 			contentType: config?.contentType ? undefined
 			error: (err, status, text) =>
 				log 'jQuery error:', err, status, text
+				message = text or 'HTTP error'
+				statusNo = 500
+				if err and err.status
+					statusNo = err.status
 				data = null
 				if err and err.responseText
 					try
 						data = JSON.parse err.responseText
 					catch e
-				handler (text or 'HTTP error'), data
+				handler {status: statusNo, message: message}, data
 			success: (data) =>
 				if not data then return handler 'No data'
 				try
@@ -46,9 +50,9 @@ class OAuthProvider
 		}, (error, data) =>
 			log 'Rest response:', error, data
 			if error
-				if options?.check
+				if error.status is 401
 					@on_token_error null 
-				return handler error
+				return handler error.message
 			handler null, data
 
 

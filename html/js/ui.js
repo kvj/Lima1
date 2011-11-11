@@ -1,5 +1,5 @@
 (function() {
-  var CheckElement, ColsElement, DateElement, HRElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, TimeElement, Title1Element, TitleElement, UIElement, w1, w2, w47, wnotes;
+  var CheckElement, ColsElement, DateElement, HRElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, TimeElement, Title1Element, TitleElement, UIElement, swimpleactions, w1, w47, wactions, wnotes;
   var __slice = Array.prototype.slice, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -8,7 +8,7 @@
     child.__super__ = parent.prototype;
     return child;
   }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
-  w2 = {
+  wactions = {
     "defaults": {
       "title": "Actions"
     },
@@ -54,6 +54,47 @@
               }, {
                 "type": "text",
                 "edit": "@:notes"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+  swimpleactions = {
+    "defaults": {
+      "title": "To-Do"
+    },
+    "direct": true,
+    "flow": [
+      {
+        "type": "title",
+        "name": "Actions",
+        "edit": "@:title"
+      }, {
+        "type": "hr"
+      }, {
+        "type": "list",
+        "area": "main",
+        "config": {
+          "grid": 1,
+          "delimiter": 1
+        },
+        "flow": [
+          {
+            "type": "cols",
+            "size": [0.05, 0.8, 0.15],
+            "flow": [
+              {
+                "type": "check",
+                "edit": "@:done"
+              }, {
+                "type": "text",
+                "edit": "@:text"
+              }, {
+                "type": "date",
+                "edit": "@:due",
+                "border": "1l"
               }
             ]
           }
@@ -659,7 +700,7 @@
       }
       el = $('<div/>').addClass('text_editor').appendTo(element);
       if (config.edit && !options.readonly) {
-        property = this.renderer.replace(config.edit);
+        property = this.renderer.replace(config.edit, item);
         ed = this.renderer.text_editor(el, item, property);
         ed.attr('item_id', item.id);
         ed.attr('property', property);
@@ -681,7 +722,7 @@
         return handler;
       }
       el = $('<div/>').addClass('check_editor').appendTo(element);
-      property = this.renderer.replace(config.edit);
+      property = this.renderer.replace(config.edit, item);
       checked = false;
       if (property && item[property] === 1) {
         checked = true;
@@ -720,7 +761,7 @@
         return handler;
       }
       el = $('<div/>').addClass('date_editor').appendTo(element);
-      property = this.renderer.replace(config.edit);
+      property = this.renderer.replace(config.edit, item);
       this.print_date(item[property], el);
       el.bind('click', __bind(function(e) {
         if (e.shiftKey) {
@@ -748,7 +789,7 @@
     TimeElement.prototype.name = 'time';
     TimeElement.prototype._split_value = function(value) {
       var _ref, _ref2;
-      return [parseInt((_ref = value != null ? value.substr(0, 2) : void 0) != null ? _ref : 0), parseInt((_ref2 = value != null ? value.substr(2) : void 0) != null ? _ref2 : 0)];
+      return [parseInt((_ref = value != null ? value.substr(0, 2) : void 0) != null ? _ref : 0, 10), parseInt((_ref2 = value != null ? value.substr(2) : void 0) != null ? _ref2 : 0, 10)];
     };
     TimeElement.prototype.value_to_string = function(txt) {
       var ap, hr, min, _ref;
@@ -829,7 +870,7 @@
         return handler;
       }
       el = $('<div/>').addClass('time_editor').appendTo(element);
-      property = this.renderer.replace(config.edit);
+      property = this.renderer.replace(config.edit, item);
       parts = (this.value_to_string(item[property])).split(':');
       if (parts.length === 2) {
         el.html(parts[0] + '<br/>' + parts[1]);
@@ -871,7 +912,7 @@
       if (options.empty) {
         return handler;
       }
-      property = this.renderer.replace(config.edit);
+      property = this.renderer.replace(config.edit, item);
       value = item[property];
       el = $('<div/>').addClass('mark_editor').appendTo(element);
       this._show_value(value, el);
@@ -1019,12 +1060,7 @@
         el.addClass('disabled');
       }
       if (options.draggable) {
-        handle = $('<div/>').addClass('list_item_handle').appendTo(el);
-        if (config.drag === 'right') {
-          handle.addClass('list_item_handle_right');
-        } else {
-          handle.addClass('list_item_handle_left');
-        }
+        handle = $('<div/>').addClass('list_item_handle list_item_handle_left').appendTo(el);
         el.bind('mousemove', __bind(function() {
           return handle.show();
         }, this));
@@ -1162,15 +1198,21 @@
       for (key in config) {
         if (!__hasProp.call(config, key)) continue;
         value = config[key];
-        _results.push((_ref = item[key]) != null ? _ref : item[key] = this.inject(value, this.env));
+        _results.push((_ref = item[key]) != null ? _ref : item[key] = this.inject(value));
       }
       return _results;
     };
     Renderer.prototype.inject = function(txt, item) {
-      return this.ui.inject(txt, item, this.env);
+      if (item == null) {
+        item = this.data;
+      }
+      return this.ui.inject(txt, item);
     };
     Renderer.prototype.replace = function(text, item) {
-      return this.ui.replace(text, item, this.env);
+      if (item == null) {
+        item = this.data;
+      }
+      return this.ui.replace(text, item);
     };
     Renderer.prototype._save_sheet = function(handler) {
       if (this.template.code) {
@@ -1294,6 +1336,9 @@
       focus = this.root.find('*:focus');
       this.prev_content = this.root.children();
       this.content = $('<div/>').addClass('page_content group').prependTo(this.root);
+      if (this.data.archived) {
+        this.content.addClass('sheet_archived');
+      }
       return this._load_items(__bind(function(data) {
         this.notes = data;
         return this.get(this.template.name).render(this.data, this.template, this.content, {
@@ -1317,11 +1362,20 @@
       return this.get(this.template.name).render(this.data, this.template, this.content, {
         empty: true
       }, __bind(function() {
+        var sleft, sright;
         if (this.have_space) {
           return this.fix_height(handler);
         } else {
           this.prev_content.remove();
           this.root.removeClass('page_render');
+          sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(this.root);
+          sleft.bind('click', __bind(function() {
+            return this.ui.scroll_sheets(this.data.id, -1);
+          }, this));
+          sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(this.root);
+          sright.bind('click', __bind(function() {
+            return this.ui.scroll_sheets(this.data.id, 1);
+          }, this));
           if (handler) {
             return handler(null);
           }
@@ -1364,6 +1418,7 @@
   window.Renderer = Renderer;
   $(document).ready(function() {
     var db, jqnet, manager, oauth, storage, ui;
+    Date.prototype.firstDayOfWeek = 1;
     db = new HTML5Provider('test.db', '1.1');
     storage = new StorageProvider(null, db);
     manager = new DataManager(storage);

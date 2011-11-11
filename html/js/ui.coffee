@@ -409,7 +409,7 @@ class Textlement extends UIElement
 		if options.empty then return handler
 		el = $('<div/>').addClass('text_editor').appendTo(element)
 		if config.edit and not options.readonly
-			property = @renderer.replace config.edit
+			property = @renderer.replace config.edit, item
 			ed = @renderer.text_editor el, item, property
 			ed.attr('item_id', item.id)
 			ed.attr('property', property)
@@ -423,7 +423,7 @@ class CheckElement extends UIElement
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler
 		el = $('<div/>').addClass('check_editor').appendTo(element)
-		property = (@renderer.replace config.edit)
+		property = @renderer.replace config.edit, item
 		checked = no
 		if property and item[property] is 1
 			checked = yes
@@ -450,7 +450,7 @@ class DateElement extends UIElement
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler
 		el = $('<div/>').addClass('date_editor').appendTo(element)
-		property = (@renderer.replace config.edit)
+		property = @renderer.replace config.edit, item
 		@print_date item[property], el
 		el.bind 'click', (e) =>
 			if e.shiftKey
@@ -468,7 +468,7 @@ class TimeElement extends UIElement
 	name: 'time'
 
 	_split_value: (value) ->
-		[parseInt(value?.substr(0, 2) ? 0), parseInt(value?.substr(2) ? 0)]
+		[parseInt(value?.substr(0, 2) ? 0, 10), parseInt(value?.substr(2) ? 0, 10)]
 
 	value_to_string: (txt) ->
 		if not txt or txt.length isnt 4
@@ -532,7 +532,7 @@ class TimeElement extends UIElement
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler
 		el = $('<div/>').addClass('time_editor').appendTo(element)
-		property = (@renderer.replace config.edit)
+		property = @renderer.replace config.edit, item
 		parts = (@value_to_string item[property]).split(':')
 		if parts.length is 2
 			el.html parts[0]+'<br/>'+parts[1]
@@ -565,7 +565,7 @@ class MarkElement extends UIElement
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler
-		property = (@renderer.replace config.edit)
+		property = @renderer.replace config.edit, item
 		value = item[property]
 		el = $('<div/>').addClass('mark_editor').appendTo(element)
 		@_show_value value, el
@@ -667,11 +667,7 @@ class ListElement extends UIElement
 		if options.disable
 			el.addClass('disabled')
 		if options.draggable
-			handle = $('<div/>').addClass('list_item_handle').appendTo(el)
-			if config.drag is 'right'
-				handle.addClass('list_item_handle_right')
-			else
-				handle.addClass('list_item_handle_left')
+			handle = $('<div/>').addClass('list_item_handle list_item_handle_left').appendTo(el)
 			el.bind 'mousemove', () =>
 				handle.show()
 			el.bind 'mouseout', () =>
@@ -774,14 +770,14 @@ class Renderer
 	applyDefaults: (config, item) ->
 		for own key, value of config
 			# log 'Inject', key, value
-			item[key] ?= @inject value, @env
+			item[key] ?= @inject value
 				# log 'After inject', item[key]
 
-	inject: (txt, item) ->
-		return @ui.inject txt, item, @env
+	inject: (txt, item = @data) ->
+		return @ui.inject txt, item
 
-	replace: (text, item) ->
-		return @ui.replace text, item, @env
+	replace: (text, item = @data) ->
+		return @ui.replace text, item
 
 	_save_sheet: (handler) ->
 		if @template.code
@@ -872,6 +868,7 @@ class Renderer
 		focus = @root.find('*:focus')
 		@prev_content = @root.children()
 		@content = $('<div/>').addClass('page_content group').prependTo(@root)
+		if @data.archived then @content.addClass 'sheet_archived'
 		@_load_items (data) =>
 			@notes = data
 			@get(@template.name).render @data, @template, @content, {empty: false}, () =>
@@ -893,6 +890,12 @@ class Renderer
 			else
 				@prev_content.remove()
 				@root.removeClass 'page_render'
+				sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(@root)
+				sleft.bind 'click', () =>
+					@ui.scroll_sheets @data.id, -1
+				sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(@root)
+				sright.bind 'click', () =>
+					@ui.scroll_sheets @data.id, 1
 				if handler then handler null
 	
 	_load_items: (handler) ->
@@ -926,6 +929,7 @@ window.log = (params...) ->
 window.Renderer = Renderer
 
 $(document).ready () ->
+	Date::firstDayOfWeek = 1
 	db = new HTML5Provider 'test.db', '1.1'
 	storage = new StorageProvider null, db
 	manager = new DataManager storage

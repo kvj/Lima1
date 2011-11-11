@@ -181,9 +181,10 @@
       return true;
     };
     StorageProvider.prototype.sync = function(app, oauth, handler) {
-      var do_reset_schema, finish_sync, get_last_sync, in_from, in_items, out_from, out_items, receive_out, reset_schema, send_in;
+      var clean_sync, do_reset_schema, finish_sync, get_last_sync, in_from, in_items, out_from, out_items, receive_out, reset_schema, send_in;
       log('Starting sync...', app);
       reset_schema = false;
+      clean_sync = false;
       in_from = 0;
       out_from = 0;
       out_items = 0;
@@ -202,7 +203,12 @@
         }, this));
       }, this);
       receive_out = __bind(function() {
-        return oauth.rest(app, "/rest/out?from=" + out_from + "&", null, __bind(function(err, res) {
+        var url;
+        url = "/rest/out?from=" + out_from + "&";
+        if (!clean_sync) {
+          url += "inc=yes&";
+        }
+        return oauth.rest(app, url, null, __bind(function(err, res) {
           var arr, i, item, last, object, _results;
           if (err) {
             return finish_sync(err);
@@ -304,6 +310,9 @@
           if (data.length > 0) {
             in_from = data[0].version_in || 0;
             out_from = data[0].version_out || 0;
+            if (!clean_sync && out_from > 0) {
+              clean_sync = false;
+            }
           }
           log('Start sync with', in_from, out_from);
           return send_in(null);
@@ -317,6 +326,7 @@
           this.db.set('schema', JSON.stringify(schema));
           this.schema = schema;
           reset_schema = true;
+          clean_sync = true;
         }
         return get_last_sync(null);
       }, this), {

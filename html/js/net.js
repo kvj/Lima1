@@ -31,8 +31,13 @@
         data: (_ref2 = config != null ? config.data : void 0) != null ? _ref2 : null,
         contentType: (_ref3 = config != null ? config.contentType : void 0) != null ? _ref3 : void 0,
         error: __bind(function(err, status, text) {
-          var data;
+          var data, message, statusNo;
           log('jQuery error:', err, status, text);
+          message = text || 'HTTP error';
+          statusNo = 500;
+          if (err && err.status) {
+            statusNo = err.status;
+          }
           data = null;
           if (err && err.responseText) {
             try {
@@ -41,7 +46,10 @@
 
             }
           }
-          return handler(text || 'HTTP error', data);
+          return handler({
+            status: statusNo,
+            message: message
+          }, data);
         }, this),
         success: __bind(function(data) {
           if (!data) {
@@ -76,10 +84,10 @@
       }, __bind(function(error, data) {
         log('Rest response:', error, data);
         if (error) {
-          if (options != null ? options.check : void 0) {
+          if (error.status === 401) {
             this.on_token_error(null);
           }
-          return handler(error);
+          return handler(error.message);
         }
         return handler(null, data);
       }, this));

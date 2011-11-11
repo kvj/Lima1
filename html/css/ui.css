@@ -194,6 +194,7 @@ body {
 	position: absolute;
 	border: 1px solid #dddddd;
 	top: -1px;
+	cursor: move;
 	z-index: 2;
 }
 
@@ -354,13 +355,21 @@ li {
 	cursor: pointer;
 }
 
-#trash {
+.sheet_archived .title0_text {
+	color: #ff0000;
+}
+
+#archive {
+	cursor: pointer;
+}
+
+.toolbar_action {
 	border: 2px solid #dddddd;
 	padding: 5px;
 	border-radius: 4px;
 }
 
-.trash_drop {
+.toolbar_drop {
 	background-color: #ddddff;
 }
 
@@ -439,4 +448,48 @@ li {
 	margin: 10px;
 	width: 150px;
 	float: right;
+}
+
+
+#messages {
+	position: absolute;
+	margin: 0 auto;
+	font-size: 1.2em;
+	font-weight: bold;
+	top: 0px;
+	width: 300px;
+	left: 0;
+	right: 0;
+}
+
+.message {
+	padding: 5px;
+	margin: 2px;
+	text-align: center;
+}
+
+.error_message {
+	background-color: #aa0000;
+	color: #efefef;
+}
+
+.page_scroll {
+	position: absolute;
+	width: 1em;
+	display: none;
+	height: 100%;
+	border-style: dashed;
+	border-color: #efefef;
+	border-width: 0px;
+	cursor: pointer;
+}
+
+.scroll_left {
+	left: 0px;
+	border-right-width: 2px;
+}
+
+.scroll_right {
+	right: 0px;
+	border-left-width: 2px;
 }

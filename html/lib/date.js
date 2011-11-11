@@ -175,6 +175,9 @@ Date.prototype.getWeek = function (dowOffset) {
 
 Date.prototype.setDay = function (day) {
     var d = this.getDay();
+    if (this.firstDayOfWeek == 1 && d == 0) {
+        d = 7
+    };
     this.setDate(this.getDate()+(day-d));
 }
 
@@ -183,12 +186,14 @@ Date.prototype.fromString = function (str) {
     if (!str || str.length != 8) {
         return null;
     }
-    var y = parseInt(str.substr(0, 4))
-    var m = parseInt(str.substr(4, 2))
-    var d = parseInt(str.substr(6, 2))
+    var y = parseInt(str.substr(0, 4), 10)
+    var m = parseInt(str.substr(4, 2), 10)
+    var d = parseInt(str.substr(6, 2), 10)
     this.setFullYear(y);
     this.setDate(1);
     this.setMonth(m-1);
     this.setDate(d);
     return this;
 }
+
+Date.prototype.firstDayOfWeek = 0;

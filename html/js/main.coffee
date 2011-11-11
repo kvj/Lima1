@@ -130,6 +130,7 @@ class StorageProvider
 	sync: (app, oauth, handler) ->
 		log 'Starting sync...', app
 		reset_schema = no
+		clean_sync = no
 		in_from = 0
 		out_from = 0
 		out_items = 0
@@ -143,7 +144,10 @@ class StorageProvider
 						out: out_items
 					}
 		receive_out = () =>
-			oauth.rest app, "/rest/out?from=#{out_from}&", null, (err, res) =>
+			url = "/rest/out?from=#{out_from}&"
+			if not clean_sync
+				url += "inc=yes&"
+			oauth.rest app, url, null, (err, res) =>
 				# log 'After out:', err, res
 				if err then return finish_sync err
 				arr = res.a
@@ -210,6 +214,7 @@ class StorageProvider
 				if data.length>0
 					in_from = data[0].version_in or 0
 					out_from = data[0].version_out or 0
+					if not clean_sync and out_from>0 then clean_sync = no
 				log 'Start sync with', in_from, out_from
 				send_in null
 		oauth.rest app, '/rest/schema?', null, (err, schema) =>
@@ -219,6 +224,7 @@ class StorageProvider
 				@db.set 'schema', JSON.stringify(schema)
 				@schema = schema
 				reset_schema = yes
+				clean_sync = yes
 			get_last_sync null
 		, {
 			check: true
