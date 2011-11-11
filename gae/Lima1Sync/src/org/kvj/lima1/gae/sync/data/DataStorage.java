@@ -31,7 +31,7 @@ public class DataStorage {
 		return result;
 	}
 	
-	public static JSONObject getData(String app, String user, String token, long from) {
+	public static JSONObject getData(String app, String user, String token, long from, boolean inc) {
 		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
 		try {
 			JSONObject schema = SchemaStorage.getInstance().getSchema(app);
@@ -54,12 +54,12 @@ public class DataStorage {
 			int slots_used = 0;
 			for (Entity dataEntity: datastore.prepare(data).asIterable()) {
 //				log.info("About to send entity: {}", dataEntity);
-//				if (from>0) {
-//					if (token.equals(dataEntity.getProperty("token"))) {
-//						log.info("Skip own token {}", from);
-//						continue;
-//					}
-//				}
+				if (inc) {
+					if (token.equals(dataEntity.getProperty("token"))) {
+						log.info("Skip own token {}", from);
+						continue;
+					}
+				}
 				String stream = (String) dataEntity.getProperty("stream");
 				JSONObject config = schema.getJSONObject(stream);
 				if (null == config) {

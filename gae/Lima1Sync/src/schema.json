@@ -1,6 +1,6 @@
 {
 "lima1": {
-	"_rev": 1,
+	"_rev": 2,
 	"templates": {
 		"in": 10,
 		"out": 3,
@@ -11,7 +11,7 @@
 		"in": 3,
 		"out": 1,
 		"index": 1,
-		"numbers": ["template_id", "place"],
+		"numbers": ["template_id", "place", "archived"],
 		"texts": ["title", "code"]
 	},
 	"notes": {

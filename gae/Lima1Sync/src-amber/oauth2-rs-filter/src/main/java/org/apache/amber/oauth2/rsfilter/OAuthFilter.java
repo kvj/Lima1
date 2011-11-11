@@ -114,7 +114,15 @@ public class OAuthFilter implements Filter {
 
             final OAuthDecision decision = provider.validateRequest(realm, accessToken, req);
             if (!decision.isAuthorized()) {
-				throw new OAuthSystemException("Invalid token");
+            	OAuthResponse oauthResponse = OAuthRSResponse.errorResponse(HttpServletResponse.SC_UNAUTHORIZED)
+                	.setRealm(realm)
+                    .setError("Invalid token")
+                    .setErrorDescription("Please authorize")
+                	.buildHeaderMessage();
+            	res.addHeader(OAuth.HeaderType.WWW_AUTHENTICATE,
+                        oauthResponse.getHeader(OAuth.HeaderType.WWW_AUTHENTICATE));
+            	res.sendError(oauthResponse.getResponseStatus());
+				return;
 			}
             final Principal principal = decision.getPrincipal();
 

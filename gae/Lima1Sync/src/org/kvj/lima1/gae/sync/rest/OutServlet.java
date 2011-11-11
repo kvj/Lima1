@@ -15,11 +15,12 @@ public class OutServlet extends OAuthSecuredServlet {
 	protected JSONObject get(HttpServletRequest req) throws Exception {
 		String from = req.getParameter("from");
 		long fromLong = Long.parseLong(from);
+		boolean incremental = "yes".equals(req.getParameter("inc"));
 		JSONObject result = DataStorage.getData(
 				req.getParameter("app"), 
 				(String) req.getAttribute(OAuth.OAUTH_CLIENT_ID), 
 				(String) req.getAttribute(OAuth.OAUTH_TOKEN), 
-				fromLong);
+				fromLong, incremental);
 		if (null == result) {
 			throw new Exception("Error getting data");
 		}
