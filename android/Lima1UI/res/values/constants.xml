@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <item type="id" name="empty_items"></item>
+    <item type="id" name="simple_height"></item>
+    <color name="white_bg">#FFFFFFFF</color>
+    <color name="font_color">#FF222222</color>
+    <color name="bg1">#FFEFEFEF</color>
+    <color name="bg2">#FFDDDDDD</color>
+    <color name="opacity">#00FFFFFF</color>
+</resources>

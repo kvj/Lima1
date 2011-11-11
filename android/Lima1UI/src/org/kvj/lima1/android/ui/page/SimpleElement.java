@@ -15,9 +15,9 @@ public class SimpleElement extends UIElement {
 	private static final String TAG = "SimpleUI";
 
 	@Override
-	protected View render(Renderer renderer, JSONObject item, JSONObject config,
+	protected void render(Renderer renderer, JSONObject item, JSONObject config,
 			ViewGroup element, UIElementOptions options) throws JSONException {
-		if (config.has("defaults") && !options.empty) {
+		if (config.has("defaults")) {
 			renderer.applyDefaults(config.getJSONObject("defaults"), item);
 		}
 		JSONArray flow = config.optJSONArray("flow");
@@ -26,19 +26,49 @@ public class SimpleElement extends UIElement {
 		}
 		for (int i = 0; i < flow.length(); i++) {
 			JSONObject fl = flow.getJSONObject(i);
-			LinearLayout el = (LinearLayout) element.getChildAt(i);
-			if (null == el) {
-				el = new LinearLayout(element.getContext());
-				el.setOrientation(LinearLayout.VERTICAL);
-//				el.setMinimumHeight(50);
-//				el.setBackgroundResource(R.drawable.col_bg);
-				LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
-				element.addView(el, params);
-			}
-//			Log.i(TAG, "Render simple: "+fl.optString("type")+", "+i+", "+element.getChildCount());
+			LinearLayout el = new LinearLayout(element.getContext());
+			el.setBackgroundResource(R.color.opacity);
+			el.setOrientation(LinearLayout.VERTICAL);
+			LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.MATCH_PARENT, LinearLayout.LayoutParams.WRAP_CONTENT);
+			style(el, fl, params);
+			element.addView(el, params);
 			renderer.get(fl.optString("type")).render(renderer, item, fl, el, options);
 		}
-		return null;
+	}
+	
+	@Override
+	protected void fill(int height, Renderer renderer, JSONObject item, JSONObject config,
+			ViewGroup element, UIElementOptions options) throws JSONException {
+		JSONArray flow = config.optJSONArray("flow");
+		if (null == flow) {
+			flow = new JSONArray();
+		}
+		for (int i = 0; i < flow.length(); i++) {
+			JSONObject fl = flow.getJSONObject(i);
+			LinearLayout el = (LinearLayout) element.getChildAt(i);
+			int h = (Integer) el.getTag(R.id.simple_height);
+			renderer.get(fl.optString("type")).fill(h, renderer, item, fl, el, options);
+		}
+	}
+	
+	@Override
+	protected int stretch(int step, Renderer renderer, JSONObject config,
+			ViewGroup element) throws JSONException {
+		JSONArray flow = config.optJSONArray("flow");
+		if (null == flow) {
+			flow = new JSONArray();
+		}
+		int h = 0;
+		for (int i = 0; i < flow.length(); i++) {
+			JSONObject fl = flow.getJSONObject(i);
+			LinearLayout el = (LinearLayout) element.getChildAt(i);
+//			Log.i(TAG, "Stretch simple: "+el+", fl: "+fl+", "+element.getChildCount()+", "+i);
+			int height = renderer.get(fl.optString("type")).stretch(step, renderer, fl, el);
+			el.setTag(R.id.simple_height, height);
+			h += height;
+//			Log.i(TAG, "Stretch simple: "+h+", "+step);
+		}
+		return h;
 	}
 
 }

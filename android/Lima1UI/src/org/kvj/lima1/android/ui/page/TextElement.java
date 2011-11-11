@@ -16,22 +16,17 @@ public class TextElement extends UIElement {
 	private static final String TAG = "TextUI";
 
 	@Override
-	protected View render(Renderer renderer, JSONObject item,
+	protected void render(Renderer renderer, JSONObject item,
 			JSONObject config, ViewGroup element, UIElementOptions options)
 			throws JSONException {
-//		Log.i(TAG, "Create text: "+element);
-		if (options.empty) {
-			return null;
-		}
 		TextView editor = options.disabled? new TextView(element.getContext()): new EditText(element.getContext());
-		editor.setBackgroundResource(R.drawable.title_edit_bg);
+		editor.setBackgroundResource(R.color.opacity);
 		editor.setPadding(0, 0, 0, 0);
 		editor.setTextSize(12);
-		editor.setTextColor(0xffffffff);
+		editor.setTextColor(0xff222222);
 		LayoutParams editorParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
 		element.addView(editor, editorParams);
-		editor.setText(renderer.inject(config.optString("edit"), item));
-		return null;
+		editor.setText(renderer.replace(config.optString("edit"), item));
 	}
 
 }

@@ -4,8 +4,8 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 import org.json.JSONObject;
+import org.kvj.lima1.android.ui.manager.UIManager;
 import org.kvj.lima1.android.ui.page.Renderer;
-import org.kvj.lima1.android.ui.page.UIManager;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -22,7 +22,7 @@ public class PageActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		try {
 			BufferedReader reader = new BufferedReader(
-					new InputStreamReader(getClass().getResourceAsStream("/template.json"), 
+					new InputStreamReader(getClass().getResourceAsStream("/todo.json"), 
 							"utf-8"));
 			StringBuilder buffer = new StringBuilder();
 			String line = null;
@@ -34,6 +34,7 @@ public class PageActivity extends Activity {
 			Log.i(TAG, "JSON template ready: "+object.toString());
 			UIManager ui = new UIManager();
 			ScrollView layout = new ScrollView(this);
+			layout.setBackgroundResource(R.color.white_bg);
 			setContentView(layout);
 			Renderer renderer = new Renderer(null, ui, layout, object, new JSONObject(), new JSONObject());
 			renderer.render();

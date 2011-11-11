@@ -14,20 +14,17 @@ public class Title1Element extends UIElement {
 	private static final String TAG = "Title1UI";
 
 	@Override
-	protected View render(Renderer renderer, JSONObject item,
+	protected void render(Renderer renderer, JSONObject item,
 			JSONObject config, ViewGroup element, UIElementOptions options)
 			throws JSONException {
-		if (options.empty) {
-			return null;
-		}
 		TextView title = new TextView(element.getContext());
 		title.setId(renderer.getNextID());
 		title.setTextSize(15);
+		title.setTextColor(0xff222222);
 		LayoutParams titleParams = new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT);
 		title.setText(renderer.inject(config.optString("name"), item));
 //		Log.i(TAG, "Created title1: "+title.getText());
 		element.addView(title, titleParams);
-		return null;
 	}
 
 }

@@ -17,30 +17,27 @@ public class TitleElement extends UIElement {
 	private static final String TAG = "TitleUI";
 
 	@Override
-	protected View render(Renderer renderer, JSONObject item,
+	protected void render(Renderer renderer, JSONObject item,
 			JSONObject config, ViewGroup element, UIElementOptions options)
 			throws JSONException {
-		if (options.empty) {
-			return null;
-		}
 		RelativeLayout layout = new RelativeLayout(element.getContext());
 		element.addView(layout);
 		TextView title = new TextView(element.getContext());
 		title.setId(renderer.getNextID());
 		title.setTextSize(15);
+		title.setTextColor(0xff000000);
 		LayoutParams titleParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
 		layout.addView(title, titleParams);
-//		Log.i(TAG, "Create title: "+title.getId());
 		EditText editor = new EditText(element.getContext());
-		editor.setBackgroundResource(R.drawable.title_edit_bg);
+		editor.setBackgroundResource(R.color.white_bg);
 		editor.setPadding(0, 0, 0, 0);
 		editor.setTextSize(15);
+		editor.setTextColor(0xff000000);
 		LayoutParams editorParams = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
 		editorParams.addRule(RelativeLayout.RIGHT_OF, title.getId());
 		layout.addView(editor, editorParams);
 		title.setText(renderer.inject(config.optString("name"), item));
-		editor.setText(renderer.inject(config.optString("edit"), item));
-		return null;
+		editor.setText(renderer.replace(config.optString("edit"), item));
 	}
 
 }
