@@ -47,7 +47,7 @@ class DateProtocol extends Protocol
 		return {dt: dt.format('yyyyMMdd')}
 	
 	convert: (text, value) ->
-		dt = new Date().fromString(value.dt) #from int
+		dt = new Date().fromString(value.dt)
 		exp = ///^						#start
 			(\(							#(
 			(([ewmdy][+-]?[0-9]+)+)	#e1d+2m0
@@ -462,7 +462,7 @@ class UIManager
 				do (item) =>
 					li.droppable({
 						accept: '.sheet',
-						hoverClass: 'trash_drop',
+						hoverClass: 'toolbar_drop',
 						tolerance: 'pointer',
 						drop: (event, ui) =>
 							@move_sheet ui.draggable.data('item'), item
@@ -475,7 +475,7 @@ class UIManager
 			li = $('<li/>').addClass('sheet last_sheet').appendTo(ul)
 			li.droppable({
 				accept: '.sheet',
-				hoverClass: 'trash_drop',
+				hoverClass: 'toolbar_drop',
 				tolerance: 'pointer',
 				drop: (event, ui) =>
 					@move_sheet ui.draggable.data('item')

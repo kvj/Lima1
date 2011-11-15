@@ -629,7 +629,7 @@
         _fn = __bind(function(item) {
           return li.droppable({
             accept: '.sheet',
-            hoverClass: 'trash_drop',
+            hoverClass: 'toolbar_drop',
             tolerance: 'pointer',
             drop: __bind(function(event, ui) {
               this.move_sheet(ui.draggable.data('item'), item);
@@ -664,7 +664,7 @@
         li = $('<li/>').addClass('sheet last_sheet').appendTo(ul);
         return li.droppable({
           accept: '.sheet',
-          hoverClass: 'trash_drop',
+          hoverClass: 'toolbar_drop',
           tolerance: 'pointer',
           drop: __bind(function(event, ui) {
             this.move_sheet(ui.draggable.data('item'));
