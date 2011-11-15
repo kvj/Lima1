@@ -17,12 +17,10 @@ public class PageActivity extends Activity {
 
 	private static final String TAG = "UI";
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
+	private JSONObject _loadTemplate(String res, String id) {
 		try {
 			BufferedReader reader = new BufferedReader(
-					new InputStreamReader(getClass().getResourceAsStream("/todo.json"), 
+					new InputStreamReader(getClass().getResourceAsStream(res), 
 							"utf-8"));
 			StringBuilder buffer = new StringBuilder();
 			String line = null;
@@ -31,13 +29,25 @@ public class PageActivity extends Activity {
 			}
 			reader.close();
 			JSONObject object = new JSONObject(buffer.toString());
-			Log.i(TAG, "JSON template ready: "+object.toString());
-			UIManager ui = new UIManager();
+			object.put("id", id);
+			return object;
+		} catch (Exception e) {
+			Log.e(TAG, "Error reading", e);
+		}
+		return null;
+	}
+	
+	@Override
+	protected void onCreate(Bundle savedInstanceState) {
+		super.onCreate(savedInstanceState);
+		try {
 			ScrollView layout = new ScrollView(this);
 			layout.setBackgroundResource(R.color.white_bg);
 			setContentView(layout);
-			Renderer renderer = new Renderer(null, ui, layout, object, new JSONObject(), new JSONObject());
-			renderer.render();
+			UIManager ui = new UIManager(layout, _loadTemplate("/todo.json", "1"), _loadTemplate("/template.json", "2"));
+			ui.openLink("dt:20111115", null);
+//			Renderer renderer = new Renderer(null, ui, layout, object, new JSONObject(), new JSONObject());
+//			renderer.render();
 		} catch (Exception e) {
 			Log.e(TAG, "Error loading test template", e);
 		}

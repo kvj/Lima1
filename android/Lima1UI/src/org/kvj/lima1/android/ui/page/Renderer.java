@@ -22,7 +22,6 @@ public class Renderer {
 	
 	private static final String TAG = "Renderer";
 	protected UIManager ui;
-	protected JSONObject env;
 	protected JSONObject data;
 	protected ViewGroup root;
 	protected JSONObject template;
@@ -33,9 +32,8 @@ public class Renderer {
 	
 	private static Map<String, UIElement> elements = new HashMap<String, UIElement>();
 	
-	public Renderer(Object manager, UIManager ui, ViewGroup root, JSONObject template, JSONObject data, JSONObject env) {
+	public Renderer(Object manager, UIManager ui, ViewGroup root, JSONObject template, JSONObject data) {
 		this.ui = ui;
-		this.env = env;
 		this.data = data;
 		this.root = root;
 		this.template = template;
