@@ -6,9 +6,11 @@ import java.io.InputStreamReader;
 import org.json.JSONObject;
 import org.kvj.lima1.android.ui.manager.UIManager;
 import org.kvj.lima1.android.ui.page.Renderer;
+import org.kvj.lima1.sync.SyncServiceConnection;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.RemoteException;
 import android.util.Log;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
@@ -16,6 +18,21 @@ import android.widget.ScrollView;
 public class PageActivity extends Activity {
 
 	private static final String TAG = "UI";
+	
+	private SyncServiceConnection sync = new SyncServiceConnection() {
+		
+		public void onConnected() {
+			try {
+				Log.i(TAG, "Sync service connected: "+connection.message());
+			} catch (RemoteException e) {
+				e.printStackTrace();
+			}
+		};
+		
+		public void onDisconnected() {
+			Log.i(TAG, "Sync service disconnected");
+		};
+	};
 
 	private JSONObject _loadTemplate(String res, String id) {
 		try {
@@ -51,5 +68,17 @@ public class PageActivity extends Activity {
 		} catch (Exception e) {
 			Log.e(TAG, "Error loading test template", e);
 		}
+	}
+	
+	@Override
+	protected void onStart() {
+		super.onStart();
+		sync.connect(this);
+	}
+	
+	@Override
+	protected void onStop() {
+		super.onStop();
+		sync.disconnect(this);
 	}
 }

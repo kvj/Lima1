@@ -117,7 +117,7 @@ public class DateProtocol extends PageProtocol {
 		try {
 			Date dt = defaultFormat.parse(value.getString("dt"));
 			Matcher m = dtPattern.matcher(text);
-			Log.i(TAG, "convert: "+text+", "+value);
+//			Log.i(TAG, "convert: "+text+", "+value);
 			if (m.find()) {
 				String modifiers = m.group(2);
 				if (null == modifiers) {
@@ -137,7 +137,7 @@ public class DateProtocol extends PageProtocol {
 						setValue(dt, op, "+".equals(sign)? cur+val: "-".equals(sign)? cur-val: val);
 					}
 				}
-				Log.i(TAG, "convert2: "+text+", "+format);
+//				Log.i(TAG, "convert2: "+text+", "+format);
 				return new SimpleDateFormat(format).format(dt);
 			} else {
 				Log.w(TAG, "Invalid value: "+text);

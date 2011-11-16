@@ -30,4 +30,16 @@
 		<nature>com.android.ide.eclipse.adt.AndroidNature</nature>
 		<nature>org.eclipse.jdt.core.javanature</nature>
 	</natures>
+	<linkedResources>
+		<link>
+			<name>src-aidl</name>
+			<type>2</type>
+			<location>C:/Home/Hobby/Lima1/android/Lima1SyncService/src-aidl</location>
+		</link>
+		<link>
+			<name>src-common</name>
+			<type>2</type>
+			<location>C:/Home/Hobby/Lima1/android/Common/src</location>
+		</link>
+	</linkedResources>
 </projectDescription>
