@@ -138,6 +138,15 @@
       $('#new_sheet_button').bind('click', __bind(function() {
         return this.new_sheet(null);
       }, this));
+      $('#new_sheet_button').droppable({
+        accept: '.sheet',
+        hoverClass: 'toolbar_drop',
+        tolerance: 'pointer',
+        drop: __bind(function(event, ui) {
+          this.new_sheet(ui.draggable.data('item'));
+          return event.preventDefault();
+        }, this)
+      });
       $('#templates').bind('selectablestop', __bind(function() {
         return this.template_selected(null);
       }, this));
@@ -268,10 +277,10 @@
       }, this));
     };
     UIManager.prototype.sync = function() {
-      $('#sync_button').find('.ui-button-text').text('Sync in progress...');
+      $('#sync_button').text('Sync in progress...');
       return this.manager.sync(this.oauth, __bind(function(err, sync_data) {
         var in_items, out_items, sync_at;
-        $('#sync_button').find('.ui-button-text').text('Sync');
+        $('#sync_button').text('Sync');
         if (err) {
           return this.show_error(err);
         }
@@ -578,6 +587,14 @@
         return this.show_error('No template found');
       }
       template = this.templates[template_id];
+      if (sheet.template_id && sheet.template_id !== template_id) {
+        sheet.template_id = template_id;
+        this.manager.saveSheet(sheet, __bind(function(err, object) {
+          if (err) {
+            return this.ui.show_error(err);
+          }
+        }, this));
+      }
       sheet.template_id = template_id;
       config = {};
       if (template.protocol && sheet.code) {
@@ -673,7 +690,7 @@
         });
       }, this));
     };
-    UIManager.prototype.new_sheet = function() {
+    UIManager.prototype.new_sheet = function(sheet) {
       var ul;
       $('#new_sheet_dialog').dialog({
         width: 400,
@@ -691,7 +708,7 @@
           }, this));
           return li.bind('dblclick', __bind(function(e) {
             $('#new_sheet_dialog').dialog('close');
-            this.show_page(item.id, {});
+            this.show_page(item.id, sheet != null ? sheet : {});
             return false;
           }, this));
         }, this);

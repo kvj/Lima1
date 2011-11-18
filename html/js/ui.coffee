@@ -1,3 +1,136 @@
+wobjective = {
+	"defaults": {
+		"title": "Objective"
+	},
+	"direct": true,
+	"flow": [
+		{"type": "title", "name": "Objectives", "edit":"@:title"},
+		{"type": "hr"},
+		{"type": "title2", "name": "Objective", "edit": "@:objective"},
+		{
+			"grid": 1,
+			"delimiter": 1,
+			"flow": [
+				{
+					"type": "cols",
+					"bg": 1,
+					"size": [0.15, 0.85],
+					"flow": [
+						{"type": "title3", "name": "Description"},
+						{"type": "text", "edit": "@:desc", "bg": 0}
+					]
+				},
+				{
+					"type": "cols",
+					"bg": 1,
+					"size": [0.15, 0.85],
+					"flow": [
+						{"type": "title3", "name": "Benefits"},
+						{"type": "text", "edit": "@:benefits", "bg": 0}
+					]
+					
+				},
+				{
+					"type": "cols",
+					"bg": 1,
+					"size": [0.15, 0.85],
+					"flow": [
+						{"type": "title3", "name": "Challenges"},
+						{"type": "text", "edit": "@:challenges", "bg": 0}
+					]
+					
+				}
+			]
+		},
+		{"type": "header", "size": [0.15, 0.75, 0.15], "flow": ["", "Step", "Target"]},
+		{
+			"type": "list", 
+			"area": "main", 
+			"grid": 1,
+			"delimiter": 1,
+			"flow": [
+				{"type": "cols", "size": [0.15, 0.75, 0.15], "flow": [
+					{"type": "check", "edit": "@:done", "bg": 1},
+					{"type": "text", "edit": "@:text"},
+					{"type": "date", "edit": "@:due", "bg": 1}
+				]}
+			]
+		},
+		{
+			"grid": 1,
+			"delimiter": 1,
+			"flow": [
+				{
+					"type": "cols",
+					"bg": 1,
+					"size": [0.15, 0.85],
+					"flow": [
+						{"type": "title3", "name": "Outcome"},
+						{"type": "text", "edit": "@:outcome", "bg": 0}
+					]
+				}
+			]
+		}
+	]
+}
+
+wcombinedactions = {
+	"defaults": {
+		"title": "Combined Actions"
+	},
+	"direct": true,
+	"flow": [
+		{"type": "title", "name": "Combined Actions", "edit":"@:title"},
+		{"type": "hr"},
+		{"type": "cols", "size": [0.48, 0.48], "space": 0.04, "flow": [
+			{"flow": [
+				{"type": "title1", "name": "Actions"},
+				{
+					"type": "list", 
+					"area": "main", 
+					"grid": 1,
+					"delimiter": 1,
+					"flow": [
+						{"type": "cols", "size": [0.1, 0.9], "flow": [
+							{"type": "check", "edit": "@:done", "bg": 1},
+							{"type": "text", "edit": "@:text"}
+						]}
+					]
+				}
+			]}, {"flow": [
+				{"type": "title1", "name": "Waiting For"},
+				{
+					"type": "list",
+					"area": "wfor",
+					"grid": 1,
+					"delimiter": 1,
+					"config": {
+						"delimiter": 2
+					},
+					"flow": [
+						{"type": "cols", "size": [0.1, 0.9], "flow": [
+							{"type": "check", "edit": "@:done"},
+							{"type": "text", "edit": "@:text"}
+						]
+						}, {"type": "text", "edit": "@:notes"}
+					]
+				}
+			]}
+		]},
+		{"type": "title1", "name": "Notes"},
+		{
+			"type": "list",
+			"area": "notes",
+			"grid": 1,
+			"delimiter": 1,
+			"grow": "no",
+			"flow": [
+				{"type": "text", "edit": "@:text"}
+			]
+		}
+	]	
+}
+
 wactions = {
 	"defaults": {
 		"title": "Actions"
@@ -360,7 +493,7 @@ class UIElement
 		if child.size() is 1 then child else null
 	
 	fix_decoration: (item, config, element) ->
-		if config.bg
+		if config.bg || config.bg is 0
 			element.addClass('bg'+config.bg)
 		if config.border
 			[type, chars...] = config.border.split('')
@@ -394,7 +527,7 @@ class TitleElement extends UIElement
 	name: 'title'
 
 	render: (item, config, element, options, handler) ->
-		if options.empty then return handler
+		if options.empty then return handler null
 		$('<span/>').addClass('title0_text').appendTo(element).text(@renderer.inject config.name ? ' ')
 		if config.edit
 			el = $('<span/>').addClass('text_editor title0_editor').appendTo(element)
@@ -406,7 +539,7 @@ class Textlement extends UIElement
 	name: 'text'
 
 	render: (item, config, element, options, handler) ->
-		if options.empty then return handler
+		if options.empty then return handler null
 		el = $('<div/>').addClass('text_editor').appendTo(element)
 		if config.edit and not options.readonly
 			property = @renderer.replace config.edit, item
@@ -421,8 +554,9 @@ class CheckElement extends UIElement
 	name: 'check'
 
 	render: (item, config, element, options, handler) ->
-		if options.empty then return handler
+		if options.empty then return handler null
 		el = $('<div/>').addClass('check_editor').appendTo(element)
+		if config.inset then el.addClass 'check_inset'
 		property = @renderer.replace config.edit, item
 		checked = no
 		if property and item[property] is 1
@@ -448,7 +582,7 @@ class DateElement extends UIElement
 			return false
 
 	render: (item, config, element, options, handler) ->
-		if options.empty then return handler
+		if options.empty then return handler null
 		el = $('<div/>').addClass('date_editor').appendTo(element)
 		property = @renderer.replace config.edit, item
 		@print_date item[property], el
@@ -564,7 +698,7 @@ class MarkElement extends UIElement
 		return false
 
 	render: (item, config, element, options, handler) ->
-		if options.empty then return handler
+		if options.empty then return handler null
 		property = @renderer.replace config.edit, item
 		value = item[property]
 		el = $('<div/>').addClass('mark_editor').appendTo(element)
@@ -586,7 +720,7 @@ class HRElement extends UIElement
 	name: 'hr'
 
 	render: (item, config, element, options, handler) ->
-		if options.empty then return handler
+		if options.empty then return handler null
 		$('<div/>').addClass('hr').appendTo(element)
 		handler null
 
@@ -595,11 +729,74 @@ class Title1Element extends UIElement
 	name: 'title1'
 
 	render: (item, config, element, options, handler) ->
-		if options.empty then return handler
+		if options.empty then return handler null
 		bg = $('<div/>').addClass('title1_bg').appendTo(element)
 		$('<div/>').addClass('title1').appendTo(bg).text(@renderer.inject config.name, item)
 		$('<div style="clear: both;"/>').appendTo(element)
 		handler null
+
+class Title2Element extends UIElement
+
+	name: 'title2'
+
+	render: (item, config, element, options, handler) ->
+		if options.empty then return handler null
+		bg = $('<div/>').addClass('title2').appendTo(element)
+		$('<span/>').addClass('title2_text').appendTo(bg).text(@renderer.inject config.name ? ' ')
+		if config.edit
+			el = $('<span/>').addClass('text_editor title2_editor').appendTo(bg)
+			@renderer.text_editor el, item, (@renderer.replace config.edit)
+		handler null
+
+class Title3Element extends UIElement
+
+	name: 'title3'
+
+	render: (item, config, element, options, handler) ->
+		if options.empty then return handler null
+		bg = $('<div/>').addClass('title3').appendTo(element)
+		$('<span/>').addClass('title3_text').appendTo(bg).text(@renderer.inject config.name, item)
+		handler null
+
+class HeaderElement extends UIElement
+
+	name: 'header'
+
+	render: (item, config, element, options, handler) ->
+		if options.empty then return handler null
+		flow = config.flow ? []
+		sizes = config.size ? []
+		if flow.length is 1 and sizes.length is 0
+			sizes = [1]
+		if flow.length isnt sizes.length then return handler null
+		bg = $('<div/>').addClass('header').appendTo(element)
+		w = element.innerWidth()-2
+		float_size = 0
+		lsizes = []
+		for sz in sizes
+			lsizes.push sz
+			float_size += sz
+		space_size = 0
+		if float_size>0
+			for i, sz of lsizes
+				if sz<=1 then lsizes[i] = Math.floor(w*sz/float_size)
+		margin = 0
+		for i, fl of flow
+			i = parseInt(i)
+			last = i is flow.length-1
+			width = lsizes[i]
+			if last
+				# Fix last col
+				width = w-margin
+			el = $('<div/>').addClass('col header_col').appendTo(bg).width(width)
+			if fl then el.text(@renderer.inject fl) else el.html('&nbsp;')
+			diff = el.outerWidth() - el.innerWidth()
+			if diff > 0
+				el.width(el.innerWidth()-diff)
+			margin += width
+		$('<div style="clear: both;"/>').appendTo(bg)
+		return handler null
+
 
 class ColsElement extends UIElement
 
@@ -720,6 +917,7 @@ class ListElement extends UIElement
 		# log 'list', config.area, empty
 		flow = config.flow ? []
 		if options.empty
+			if config.grow is 'no' then return handler null
 			parent = element.parents('.group').last()
 			return @_fill_empty config, element, parent, handler
 		@renderer.items config.area, (items) =>
@@ -739,6 +937,9 @@ class Renderer
 			new TitleElement this
 			new HRElement this
 			new Title1Element this
+			new Title2Element this
+			new Title3Element this
+			new HeaderElement this
 			new ColsElement this
 			new ListElement this
 			new Textlement this
@@ -750,14 +951,16 @@ class Renderer
 		@root.data('sheet', @data)
 
 	fix_grid: (element, config) ->
-		if not config or not config.grid
+		if not config
 			return
-		gr = config.grid
-		element.children(':not(.list_item_handle)').removeClass('grid_top'+gr+' grid_bottom'+gr).addClass('grid'+gr)
+		ch = element.children(':not(.list_item_handle)')
 		if config.delimiter
-			element.children(':not(.list_item_handle)').addClass('grid_delimiter'+config.delimiter)
-		element.children(':not(.list_item_handle)').first().addClass('grid_top'+gr)
-		element.children(':not(.list_item_handle)').last().addClass('grid_bottom'+gr)
+			ch.slice(0, -1).addClass('grid_delimiter'+config.delimiter)
+		if config.grid
+			gr = config.grid
+			ch.removeClass('grid_top'+gr+' grid_bottom'+gr).addClass('grid'+gr)
+			ch.first().addClass('grid_top'+gr)
+			ch.last().addClass('grid_bottom'+gr)
 
 	get: (name) ->
 		# log 'get', name, @elements.length
@@ -869,14 +1072,23 @@ class Renderer
 		@prev_content = @root.children()
 		@content = $('<div/>').addClass('page_content group').prependTo(@root)
 		if @data.archived then @content.addClass 'sheet_archived'
-		@_load_items (data) =>
-			@notes = data
+		@_load_items () =>
 			@get(@template.name).render @data, @template, @content, {empty: false}, () =>
+				# log 'Fixing height'
 				@fix_height () =>
 					if focus.attr('option')
 						@root.find('.text_editor[property='+focus.attr('property')+'][option='+focus.attr('option')+']').focus()
 					else
 						@root.find('.text_editor[property='+focus.attr('property')+'][item_id='+focus.attr('item_id')+']').focus()
+					if @no_area.length>0
+						no_area_div = $('<div/>').addClass('no_area_notes').appendTo(@root)
+						for item in @no_area
+							el = $('<div/>').addClass('list_item no_area_note').appendTo(no_area_div)
+							el.data('type', 'note')
+							el.data('renderer', @)
+							el.data('item', item)
+							el.draggable({zIndex: 4, containment: 'document', helper: 'clone', appendTo: 'body'})
+							el.attr('title', item.text)
 	
 	size_too_big: () ->
 		return @root.innerHeight()<@content.outerHeight(true)
@@ -899,26 +1111,34 @@ class Renderer
 				if handler then handler null
 	
 	_load_items: (handler) ->
+		areas = []
+		find_areas = (item) ->
+			if item.type is 'list' and item.area and item.area not in areas
+				areas.push item.area
+			if item.flow
+				for fl in item.flow
+					find_areas fl
+		find_areas @template
 		@manager.getNotes @data.id, null, (err, data) =>
 			if err
 				log 'Error getting items', err
-				handler []
+				handler {}
 			else
-				handler data
+				@notes = {}
+				@no_area = []
+				for area in areas
+					@notes[area] = []
+				for item in data
+					if @notes[item.area]
+						@notes[item.area].push item
+					else
+						@no_area.push item
+				handler @notes
 	
 	items: (area, handler) ->
-		result = []
-		for item in @notes
-			if item.area is area
-				result.push item
+		result = @notes[area] ? []
 		if handler then handler result
 		return result
-		# @manager.getNotes @data.id, area, (err, data) =>
-		# 	if err
-		# 		log 'Error getting items', err
-		# 		handler []
-		# 	else
-		# 		handler data
 	
 	on_sheet_change: () ->
 
@@ -941,6 +1161,9 @@ $(document).ready () ->
 	}, jqnet
 	ui = new UIManager manager, oauth
 	ui.start null
+	
+	# renderer = new Renderer manager, ui, $('#page0'), wobjective, {}
+	# renderer.render null
 
 	# renderer = new Renderer $('#page1'), w1, {},
 	# 	dt: new Date().getTime()

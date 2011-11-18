@@ -123,6 +123,7 @@ body {
 	margin-bottom: 0.5em;
 	background-color: #dddddd;
 	height: 1em;
+	border-top-right-radius: 1em;
 }
 
 .title1 {
@@ -237,6 +238,10 @@ body {
 	cursor: pointer;
 }
 
+.check_inset {
+	margin-left: 0.5em;
+}
+
 .mark_editor {
 	width: 1em;
 	height: 1em;
@@ -315,7 +320,7 @@ li {
 	border: 1px solid #dddddd;
 	list-style-type: none;	
 	background-color: #ffffff;
-
+	cursor: pointer;
 }
 
 .ui-selected {
@@ -352,21 +357,23 @@ li {
 	padding: 5px;
 	border-width: 2px;
 	border-radius: 3px;
-	cursor: pointer;
 }
 
 .sheet_archived .title0_text {
 	color: #ff0000;
 }
 
-#archive {
-	cursor: pointer;
+#trash {
+	cursor: wait;
 }
 
 .toolbar_action {
+	margin: 5px;
 	border: 2px solid #dddddd;
 	padding: 5px;
+	cursor: pointer;
 	border-radius: 4px;
+	float: left;
 }
 
 .toolbar_drop {
@@ -395,6 +402,10 @@ li {
 
 .last_sheet {
 	border-width: 0px;
+}
+
+.bg0 {
+	background-color: #ffffff;
 }
 
 .bg1 {
@@ -448,6 +459,7 @@ li {
 	margin: 10px;
 	width: 150px;
 	float: right;
+	margin-top: 15px;
 }
 
 
@@ -492,4 +504,58 @@ li {
 .scroll_right {
 	right: 0px;
 	border-left-width: 2px;
+}
+
+.title2 {
+	border: 2px solid #222222;
+	padding: 2px;
+}
+
+.title2_text {
+	font-weight: bold;
+}
+
+.title3 {
+	height: 100%;
+	vertical-align: middle;
+}
+
+.title3_text {
+	font-size: 0.75em;
+}
+
+.header {
+	margin-top: 4px;
+	margin-bottom: 2px;
+	border: 1px solid #222222;
+	background-color: #777777;
+	border-top-right-radius: 10px;
+}
+
+.header_col {
+	color: #efefef;
+	font-weight: bold;
+	font-size: 0.9em;
+}
+
+.no_area_notes {
+	position: absolute;
+	right: 10px;
+	bottom: 10px;
+}
+
+.no_area_note {
+	width: 20px;
+	min-width: 20px;
+	height: 20px;
+	cursor: move;
+	float: left;
+	margin: 5px;
+	background-color: #ffffff;
+	border: 1px solid #aa0000;
+	border-radius: 20px;
+}
+
+.no_area_note .ui-draggable-dragging {
+	min-width: inherit;
 }

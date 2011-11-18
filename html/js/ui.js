@@ -1,5 +1,5 @@
 (function() {
-  var CheckElement, ColsElement, DateElement, HRElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, TimeElement, Title1Element, TitleElement, UIElement, swimpleactions, w1, w47, wactions, wnotes;
+  var CheckElement, ColsElement, DateElement, HRElement, HeaderElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, TimeElement, Title1Element, Title2Element, Title3Element, TitleElement, UIElement, swimpleactions, w1, w47, wactions, wcombinedactions, wnotes, wobjective;
   var __slice = Array.prototype.slice, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
     for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
     function ctor() { this.constructor = child; }
@@ -7,7 +7,226 @@
     child.prototype = new ctor;
     child.__super__ = parent.prototype;
     return child;
-  }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __indexOf = Array.prototype.indexOf || function(item) {
+    for (var i = 0, l = this.length; i < l; i++) {
+      if (this[i] === item) return i;
+    }
+    return -1;
+  };
+  wobjective = {
+    "defaults": {
+      "title": "Objective"
+    },
+    "direct": true,
+    "flow": [
+      {
+        "type": "title",
+        "name": "Objectives",
+        "edit": "@:title"
+      }, {
+        "type": "hr"
+      }, {
+        "type": "title2",
+        "name": "Objective",
+        "edit": "@:objective"
+      }, {
+        "grid": 1,
+        "delimiter": 1,
+        "flow": [
+          {
+            "type": "cols",
+            "bg": 1,
+            "size": [0.15, 0.85],
+            "flow": [
+              {
+                "type": "title3",
+                "name": "Description"
+              }, {
+                "type": "text",
+                "edit": "@:desc",
+                "bg": 0
+              }
+            ]
+          }, {
+            "type": "cols",
+            "bg": 1,
+            "size": [0.15, 0.85],
+            "flow": [
+              {
+                "type": "title3",
+                "name": "Benefits"
+              }, {
+                "type": "text",
+                "edit": "@:benefits",
+                "bg": 0
+              }
+            ]
+          }, {
+            "type": "cols",
+            "bg": 1,
+            "size": [0.15, 0.85],
+            "flow": [
+              {
+                "type": "title3",
+                "name": "Challenges"
+              }, {
+                "type": "text",
+                "edit": "@:challenges",
+                "bg": 0
+              }
+            ]
+          }
+        ]
+      }, {
+        "type": "header",
+        "size": [0.15, 0.75, 0.15],
+        "flow": ["", "Step", "Target"]
+      }, {
+        "type": "list",
+        "area": "main",
+        "grid": 1,
+        "delimiter": 1,
+        "flow": [
+          {
+            "type": "cols",
+            "size": [0.15, 0.75, 0.15],
+            "flow": [
+              {
+                "type": "check",
+                "edit": "@:done",
+                "bg": 1
+              }, {
+                "type": "text",
+                "edit": "@:text"
+              }, {
+                "type": "date",
+                "edit": "@:due",
+                "bg": 1
+              }
+            ]
+          }
+        ]
+      }, {
+        "grid": 1,
+        "delimiter": 1,
+        "flow": [
+          {
+            "type": "cols",
+            "bg": 1,
+            "size": [0.15, 0.85],
+            "flow": [
+              {
+                "type": "title3",
+                "name": "Outcome"
+              }, {
+                "type": "text",
+                "edit": "@:outcome",
+                "bg": 0
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  };
+  wcombinedactions = {
+    "defaults": {
+      "title": "Combined Actions"
+    },
+    "direct": true,
+    "flow": [
+      {
+        "type": "title",
+        "name": "Combined Actions",
+        "edit": "@:title"
+      }, {
+        "type": "hr"
+      }, {
+        "type": "cols",
+        "size": [0.48, 0.48],
+        "space": 0.04,
+        "flow": [
+          {
+            "flow": [
+              {
+                "type": "title1",
+                "name": "Actions"
+              }, {
+                "type": "list",
+                "area": "main",
+                "grid": 1,
+                "delimiter": 1,
+                "flow": [
+                  {
+                    "type": "cols",
+                    "size": [0.1, 0.9],
+                    "flow": [
+                      {
+                        "type": "check",
+                        "edit": "@:done",
+                        "bg": 1
+                      }, {
+                        "type": "text",
+                        "edit": "@:text"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }, {
+            "flow": [
+              {
+                "type": "title1",
+                "name": "Waiting For"
+              }, {
+                "type": "list",
+                "area": "wfor",
+                "grid": 1,
+                "delimiter": 1,
+                "config": {
+                  "delimiter": 2
+                },
+                "flow": [
+                  {
+                    "type": "cols",
+                    "size": [0.1, 0.9],
+                    "flow": [
+                      {
+                        "type": "check",
+                        "edit": "@:done"
+                      }, {
+                        "type": "text",
+                        "edit": "@:text"
+                      }
+                    ]
+                  }, {
+                    "type": "text",
+                    "edit": "@:notes"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }, {
+        "type": "title1",
+        "name": "Notes"
+      }, {
+        "type": "list",
+        "area": "notes",
+        "grid": 1,
+        "delimiter": 1,
+        "grow": "no",
+        "flow": [
+          {
+            "type": "text",
+            "edit": "@:text"
+          }
+        ]
+      }
+    ]
+  };
   wactions = {
     "defaults": {
       "title": "Actions"
@@ -617,7 +836,7 @@
     };
     UIElement.prototype.fix_decoration = function(item, config, element) {
       var ch, chars, type, _i, _len, _ref, _results;
-      if (config.bg) {
+      if (config.bg || config.bg === 0) {
         element.addClass('bg' + config.bg);
       }
       if (config.border) {
@@ -676,7 +895,7 @@
     TitleElement.prototype.render = function(item, config, element, options, handler) {
       var el, _ref;
       if (options.empty) {
-        return handler;
+        return handler(null);
       }
       $('<span/>').addClass('title0_text').appendTo(element).text(this.renderer.inject((_ref = config.name) != null ? _ref : ' '));
       if (config.edit) {
@@ -696,7 +915,7 @@
     Textlement.prototype.render = function(item, config, element, options, handler) {
       var ed, el, property;
       if (options.empty) {
-        return handler;
+        return handler(null);
       }
       el = $('<div/>').addClass('text_editor').appendTo(element);
       if (config.edit && !options.readonly) {
@@ -719,9 +938,12 @@
     CheckElement.prototype.render = function(item, config, element, options, handler) {
       var checked, el, property;
       if (options.empty) {
-        return handler;
+        return handler(null);
       }
       el = $('<div/>').addClass('check_editor').appendTo(element);
+      if (config.inset) {
+        el.addClass('check_inset');
+      }
       property = this.renderer.replace(config.edit, item);
       checked = false;
       if (property && item[property] === 1) {
@@ -758,7 +980,7 @@
     DateElement.prototype.render = function(item, config, element, options, handler) {
       var el, property;
       if (options.empty) {
-        return handler;
+        return handler(null);
       }
       el = $('<div/>').addClass('date_editor').appendTo(element);
       property = this.renderer.replace(config.edit, item);
@@ -910,7 +1132,7 @@
     MarkElement.prototype.render = function(item, config, element, options, handler) {
       var el, property, value;
       if (options.empty) {
-        return handler;
+        return handler(null);
       }
       property = this.renderer.replace(config.edit, item);
       value = item[property];
@@ -941,7 +1163,7 @@
     HRElement.prototype.name = 'hr';
     HRElement.prototype.render = function(item, config, element, options, handler) {
       if (options.empty) {
-        return handler;
+        return handler(null);
       }
       $('<div/>').addClass('hr').appendTo(element);
       return handler(null);
@@ -957,7 +1179,7 @@
     Title1Element.prototype.render = function(item, config, element, options, handler) {
       var bg;
       if (options.empty) {
-        return handler;
+        return handler(null);
       }
       bg = $('<div/>').addClass('title1_bg').appendTo(element);
       $('<div/>').addClass('title1').appendTo(bg).text(this.renderer.inject(config.name, item));
@@ -965,6 +1187,107 @@
       return handler(null);
     };
     return Title1Element;
+  })();
+  Title2Element = (function() {
+    __extends(Title2Element, UIElement);
+    function Title2Element() {
+      Title2Element.__super__.constructor.apply(this, arguments);
+    }
+    Title2Element.prototype.name = 'title2';
+    Title2Element.prototype.render = function(item, config, element, options, handler) {
+      var bg, el, _ref;
+      if (options.empty) {
+        return handler(null);
+      }
+      bg = $('<div/>').addClass('title2').appendTo(element);
+      $('<span/>').addClass('title2_text').appendTo(bg).text(this.renderer.inject((_ref = config.name) != null ? _ref : ' '));
+      if (config.edit) {
+        el = $('<span/>').addClass('text_editor title2_editor').appendTo(bg);
+        this.renderer.text_editor(el, item, this.renderer.replace(config.edit));
+      }
+      return handler(null);
+    };
+    return Title2Element;
+  })();
+  Title3Element = (function() {
+    __extends(Title3Element, UIElement);
+    function Title3Element() {
+      Title3Element.__super__.constructor.apply(this, arguments);
+    }
+    Title3Element.prototype.name = 'title3';
+    Title3Element.prototype.render = function(item, config, element, options, handler) {
+      var bg;
+      if (options.empty) {
+        return handler(null);
+      }
+      bg = $('<div/>').addClass('title3').appendTo(element);
+      $('<span/>').addClass('title3_text').appendTo(bg).text(this.renderer.inject(config.name, item));
+      return handler(null);
+    };
+    return Title3Element;
+  })();
+  HeaderElement = (function() {
+    __extends(HeaderElement, UIElement);
+    function HeaderElement() {
+      HeaderElement.__super__.constructor.apply(this, arguments);
+    }
+    HeaderElement.prototype.name = 'header';
+    HeaderElement.prototype.render = function(item, config, element, options, handler) {
+      var bg, diff, el, fl, float_size, flow, i, last, lsizes, margin, sizes, space_size, sz, w, width, _i, _len, _ref, _ref2;
+      if (options.empty) {
+        return handler(null);
+      }
+      flow = (_ref = config.flow) != null ? _ref : [];
+      sizes = (_ref2 = config.size) != null ? _ref2 : [];
+      if (flow.length === 1 && sizes.length === 0) {
+        sizes = [1];
+      }
+      if (flow.length !== sizes.length) {
+        return handler(null);
+      }
+      bg = $('<div/>').addClass('header').appendTo(element);
+      w = element.innerWidth() - 2;
+      float_size = 0;
+      lsizes = [];
+      for (_i = 0, _len = sizes.length; _i < _len; _i++) {
+        sz = sizes[_i];
+        lsizes.push(sz);
+        float_size += sz;
+      }
+      space_size = 0;
+      if (float_size > 0) {
+        for (i in lsizes) {
+          sz = lsizes[i];
+          if (sz <= 1) {
+            lsizes[i] = Math.floor(w * sz / float_size);
+          }
+        }
+      }
+      margin = 0;
+      for (i in flow) {
+        fl = flow[i];
+        i = parseInt(i);
+        last = i === flow.length - 1;
+        width = lsizes[i];
+        if (last) {
+          width = w - margin;
+        }
+        el = $('<div/>').addClass('col header_col').appendTo(bg).width(width);
+        if (fl) {
+          el.text(this.renderer.inject(fl));
+        } else {
+          el.html('&nbsp;');
+        }
+        diff = el.outerWidth() - el.innerWidth();
+        if (diff > 0) {
+          el.width(el.innerWidth() - diff);
+        }
+        margin += width;
+      }
+      $('<div style="clear: both;"/>').appendTo(bg);
+      return handler(null);
+    };
+    return HeaderElement;
   })();
   ColsElement = (function() {
     __extends(ColsElement, UIElement);
@@ -1132,6 +1455,9 @@
       var flow, parent, _ref;
       flow = (_ref = config.flow) != null ? _ref : [];
       if (options.empty) {
+        if (config.grow === 'no') {
+          return handler(null);
+        }
         parent = element.parents('.group').last();
         return this._fill_empty(config, element, parent, handler);
       }
@@ -1165,21 +1491,24 @@
       this.template = template;
       this.data = data;
       this.env = env;
-      this.elements = [new SimpleElement(this), new TitleElement(this), new HRElement(this), new Title1Element(this), new ColsElement(this), new ListElement(this), new Textlement(this), new CheckElement(this), new MarkElement(this), new DateElement(this), new TimeElement(this)];
+      this.elements = [new SimpleElement(this), new TitleElement(this), new HRElement(this), new Title1Element(this), new Title2Element(this), new Title3Element(this), new HeaderElement(this), new ColsElement(this), new ListElement(this), new Textlement(this), new CheckElement(this), new MarkElement(this), new DateElement(this), new TimeElement(this)];
       this.root.data('sheet', this.data);
     }
     Renderer.prototype.fix_grid = function(element, config) {
-      var gr;
-      if (!config || !config.grid) {
+      var ch, gr;
+      if (!config) {
         return;
       }
-      gr = config.grid;
-      element.children(':not(.list_item_handle)').removeClass('grid_top' + gr + ' grid_bottom' + gr).addClass('grid' + gr);
+      ch = element.children(':not(.list_item_handle)');
       if (config.delimiter) {
-        element.children(':not(.list_item_handle)').addClass('grid_delimiter' + config.delimiter);
+        ch.slice(0, -1).addClass('grid_delimiter' + config.delimiter);
       }
-      element.children(':not(.list_item_handle)').first().addClass('grid_top' + gr);
-      return element.children(':not(.list_item_handle)').last().addClass('grid_bottom' + gr);
+      if (config.grid) {
+        gr = config.grid;
+        ch.removeClass('grid_top' + gr + ' grid_bottom' + gr).addClass('grid' + gr);
+        ch.first().addClass('grid_top' + gr);
+        return ch.last().addClass('grid_bottom' + gr);
+      }
     };
     Renderer.prototype.get = function(name) {
       var el, _i, _len, _ref;
@@ -1339,16 +1668,36 @@
       if (this.data.archived) {
         this.content.addClass('sheet_archived');
       }
-      return this._load_items(__bind(function(data) {
-        this.notes = data;
+      return this._load_items(__bind(function() {
         return this.get(this.template.name).render(this.data, this.template, this.content, {
           empty: false
         }, __bind(function() {
           return this.fix_height(__bind(function() {
+            var el, item, no_area_div, _i, _len, _ref, _results;
             if (focus.attr('option')) {
-              return this.root.find('.text_editor[property=' + focus.attr('property') + '][option=' + focus.attr('option') + ']').focus();
+              this.root.find('.text_editor[property=' + focus.attr('property') + '][option=' + focus.attr('option') + ']').focus();
             } else {
-              return this.root.find('.text_editor[property=' + focus.attr('property') + '][item_id=' + focus.attr('item_id') + ']').focus();
+              this.root.find('.text_editor[property=' + focus.attr('property') + '][item_id=' + focus.attr('item_id') + ']').focus();
+            }
+            if (this.no_area.length > 0) {
+              no_area_div = $('<div/>').addClass('no_area_notes').appendTo(this.root);
+              _ref = this.no_area;
+              _results = [];
+              for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+                item = _ref[_i];
+                el = $('<div/>').addClass('list_item no_area_note').appendTo(no_area_div);
+                el.data('type', 'note');
+                el.data('renderer', this);
+                el.data('item', item);
+                el.draggable({
+                  zIndex: 4,
+                  containment: 'document',
+                  helper: 'clone',
+                  appendTo: 'body'
+                });
+                _results.push(el.attr('title', item.text));
+              }
+              return _results;
             }
           }, this));
         }, this));
@@ -1383,25 +1732,51 @@
       }, this));
     };
     Renderer.prototype._load_items = function(handler) {
+      var areas, find_areas;
+      areas = [];
+      find_areas = function(item) {
+        var fl, _i, _len, _ref, _ref2, _results;
+        if (item.type === 'list' && item.area && (_ref = item.area, __indexOf.call(areas, _ref) < 0)) {
+          areas.push(item.area);
+        }
+        if (item.flow) {
+          _ref2 = item.flow;
+          _results = [];
+          for (_i = 0, _len = _ref2.length; _i < _len; _i++) {
+            fl = _ref2[_i];
+            _results.push(find_areas(fl));
+          }
+          return _results;
+        }
+      };
+      find_areas(this.template);
       return this.manager.getNotes(this.data.id, null, __bind(function(err, data) {
+        var area, item, _i, _j, _len, _len2;
         if (err) {
           log('Error getting items', err);
-          return handler([]);
+          return handler({});
         } else {
-          return handler(data);
+          this.notes = {};
+          this.no_area = [];
+          for (_i = 0, _len = areas.length; _i < _len; _i++) {
+            area = areas[_i];
+            this.notes[area] = [];
+          }
+          for (_j = 0, _len2 = data.length; _j < _len2; _j++) {
+            item = data[_j];
+            if (this.notes[item.area]) {
+              this.notes[item.area].push(item);
+            } else {
+              this.no_area.push(item);
+            }
+          }
+          return handler(this.notes);
         }
       }, this));
     };
     Renderer.prototype.items = function(area, handler) {
-      var item, result, _i, _len, _ref;
-      result = [];
-      _ref = this.notes;
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        item = _ref[_i];
-        if (item.area === area) {
-          result.push(item);
-        }
-      }
+      var result, _ref;
+      result = (_ref = this.notes[area]) != null ? _ref : [];
       if (handler) {
         handler(result);
       }

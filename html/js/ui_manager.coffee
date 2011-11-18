@@ -89,6 +89,14 @@ class UIManager
 		
 		$('#new_sheet_button').bind 'click', () =>
 			@new_sheet null
+		$('#new_sheet_button').droppable({
+			accept: '.sheet',
+			hoverClass: 'toolbar_drop',
+			tolerance: 'pointer',
+			drop: (event, ui) =>
+				@new_sheet ui.draggable.data('item')
+				event.preventDefault()
+		})
 
 		$('#templates').bind 'selectablestop', () =>
 			@template_selected null
@@ -195,10 +203,10 @@ class UIManager
 			@sync null
 
 	sync: () ->
-		$('#sync_button').find('.ui-button-text').text('Sync in progress...')
+		$('#sync_button').text('Sync in progress...')
 		@manager.sync @oauth, (err, sync_data) =>
 			# log 'After sync', err, sync_data
-			$('#sync_button').find('.ui-button-text').text('Sync')
+			$('#sync_button').text('Sync')
 			if err then return @show_error err
 			sync_at = new Date().format('M/d h:mma')
 			out_items = sync_data.out
@@ -415,6 +423,10 @@ class UIManager
 		if not @templates or not @templates[template_id]
 			return @show_error 'No template found'
 		template = @templates[template_id]
+		if sheet.template_id and sheet.template_id isnt template_id
+			sheet.template_id = template_id
+			@manager.saveSheet sheet, (err, object) =>
+				if err then return @ui.show_error err
 		sheet.template_id = template_id
 		config = {}
 		if template.protocol and sheet.code
@@ -482,7 +494,7 @@ class UIManager
 					event.preventDefault()
 			})
 
-	new_sheet: () ->
+	new_sheet: (sheet) ->
 		$('#new_sheet_dialog').dialog({width: 400, height: 200})
 		ul = $('#new_sheet_templates').empty()
 		@manager.getTemplates (err, data) =>
@@ -491,7 +503,7 @@ class UIManager
 				tmpl = @templates[item.id]
 				if not tmpl
 					continue
-				if not tmpl.direct
+				if not tmpl.direct # not sheet and 
 					continue
 				li = $('<div/>').addClass('new_sheet_template').appendTo(ul)
 				li.text(item.name)
@@ -503,7 +515,7 @@ class UIManager
 						return false
 					li.bind 'dblclick', (e) =>
 						$('#new_sheet_dialog').dialog('close')
-						@show_page item.id, {}
+						@show_page item.id, (sheet ? {})
 						return false
 			$('<div/>').addClass('clear').appendTo(ul)
 
