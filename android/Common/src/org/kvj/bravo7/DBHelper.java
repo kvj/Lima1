@@ -18,6 +18,7 @@ abstract public class DBHelper extends SQLiteOpenHelper {
 	
 	public boolean open() {
 		try {
+			Log.i(TAG, "Opening DB...");
 			SQLiteDatabase db = this.getWritableDatabase();
 			if (db != null) {
 				return true;
@@ -30,7 +31,7 @@ abstract public class DBHelper extends SQLiteOpenHelper {
 
 	@Override
 	public void onCreate(SQLiteDatabase db) {
-//		Log.i("DBHelper", "onCreate called - create table");
+		Log.i("DBHelper", "onCreate called - create table");
 		onUpgrade(db, 0, version);
 	}
 
@@ -53,8 +54,8 @@ abstract public class DBHelper extends SQLiteOpenHelper {
 	@Override
 	public void onOpen(SQLiteDatabase db) {
 		super.onOpen(db);
+		Log.i("DBHelper", "onOpen");
 		this.database = db;
-//		Log.i("DBHelper", "onOpen");
 	}
 	
 	public SQLiteDatabase getDatabase() {

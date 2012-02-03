@@ -1,10 +1,11 @@
 package org.kvj.lima1.sync.aidl;
 
+import org.kvj.lima1.sync.Lima1SyncApp;
 import org.kvj.lima1.sync.PJSONObject;
 import org.kvj.lima1.sync.QueryOperator;
 import org.kvj.lima1.sync.SyncService;
 import org.kvj.lima1.sync.SyncServiceInfo;
-import org.kvj.lima1.sync.SyncService.Stub;
+import org.kvj.lima1.sync.controller.SyncController;
 
 import android.app.Service;
 import android.content.Intent;
@@ -15,36 +16,16 @@ public class SyncServiceProvider extends Service {
 
 	@Override
 	public IBinder onBind(Intent intent) {
-		if (SyncServiceInfo.INTENT.equals(intent.getAction())) {
+		if (SyncServiceInfo.INTENT.equals(intent.getAction())
+				&& null != intent.getExtras()) {
+			final String application = intent.getStringExtra("application");
+			final SyncController controller = Lima1SyncApp.getInstance()
+					.getBean(SyncController.class);
 			return new SyncService.Stub() {
-				
+
 				@Override
 				public String message() throws RemoteException {
-					return "Hi korea!";
-				}
-
-				@Override
-				public PJSONObject create(String app, String stream,
-						PJSONObject obj) throws RemoteException {
-					return obj;
-				}
-
-				@Override
-				public PJSONObject update(String app, String stream,
-						PJSONObject obj) throws RemoteException {
-					return null;
-				}
-
-				@Override
-				public PJSONObject remove(String app, String stream,
-						PJSONObject obj) throws RemoteException {
-					return null;
-				}
-
-				@Override
-				public PJSONObject query(String app, String stream,
-						QueryOperator[] operators) throws RemoteException {
-					return null;
+					return "Hi korea!! " + application;
 				}
 
 				@Override
@@ -56,6 +37,40 @@ public class SyncServiceProvider extends Service {
 				@Override
 				public void set(String name, String value)
 						throws RemoteException {
+				}
+
+				@Override
+				public PJSONObject create(String stream, PJSONObject obj)
+						throws RemoteException {
+					// TODO Auto-generated method stub
+					return null;
+				}
+
+				@Override
+				public PJSONObject update(String stream, PJSONObject obj)
+						throws RemoteException {
+					// TODO Auto-generated method stub
+					return null;
+				}
+
+				@Override
+				public PJSONObject remove(String stream, PJSONObject obj)
+						throws RemoteException {
+					// TODO Auto-generated method stub
+					return null;
+				}
+
+				@Override
+				public PJSONObject[] query(String stream,
+						QueryOperator[] operators) throws RemoteException {
+					// TODO Auto-generated method stub
+					return null;
+				}
+
+				@Override
+				public boolean startSync() throws RemoteException {
+					// TODO Auto-generated method stub
+					return false;
 				}
 			};
 		}

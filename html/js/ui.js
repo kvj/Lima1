@@ -1,18 +1,10 @@
 (function() {
-  var CheckElement, ColsElement, DateElement, HRElement, HeaderElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, TimeElement, Title1Element, Title2Element, Title3Element, TitleElement, UIElement, swimpleactions, w1, w47, wactions, wcombinedactions, wnotes, wobjective;
-  var __slice = Array.prototype.slice, __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
-    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
-    function ctor() { this.constructor = child; }
-    ctor.prototype = parent.prototype;
-    child.prototype = new ctor;
-    child.__super__ = parent.prototype;
-    return child;
-  }, __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; }, __indexOf = Array.prototype.indexOf || function(item) {
-    for (var i = 0, l = this.length; i < l; i++) {
-      if (this[i] === item) return i;
-    }
-    return -1;
-  };
+  var CheckElement, ColsElement, DateElement, HRElement, HeaderElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, TimeElement, Title1Element, Title2Element, Title3Element, TitleElement, UIElement, swimpleactions, w1, w47, wactions, wcombinedactions, wnotes, wobjective,
+    __slice = Array.prototype.slice,
+    __hasProp = Object.prototype.hasOwnProperty,
+    __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; },
+    __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
   wobjective = {
     "defaults": {
       "title": "Objective"
@@ -129,6 +121,7 @@
       }
     ]
   };
+
   wcombinedactions = {
     "defaults": {
       "title": "Combined Actions"
@@ -227,6 +220,7 @@
       }
     ]
   };
+
   wactions = {
     "defaults": {
       "title": "Actions"
@@ -280,6 +274,7 @@
       }
     ]
   };
+
   swimpleactions = {
     "defaults": {
       "title": "To-Do"
@@ -321,6 +316,7 @@
       }
     ]
   };
+
   wnotes = {
     "defaults": {
       "title": "Notes"
@@ -347,6 +343,7 @@
       }
     ]
   };
+
   w1 = {
     "code": "w13:${dt:(e1)}",
     "protocol": {
@@ -587,6 +584,7 @@
       }
     ]
   };
+
   w47 = {
     "code": "w47:${dt:(e1)}",
     "protocol": {
@@ -821,10 +819,13 @@
       }
     ]
   };
+
   UIElement = (function() {
+
     function UIElement(renderer) {
       this.renderer = renderer;
     }
+
     UIElement.prototype.child = function(element, cl, index) {
       var child;
       child = element.children(cl).eq(index);
@@ -834,11 +835,10 @@
         return null;
       }
     };
+
     UIElement.prototype.fix_decoration = function(item, config, element) {
       var ch, chars, type, _i, _len, _ref, _results;
-      if (config.bg || config.bg === 0) {
-        element.addClass('bg' + config.bg);
-      }
+      if (config.bg || config.bg === 0) element.addClass('bg' + config.bg);
       if (config.border) {
         _ref = config.border.split(''), type = _ref[0], chars = 2 <= _ref.length ? __slice.call(_ref, 1) : [];
         _results = [];
@@ -849,19 +849,28 @@
         return _results;
       }
     };
+
     UIElement.prototype.render = function(item, config, element, options, handler) {
       return handler(null);
     };
+
     return UIElement;
+
   })();
-  SimpleElement = (function() {
-    __extends(SimpleElement, UIElement);
+
+  SimpleElement = (function(_super) {
+
+    __extends(SimpleElement, _super);
+
     function SimpleElement() {
       SimpleElement.__super__.constructor.apply(this, arguments);
     }
+
     SimpleElement.prototype.name = 'simple';
+
     SimpleElement.prototype.render = function(item, config, element, options, handler) {
-      var fl, flow, i, _ref, _results;
+      var fl, flow, i, _ref, _results,
+        _this = this;
       if (config.defaults && !options.empty) {
         this.renderer.applyDefaults(config.defaults, item);
       }
@@ -870,33 +879,38 @@
       for (i in flow) {
         fl = flow[i];
         i = parseInt(i);
-        _results.push(__bind(function(i) {
+        _results.push((function(i) {
           var el, _ref2;
-          el = (_ref2 = this.child(element, '.simple', i)) != null ? _ref2 : $('<div/>').addClass('simple').appendTo(element);
-          this.fix_decoration(item, fl, el);
-          return this.renderer.get(fl.type).render(item, fl, el, options, __bind(function() {
+          el = (_ref2 = _this.child(element, '.simple', i)) != null ? _ref2 : $('<div/>').addClass('simple').appendTo(element);
+          _this.fix_decoration(item, fl, el);
+          return _this.renderer.get(fl.type).render(item, fl, el, options, function() {
             if (i === flow.length - 1) {
-              this.renderer.fix_grid(element, config.type === 'list' ? config.config : config);
+              _this.renderer.fix_grid(element, config.type === 'list' ? config.config : config);
               return handler(null);
             }
-          }, this));
-        }, this)(i));
+          });
+        })(i));
       }
       return _results;
     };
+
     return SimpleElement;
-  })();
-  TitleElement = (function() {
-    __extends(TitleElement, UIElement);
+
+  })(UIElement);
+
+  TitleElement = (function(_super) {
+
+    __extends(TitleElement, _super);
+
     function TitleElement() {
       TitleElement.__super__.constructor.apply(this, arguments);
     }
+
     TitleElement.prototype.name = 'title';
+
     TitleElement.prototype.render = function(item, config, element, options, handler) {
       var el, _ref;
-      if (options.empty) {
-        return handler(null);
-      }
+      if (options.empty) return handler(null);
       $('<span/>').addClass('title0_text').appendTo(element).text(this.renderer.inject((_ref = config.name) != null ? _ref : ' '));
       if (config.edit) {
         el = $('<span/>').addClass('text_editor title0_editor').appendTo(element);
@@ -904,19 +918,24 @@
       }
       return handler(null);
     };
+
     return TitleElement;
-  })();
-  Textlement = (function() {
-    __extends(Textlement, UIElement);
+
+  })(UIElement);
+
+  Textlement = (function(_super) {
+
+    __extends(Textlement, _super);
+
     function Textlement() {
       Textlement.__super__.constructor.apply(this, arguments);
     }
+
     Textlement.prototype.name = 'text';
+
     Textlement.prototype.render = function(item, config, element, options, handler) {
       var ed, el, property;
-      if (options.empty) {
-        return handler(null);
-      }
+      if (options.empty) return handler(null);
       el = $('<div/>').addClass('text_editor').appendTo(element);
       if (config.edit && !options.readonly) {
         property = this.renderer.replace(config.edit, item);
@@ -927,45 +946,56 @@
       }
       return handler(null);
     };
+
     return Textlement;
-  })();
-  CheckElement = (function() {
-    __extends(CheckElement, UIElement);
+
+  })(UIElement);
+
+  CheckElement = (function(_super) {
+
+    __extends(CheckElement, _super);
+
     function CheckElement() {
       CheckElement.__super__.constructor.apply(this, arguments);
     }
+
     CheckElement.prototype.name = 'check';
+
     CheckElement.prototype.render = function(item, config, element, options, handler) {
-      var checked, el, property;
-      if (options.empty) {
-        return handler(null);
-      }
+      var checked, el, property,
+        _this = this;
+      if (options.empty) return handler(null);
       el = $('<div/>').addClass('check_editor').appendTo(element);
-      if (config.inset) {
-        el.addClass('check_inset');
-      }
+      if (config.inset) el.addClass('check_inset');
       property = this.renderer.replace(config.edit, item);
       checked = false;
       if (property && item[property] === 1) {
         checked = true;
-        el.addClass('checked');
+        el.addClass('checked').text('×');
       }
       if (!options.readonly) {
-        el.bind('click', __bind(function(event) {
-          this.renderer.on_edited(item, property, checked ? null : 1);
+        el.bind('click', function(event) {
+          _this.renderer.on_edited(item, property, checked ? null : 1);
           return false;
-        }, this));
+        });
       }
       return handler(null);
     };
+
     return CheckElement;
-  })();
-  DateElement = (function() {
-    __extends(DateElement, UIElement);
+
+  })(UIElement);
+
+  DateElement = (function(_super) {
+
+    __extends(DateElement, _super);
+
     function DateElement() {
       DateElement.__super__.constructor.apply(this, arguments);
     }
+
     DateElement.prototype.name = 'date';
+
     DateElement.prototype.print_date = function(date, el) {
       var dt;
       dt = new Date();
@@ -977,47 +1007,53 @@
         return false;
       }
     };
+
     DateElement.prototype.render = function(item, config, element, options, handler) {
-      var el, property;
-      if (options.empty) {
-        return handler(null);
-      }
+      var el, property,
+        _this = this;
+      if (options.empty) return handler(null);
       el = $('<div/>').addClass('date_editor').appendTo(element);
       property = this.renderer.replace(config.edit, item);
       this.print_date(item[property], el);
-      el.bind('click', __bind(function(e) {
+      el.bind('click', function(e) {
         if (e.shiftKey) {
-          return this.renderer.on_edited(item, property, null);
+          return _this.renderer.on_edited(item, property, null);
         } else {
-          return el.datepicker('dialog', null, __bind(function(date) {
-            if (this.print_date(date, el)) {
-              return this.renderer.on_edited(item, property, date);
+          return el.datepicker('dialog', null, function(date) {
+            if (_this.print_date(date, el)) {
+              return _this.renderer.on_edited(item, property, date);
             }
-          }, this), {
+          }, {
             dateFormat: 'yymmdd'
           }, e);
         }
-      }, this));
+      });
       $('<div style="clear: both;"/>').appendTo(element);
       return handler(null);
     };
+
     return DateElement;
-  })();
-  TimeElement = (function() {
-    __extends(TimeElement, UIElement);
+
+  })(UIElement);
+
+  TimeElement = (function(_super) {
+
+    __extends(TimeElement, _super);
+
     function TimeElement() {
       TimeElement.__super__.constructor.apply(this, arguments);
     }
+
     TimeElement.prototype.name = 'time';
+
     TimeElement.prototype._split_value = function(value) {
       var _ref, _ref2;
       return [parseInt((_ref = value != null ? value.substr(0, 2) : void 0) != null ? _ref : 0, 10), parseInt((_ref2 = value != null ? value.substr(2) : void 0) != null ? _ref2 : 0, 10)];
     };
+
     TimeElement.prototype.value_to_string = function(txt) {
       var ap, hr, min, _ref;
-      if (!txt || txt.length !== 4) {
-        return '';
-      }
+      if (!txt || txt.length !== 4) return '';
       _ref = this._split_value(txt), hr = _ref[0], min = _ref[1];
       ap = 'a';
       if (hr === 0) {
@@ -1025,72 +1061,70 @@
       } else {
         if (hr > 11) {
           ap = 'p';
-          if (hr > 12) {
-            hr -= 12;
-          }
+          if (hr > 12) hr -= 12;
         }
       }
       return '' + hr + (min > 0 ? ':' + min : '') + ap;
     };
+
     TimeElement.prototype.show_editor = function(value, element, handler) {
-      var buttons, caption_div, connect_to, el, hour_div, hr_val, min_val, minute_div, val, x, y, _on_change, _on_close, _ref;
+      var buttons, caption_div, connect_to, el, hour_div, hr_val, min_val, minute_div, val, x, y, _on_change, _on_close, _ref,
+        _this = this;
       connect_to = element.offset();
       el = $('<div/>').addClass('ui-timepicker ui-corner-all ui-widget-content').appendTo(document.body);
       x = Math.floor(connect_to.left - el.width() / 2);
-      if (x < 0) {
-        x = 0;
-      }
+      if (x < 0) x = 0;
       y = connect_to.top + element.height();
       caption_div = $('<div/>').addClass('ui-timepicker-caption').appendTo(el);
       hour_div = $('<div/>').addClass('ui-timepicker-slider').appendTo(el);
       minute_div = $('<div/>').addClass('ui-timepicker-slider').appendTo(el);
       val = value;
-      _on_change = __bind(function(hour, minute) {
+      _on_change = function(hour, minute) {
         var hr, min;
         hr = parseInt(hour != null ? hour : hour_div.slider('value'));
         min = parseInt(minute != null ? minute : minute_div.slider('value'));
         val = '' + (hr < 10 ? '0' : '') + hr + (min < 10 ? '0' : '') + min;
-        return caption_div.text(this.value_to_string(val));
-      }, this);
+        return caption_div.text(_this.value_to_string(val));
+      };
       _ref = this._split_value(value), hr_val = _ref[0], min_val = _ref[1];
       hour_div.slider({
         min: 0,
         max: 23,
         step: 1,
         value: hr_val,
-        slide: __bind(function(event, ui) {
+        slide: function(event, ui) {
           return _on_change(ui.value, null);
-        }, this)
+        }
       });
       minute_div.slider({
         min: 0,
         max: 45,
         step: 15,
         value: min_val,
-        slide: __bind(function(event, ui) {
+        slide: function(event, ui) {
           return _on_change(null, ui.value);
-        }, this)
+        }
       });
-      _on_close = __bind(function() {
+      _on_close = function() {
         return el.remove();
-      }, this);
+      };
       buttons = $('<div/>').addClass('ui-timepicker-buttons').appendTo(el);
-      $('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('OK').bind('click', __bind(function() {
+      $('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('OK').bind('click', function() {
         _on_close(null);
         return handler(val);
-      }, this));
-      $('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('Cancel').bind('click', __bind(function() {
+      });
+      $('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('Cancel').bind('click', function() {
         return _on_close(null);
-      }, this));
+      });
       _on_change(null);
       buttons.find('button').button();
       return el.css('left', x).css('top', y);
     };
+
     TimeElement.prototype.render = function(item, config, element, options, handler) {
-      var el, parts, property;
-      if (options.empty) {
-        return handler;
-      }
+      var el, parts, property,
+        _this = this;
+      if (options.empty) return handler;
       el = $('<div/>').addClass('time_editor').appendTo(element);
       property = this.renderer.replace(config.edit, item);
       parts = (this.value_to_string(item[property])).split(':');
@@ -1099,46 +1133,51 @@
       } else {
         el.text(parts[0]);
       }
-      el.bind('click', __bind(function(e) {
+      el.bind('click', function(e) {
         if (e.shiftKey) {
-          return this.renderer.on_edited(item, property, null);
+          return _this.renderer.on_edited(item, property, null);
         } else {
-          return this.show_editor(item[property], el, __bind(function(time) {
-            return this.renderer.on_edited(item, property, time);
-          }, this));
+          return _this.show_editor(item[property], el, function(time) {
+            return _this.renderer.on_edited(item, property, time);
+          });
         }
-      }, this));
+      });
       $('<div class="clear"/>').appendTo(element);
       return handler(null);
     };
+
     return TimeElement;
-  })();
-  MarkElement = (function() {
-    __extends(MarkElement, UIElement);
+
+  })(UIElement);
+
+  MarkElement = (function(_super) {
+
+    __extends(MarkElement, _super);
+
     function MarkElement() {
       MarkElement.__super__.constructor.apply(this, arguments);
     }
+
     MarkElement.prototype.name = 'mark';
+
     MarkElement.prototype._show_value = function(value, el) {
-      if (!value) {
-        return true;
-      }
+      if (!value) return true;
       if (value === 1 || value === 2) {
         el.addClass('mark' + value);
         return true;
       }
       return false;
     };
+
     MarkElement.prototype.render = function(item, config, element, options, handler) {
-      var el, property, value;
-      if (options.empty) {
-        return handler(null);
-      }
+      var el, property, value,
+        _this = this;
+      if (options.empty) return handler(null);
       property = this.renderer.replace(config.edit, item);
       value = item[property];
       el = $('<div/>').addClass('mark_editor').appendTo(element);
       this._show_value(value, el);
-      el.bind('click', __bind(function(event) {
+      el.bind('click', function(event) {
         if (!value) {
           value = 1;
         } else {
@@ -1148,57 +1187,72 @@
             value = null;
           }
         }
-        this._show_value(value, el);
-        return this.renderer.on_edited(item, property, value);
-      }, this));
+        _this._show_value(value, el);
+        return _this.renderer.on_edited(item, property, value);
+      });
       return handler(null);
     };
+
     return MarkElement;
-  })();
-  HRElement = (function() {
-    __extends(HRElement, UIElement);
+
+  })(UIElement);
+
+  HRElement = (function(_super) {
+
+    __extends(HRElement, _super);
+
     function HRElement() {
       HRElement.__super__.constructor.apply(this, arguments);
     }
+
     HRElement.prototype.name = 'hr';
+
     HRElement.prototype.render = function(item, config, element, options, handler) {
-      if (options.empty) {
-        return handler(null);
-      }
+      if (options.empty) return handler(null);
       $('<div/>').addClass('hr').appendTo(element);
       return handler(null);
     };
+
     return HRElement;
-  })();
-  Title1Element = (function() {
-    __extends(Title1Element, UIElement);
+
+  })(UIElement);
+
+  Title1Element = (function(_super) {
+
+    __extends(Title1Element, _super);
+
     function Title1Element() {
       Title1Element.__super__.constructor.apply(this, arguments);
     }
+
     Title1Element.prototype.name = 'title1';
+
     Title1Element.prototype.render = function(item, config, element, options, handler) {
       var bg;
-      if (options.empty) {
-        return handler(null);
-      }
+      if (options.empty) return handler(null);
       bg = $('<div/>').addClass('title1_bg').appendTo(element);
       $('<div/>').addClass('title1').appendTo(bg).text(this.renderer.inject(config.name, item));
       $('<div style="clear: both;"/>').appendTo(element);
       return handler(null);
     };
+
     return Title1Element;
-  })();
-  Title2Element = (function() {
-    __extends(Title2Element, UIElement);
+
+  })(UIElement);
+
+  Title2Element = (function(_super) {
+
+    __extends(Title2Element, _super);
+
     function Title2Element() {
       Title2Element.__super__.constructor.apply(this, arguments);
     }
+
     Title2Element.prototype.name = 'title2';
+
     Title2Element.prototype.render = function(item, config, element, options, handler) {
       var bg, el, _ref;
-      if (options.empty) {
-        return handler(null);
-      }
+      if (options.empty) return handler(null);
       bg = $('<div/>').addClass('title2').appendTo(element);
       $('<span/>').addClass('title2_text').appendTo(bg).text(this.renderer.inject((_ref = config.name) != null ? _ref : ' '));
       if (config.edit) {
@@ -1207,44 +1261,50 @@
       }
       return handler(null);
     };
+
     return Title2Element;
-  })();
-  Title3Element = (function() {
-    __extends(Title3Element, UIElement);
+
+  })(UIElement);
+
+  Title3Element = (function(_super) {
+
+    __extends(Title3Element, _super);
+
     function Title3Element() {
       Title3Element.__super__.constructor.apply(this, arguments);
     }
+
     Title3Element.prototype.name = 'title3';
+
     Title3Element.prototype.render = function(item, config, element, options, handler) {
       var bg;
-      if (options.empty) {
-        return handler(null);
-      }
+      if (options.empty) return handler(null);
       bg = $('<div/>').addClass('title3').appendTo(element);
       $('<span/>').addClass('title3_text').appendTo(bg).text(this.renderer.inject(config.name, item));
       return handler(null);
     };
+
     return Title3Element;
-  })();
-  HeaderElement = (function() {
-    __extends(HeaderElement, UIElement);
+
+  })(UIElement);
+
+  HeaderElement = (function(_super) {
+
+    __extends(HeaderElement, _super);
+
     function HeaderElement() {
       HeaderElement.__super__.constructor.apply(this, arguments);
     }
+
     HeaderElement.prototype.name = 'header';
+
     HeaderElement.prototype.render = function(item, config, element, options, handler) {
       var bg, diff, el, fl, float_size, flow, i, last, lsizes, margin, sizes, space_size, sz, w, width, _i, _len, _ref, _ref2;
-      if (options.empty) {
-        return handler(null);
-      }
+      if (options.empty) return handler(null);
       flow = (_ref = config.flow) != null ? _ref : [];
       sizes = (_ref2 = config.size) != null ? _ref2 : [];
-      if (flow.length === 1 && sizes.length === 0) {
-        sizes = [1];
-      }
-      if (flow.length !== sizes.length) {
-        return handler(null);
-      }
+      if (flow.length === 1 && sizes.length === 0) sizes = [1];
+      if (flow.length !== sizes.length) return handler(null);
       bg = $('<div/>').addClass('header').appendTo(element);
       w = element.innerWidth() - 2;
       float_size = 0;
@@ -1258,9 +1318,7 @@
       if (float_size > 0) {
         for (i in lsizes) {
           sz = lsizes[i];
-          if (sz <= 1) {
-            lsizes[i] = Math.floor(w * sz / float_size);
-          }
+          if (sz <= 1) lsizes[i] = Math.floor(w * sz / float_size);
         }
       }
       margin = 0;
@@ -1269,9 +1327,7 @@
         i = parseInt(i);
         last = i === flow.length - 1;
         width = lsizes[i];
-        if (last) {
-          width = w - margin;
-        }
+        if (last) width = w - margin;
         el = $('<div/>').addClass('col header_col').appendTo(bg).width(width);
         if (fl) {
           el.text(this.renderer.inject(fl));
@@ -1279,37 +1335,37 @@
           el.html('&nbsp;');
         }
         diff = el.outerWidth() - el.innerWidth();
-        if (diff > 0) {
-          el.width(el.innerWidth() - diff);
-        }
+        if (diff > 0) el.width(el.innerWidth() - diff);
         margin += width;
       }
       $('<div style="clear: both;"/>').appendTo(bg);
       return handler(null);
     };
+
     return HeaderElement;
-  })();
-  ColsElement = (function() {
-    __extends(ColsElement, UIElement);
+
+  })(UIElement);
+
+  ColsElement = (function(_super) {
+
+    __extends(ColsElement, _super);
+
     function ColsElement() {
       ColsElement.__super__.constructor.apply(this, arguments);
     }
+
     ColsElement.prototype.name = 'cols';
+
     ColsElement.prototype.render = function(item, config, element, options, handler) {
-      var diff, el, fl, float_size, flow, i, index, last, lsizes, margin, sizes, space_size, sz, w, width, _i, _len, _ref, _ref2, _results;
+      var diff, el, fl, float_size, flow, i, index, last, lsizes, margin, sizes, space_size, sz, w, width, _i, _len, _ref, _ref2, _results,
+        _this = this;
       flow = (_ref = config.flow) != null ? _ref : [];
       sizes = (_ref2 = config.size) != null ? _ref2 : [];
-      if (flow.length !== sizes.length) {
-        return handler;
-      }
+      if (flow.length !== sizes.length) return handler;
       w = element.innerWidth() - 4;
-      if (!options.empty) {
-        element.addClass('group');
-      }
+      if (!options.empty) element.addClass('group');
       float_size = 0;
-      if (config.space) {
-        float_size += config.space * (flow.length - 1);
-      }
+      if (config.space) float_size += config.space * (flow.length - 1);
       lsizes = [];
       for (_i = 0, _len = sizes.length; _i < _len; _i++) {
         sz = sizes[_i];
@@ -1320,13 +1376,9 @@
       if (float_size > 0) {
         for (i in lsizes) {
           sz = lsizes[i];
-          if (sz <= 1) {
-            lsizes[i] = Math.floor(w * sz / float_size);
-          }
+          if (sz <= 1) lsizes[i] = Math.floor(w * sz / float_size);
         }
-        if (config.space) {
-          space_size = Math.floor(w * config.space / float_size);
-        }
+        if (config.space) space_size = Math.floor(w * config.space / float_size);
       }
       margin = 0;
       index = 0;
@@ -1342,54 +1394,52 @@
             margin += space_size;
           }
           width = lsizes[i];
-          if (last) {
-            width = w - margin;
-          }
+          if (last) width = w - margin;
           el = $('<div/>').addClass('col col_data').appendTo(element).width(width);
           this.fix_decoration(item, fl, el);
           diff = el.outerWidth() - el.innerWidth();
-          if (diff > 0) {
-            el.width(el.innerWidth() - diff);
-          }
-          if (last) {
-            $('<div style="clear: both;"/>').appendTo(element);
-          }
+          if (diff > 0) el.width(el.innerWidth() - diff);
+          if (last) $('<div style="clear: both;"/>').appendTo(element);
           margin += width;
         } else {
           el = this.child(element, '.col_data', i);
         }
-        _results.push(__bind(function(last) {
-          return this.renderer.get(fl.type).render(item, fl, el, options, __bind(function() {
-            if (last) {
-              return handler(null);
-            }
-          }, this));
-        }, this)(last));
+        _results.push((function(last) {
+          return _this.renderer.get(fl.type).render(item, fl, el, options, function() {
+            if (last) return handler(null);
+          });
+        })(last));
       }
       return _results;
     };
+
     return ColsElement;
-  })();
-  ListElement = (function() {
-    __extends(ListElement, UIElement);
+
+  })(UIElement);
+
+  ListElement = (function(_super) {
+
+    __extends(ListElement, _super);
+
     function ListElement() {
       ListElement.__super__.constructor.apply(this, arguments);
     }
+
     ListElement.prototype.name = 'list';
+
     ListElement.prototype._render = function(item, config, element, options, handler) {
-      var el, handle;
+      var el, handle,
+        _this = this;
       el = $('<div/>').addClass('list_item').appendTo(element);
-      if (options.disable) {
-        el.addClass('disabled');
-      }
+      if (options.disable) el.addClass('disabled');
       if (options.draggable) {
         handle = $('<div/>').addClass('list_item_handle list_item_handle_left').appendTo(el);
-        el.bind('mousemove', __bind(function() {
+        el.bind('mousemove', function() {
           return handle.show();
-        }, this));
-        el.bind('mouseout', __bind(function() {
+        });
+        el.bind('mouseout', function() {
           return handle.hide();
-        }, this));
+        });
         el.data('type', 'note');
         el.data('renderer', this.renderer);
         el.data('item', item);
@@ -1405,85 +1455,87 @@
         accept: '.list_item',
         hoverClass: 'list_item_drop',
         tolerance: 'pointer',
-        drop: __bind(function(event, ui) {
+        drop: function(event, ui) {
           var drop, renderer;
           drop = ui.draggable.data('item');
           renderer = ui.draggable.data('renderer');
-          return this.renderer.move_note(drop, item.area, (item.id ? item : null), __bind(function() {
-            if (renderer !== this.renderer) {
-              renderer.render(null);
-            }
-            return this.renderer.render(null);
-          }, this));
-        }, this)
+          return _this.renderer.move_note(drop, item.area, (item.id ? item : null), function() {
+            if (renderer !== _this.renderer) renderer.render(null);
+            return _this.renderer.render(null);
+          });
+        }
       });
       return this.renderer.get('simple').render(item, config, el, {
         empty: false,
         readonly: options.disable,
         text_option: options.empty ? item.area : ''
-      }, __bind(function() {
+      }, function() {
         return handler(el);
-      }, this));
+      });
     };
+
     ListElement.prototype._fill_empty = function(config, element, parent, handler) {
-      var parent_height;
+      var parent_height,
+        _this = this;
       parent_height = parent.outerHeight();
       return this._render({
         area: config.area
       }, config, element, {
         disable: true
-      }, __bind(function(el) {
+      }, function(el) {
         var need_grid;
         need_grid = true;
         if (parent.outerHeight() <= parent_height) {
-          this.renderer.have_space = true;
+          _this.renderer.have_space = true;
         } else {
-          if (this.renderer.size_too_big()) {
+          if (_this.renderer.size_too_big()) {
             need_grid = false;
             el.remove();
           } else {
-            this.renderer.have_space = true;
+            _this.renderer.have_space = true;
           }
         }
-        if (need_grid) {
-          this.renderer.fix_grid(element, config);
-        }
+        if (need_grid) _this.renderer.fix_grid(element, config);
         return handler(null);
-      }, this));
+      });
     };
+
     ListElement.prototype.render = function(item, config, element, options, handler) {
-      var flow, parent, _ref;
+      var flow, parent, _ref,
+        _this = this;
       flow = (_ref = config.flow) != null ? _ref : [];
       if (options.empty) {
-        if (config.grow === 'no') {
-          return handler(null);
-        }
+        if (config.grow === 'no') return handler(null);
         parent = element.parents('.group').last();
         return this._fill_empty(config, element, parent, handler);
       }
-      return this.renderer.items(config.area, __bind(function(items) {
+      return this.renderer.items(config.area, function(items) {
         var i, itm;
         for (i in items) {
           itm = items[i];
-          this._render(itm, config, element, {
+          _this._render(itm, config, element, {
             disable: false,
             draggable: true
-          }, __bind(function() {}, this));
+          }, function() {});
         }
-        return this._render({
+        return _this._render({
           area: config.area
         }, config, element, {
           disable: false,
           empty: true
-        }, __bind(function() {
-          this.renderer.fix_grid(element, config);
+        }, function() {
+          _this.renderer.fix_grid(element, config);
           return handler(null);
-        }, this));
-      }, this));
+        });
+      });
     };
+
     return ListElement;
-  })();
+
+  })(UIElement);
+
   Renderer = (function() {
+
     function Renderer(manager, ui, root, template, data, env) {
       this.manager = manager;
       this.ui = ui;
@@ -1494,11 +1546,10 @@
       this.elements = [new SimpleElement(this), new TitleElement(this), new HRElement(this), new Title1Element(this), new Title2Element(this), new Title3Element(this), new HeaderElement(this), new ColsElement(this), new ListElement(this), new Textlement(this), new CheckElement(this), new MarkElement(this), new DateElement(this), new TimeElement(this)];
       this.root.data('sheet', this.data);
     }
+
     Renderer.prototype.fix_grid = function(element, config) {
       var ch, gr;
-      if (!config) {
-        return;
-      }
+      if (!config) return;
       ch = element.children(':not(.list_item_handle)');
       if (config.delimiter) {
         ch.slice(0, -1).addClass('grid_delimiter' + config.delimiter);
@@ -1510,17 +1561,17 @@
         return ch.last().addClass('grid_bottom' + gr);
       }
     };
+
     Renderer.prototype.get = function(name) {
       var el, _i, _len, _ref;
       _ref = this.elements;
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         el = _ref[_i];
-        if (el.name === name) {
-          return el;
-        }
+        if (el.name === name) return el;
       }
       return this.elements[0];
     };
+
     Renderer.prototype.applyDefaults = function(config, item) {
       var key, value, _ref, _results;
       _results = [];
@@ -1531,35 +1582,35 @@
       }
       return _results;
     };
+
     Renderer.prototype.inject = function(txt, item) {
-      if (item == null) {
-        item = this.data;
-      }
+      if (item == null) item = this.data;
       return this.ui.inject(txt, item);
     };
+
     Renderer.prototype.replace = function(text, item) {
-      if (item == null) {
-        item = this.data;
-      }
+      if (item == null) item = this.data;
       return this.ui.replace(text, item);
     };
+
     Renderer.prototype._save_sheet = function(handler) {
+      var _this = this;
       if (this.template.code) {
         this.data.code = this.inject(this.template.code, this.data);
       }
-      return this.manager.saveSheet(this.data, __bind(function(err, object) {
-        if (err) {
-          return this.ui.show_error(err);
-        }
-        this.on_sheet_change(this.data);
+      return this.manager.saveSheet(this.data, function(err, object) {
+        if (err) return _this.ui.show_error(err);
+        _this.on_sheet_change(_this.data);
         return handler(object);
-      }, this));
+      });
     };
+
     Renderer.prototype.move_note = function(item, area, before, handler) {
-      var to_save;
+      var to_save,
+        _this = this;
       to_save = this.manager.sortArray(this.items(area), item, before);
       item.area = area;
-      return this._save_note(item, __bind(function() {
+      return this._save_note(item, function() {
         var el, i, last, _results;
         if (to_save.length === 0) {
           return handler(item);
@@ -1568,126 +1619,120 @@
           for (i in to_save) {
             el = to_save[i];
             last = parseInt(i) === to_save.length - 1;
-            _results.push(__bind(function(last) {
-              return this.manager.saveNote(el, __bind(function() {
-                if (last) {
-                  return handler(item);
-                }
-              }, this));
-            }, this)(last));
+            _results.push((function(last) {
+              return _this.manager.saveNote(el, function() {
+                if (last) return handler(item);
+              });
+            })(last));
           }
           return _results;
         }
-      }, this));
+      });
     };
+
     Renderer.prototype._save_note = function(item, handler) {
-      var others;
+      var others,
+        _this = this;
       if (!item.place) {
         others = this.items(item.area);
         this.manager.sortArray(others, item);
       }
       if (!this.data.id) {
-        return this._save_sheet(__bind(function(object) {
-          item.sheet_id = this.data.id;
-          return this.manager.saveNote(item, __bind(function(err, object) {
-            if (err) {
-              return this.ui.show_error(err);
-            }
+        return this._save_sheet(function(object) {
+          item.sheet_id = _this.data.id;
+          return _this.manager.saveNote(item, function(err, object) {
+            if (err) return _this.ui.show_error(err);
             return handler(object);
-          }, this));
-        }, this));
+          });
+        });
       } else {
         item.sheet_id = this.data.id;
-        return this.manager.saveNote(item, __bind(function(err, object) {
-          if (err) {
-            return this.ui.show_error(err);
-          }
+        return this.manager.saveNote(item, function(err, object) {
+          if (err) return _this.ui.show_error(err);
           return handler(object);
-        }, this));
+        });
       }
     };
+
     Renderer.prototype.on_edited = function(item, property, value) {
-      if (!item || !property) {
-        return false;
-      }
+      var _this = this;
+      if (!item || !property) return false;
       item[property] = value;
       if (item === this.data) {
-        return this._save_sheet(__bind(function(object) {
-          return this.render(null);
-        }, this));
+        return this._save_sheet(function(object) {
+          return _this.render(null);
+        });
       } else {
-        return this._save_note(item, __bind(function() {
-          return this.render(null);
-        }, this));
+        return this._save_note(item, function() {
+          return _this.render(null);
+        });
       }
     };
+
     Renderer.prototype.remove_note = function(item) {
-      return this.manager.removeNote(item, __bind(function(err) {
-        if (err) {
-          return this.ui.show_error(err);
-        }
-        return this.render(null);
-      }, this));
+      var _this = this;
+      return this.manager.removeNote(item, function(err) {
+        if (err) return _this.ui.show_error(err);
+        return _this.render(null);
+      });
     };
+
     Renderer.prototype.text_editor = function(element, item, property, handler) {
-      var old_value, _on_finish_edit, _ref;
-      if (!property) {
-        return null;
-      }
+      var old_value, _on_finish_edit, _ref,
+        _this = this;
+      if (!property) return null;
       element.attr('contentEditable', true);
       old_value = (_ref = item[property]) != null ? _ref : '';
       element.text(old_value);
-      _on_finish_edit = __bind(function() {
+      _on_finish_edit = function() {
         var value, _ref2;
         value = (_ref2 = element.text()) != null ? _ref2 : '';
         element.text(value);
-        if (value === old_value) {
-          return;
-        }
+        if (value === old_value) return;
         if (handler) {
           return handler(item, property, value);
         } else {
-          return this.on_edited(item, property, value);
+          return _this.on_edited(item, property, value);
         }
-      }, this);
-      element.bind('keypress', __bind(function(event) {
+      };
+      element.bind('keypress', function(event) {
         if (event.keyCode === 13) {
           event.preventDefault();
           _on_finish_edit(null);
           return false;
         }
-      }, this));
+      });
       return element;
     };
+
     Renderer.prototype.render = function() {
-      var focus;
+      var focus,
+        _this = this;
       this.root.addClass('page_render');
       focus = this.root.find('*:focus');
       this.prev_content = this.root.children();
       this.content = $('<div/>').addClass('page_content group').prependTo(this.root);
-      if (this.data.archived) {
-        this.content.addClass('sheet_archived');
-      }
-      return this._load_items(__bind(function() {
-        return this.get(this.template.name).render(this.data, this.template, this.content, {
+      if (this.data.archived) this.content.addClass('sheet_archived');
+      return this._load_items(function() {
+        return _this.get(_this.template.name).render(_this.data, _this.template, _this.content, {
           empty: false
-        }, __bind(function() {
-          return this.fix_height(__bind(function() {
+        }, function() {
+          return _this.fix_height(function() {
             var el, item, no_area_div, _i, _len, _ref, _results;
             if (focus.attr('option')) {
-              this.root.find('.text_editor[property=' + focus.attr('property') + '][option=' + focus.attr('option') + ']').focus();
+              _this.root.find('.text_editor[property=' + focus.attr('property') + '][option=' + focus.attr('option') + ']').focus();
             } else {
-              this.root.find('.text_editor[property=' + focus.attr('property') + '][item_id=' + focus.attr('item_id') + ']').focus();
+              _this.root.find('.text_editor[property=' + focus.attr('property') + '][item_id=' + focus.attr('item_id') + ']').focus();
             }
-            if (this.no_area.length > 0) {
-              no_area_div = $('<div/>').addClass('no_area_notes').appendTo(this.root);
-              _ref = this.no_area;
+            if (_this.no_area.length > 0) {
+              no_area_div = $('<div/>').addClass('no_area_notes').appendTo(_this.root);
+              _ref = _this.no_area;
               _results = [];
               for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 item = _ref[_i];
                 el = $('<div/>').addClass('list_item no_area_note').appendTo(no_area_div);
                 el.data('type', 'note');
-                el.data('renderer', this);
+                el.data('renderer', _this);
                 el.data('item', item);
                 el.draggable({
                   zIndex: 4,
@@ -1699,40 +1744,43 @@
               }
               return _results;
             }
-          }, this));
-        }, this));
-      }, this));
+          });
+        });
+      });
     };
+
     Renderer.prototype.size_too_big = function() {
       return this.root.innerHeight() < this.content.outerHeight(true);
     };
+
     Renderer.prototype.fix_height = function(handler) {
+      var _this = this;
       this.have_space = false;
       return this.get(this.template.name).render(this.data, this.template, this.content, {
         empty: true
-      }, __bind(function() {
+      }, function() {
         var sleft, sright;
-        if (this.have_space) {
-          return this.fix_height(handler);
+        if (_this.have_space) {
+          return _this.fix_height(handler);
         } else {
-          this.prev_content.remove();
-          this.root.removeClass('page_render');
-          sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(this.root);
-          sleft.bind('click', __bind(function() {
-            return this.ui.scroll_sheets(this.data.id, -1);
-          }, this));
-          sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(this.root);
-          sright.bind('click', __bind(function() {
-            return this.ui.scroll_sheets(this.data.id, 1);
-          }, this));
-          if (handler) {
-            return handler(null);
-          }
+          _this.prev_content.remove();
+          _this.root.removeClass('page_render');
+          sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(_this.root);
+          sleft.bind('click', function() {
+            return _this.ui.scroll_sheets(_this.data.id, -1);
+          });
+          sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(_this.root);
+          sright.bind('click', function() {
+            return _this.ui.scroll_sheets(_this.data.id, 1);
+          });
+          if (handler) return handler(null);
         }
-      }, this));
+      });
     };
+
     Renderer.prototype._load_items = function(handler) {
-      var areas, find_areas;
+      var areas, find_areas,
+        _this = this;
       areas = [];
       find_areas = function(item) {
         var fl, _i, _len, _ref, _ref2, _results;
@@ -1750,47 +1798,52 @@
         }
       };
       find_areas(this.template);
-      return this.manager.getNotes(this.data.id, null, __bind(function(err, data) {
+      return this.manager.getNotes(this.data.id, null, function(err, data) {
         var area, item, _i, _j, _len, _len2;
         if (err) {
           log('Error getting items', err);
           return handler({});
         } else {
-          this.notes = {};
-          this.no_area = [];
+          _this.notes = {};
+          _this.no_area = [];
           for (_i = 0, _len = areas.length; _i < _len; _i++) {
             area = areas[_i];
-            this.notes[area] = [];
+            _this.notes[area] = [];
           }
           for (_j = 0, _len2 = data.length; _j < _len2; _j++) {
             item = data[_j];
-            if (this.notes[item.area]) {
-              this.notes[item.area].push(item);
+            if (_this.notes[item.area]) {
+              _this.notes[item.area].push(item);
             } else {
-              this.no_area.push(item);
+              _this.no_area.push(item);
             }
           }
-          return handler(this.notes);
+          return handler(_this.notes);
         }
-      }, this));
+      });
     };
+
     Renderer.prototype.items = function(area, handler) {
       var result, _ref;
       result = (_ref = this.notes[area]) != null ? _ref : [];
-      if (handler) {
-        handler(result);
-      }
+      if (handler) handler(result);
       return result;
     };
+
     Renderer.prototype.on_sheet_change = function() {};
+
     return Renderer;
+
   })();
+
   window.log = function() {
     var params;
     params = 1 <= arguments.length ? __slice.call(arguments, 0) : [];
     return console.log.apply(console, params);
   };
+
   window.Renderer = Renderer;
+
   $(document).ready(function() {
     var db, jqnet, manager, oauth, storage, ui;
     Date.prototype.firstDayOfWeek = 1;
@@ -1805,4 +1858,5 @@
     ui = new UIManager(manager, oauth);
     return ui.start(null);
   });
+
 }).call(this);

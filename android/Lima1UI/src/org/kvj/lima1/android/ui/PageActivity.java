@@ -4,41 +4,29 @@ import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
 import org.json.JSONObject;
+import org.kvj.bravo7.SuperActivity;
+import org.kvj.lima1.android.ui.controller.Lima1App;
+import org.kvj.lima1.android.ui.controller.Lima1Controller;
+import org.kvj.lima1.android.ui.controller.Lima1Service;
 import org.kvj.lima1.android.ui.manager.UIManager;
-import org.kvj.lima1.android.ui.page.Renderer;
-import org.kvj.lima1.sync.SyncServiceConnection;
 
-import android.app.Activity;
 import android.os.Bundle;
-import android.os.RemoteException;
 import android.util.Log;
-import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
-public class PageActivity extends Activity {
+public class PageActivity extends
+		SuperActivity<Lima1App, Lima1Controller, Lima1Service> {
+
+	public PageActivity() {
+		super(Lima1Service.class);
+	}
 
 	private static final String TAG = "UI";
-	
-	private SyncServiceConnection sync = new SyncServiceConnection() {
-		
-		public void onConnected() {
-			try {
-				Log.i(TAG, "Sync service connected: "+connection.message());
-			} catch (RemoteException e) {
-				e.printStackTrace();
-			}
-		};
-		
-		public void onDisconnected() {
-			Log.i(TAG, "Sync service disconnected");
-		};
-	};
 
 	private JSONObject _loadTemplate(String res, String id) {
 		try {
-			BufferedReader reader = new BufferedReader(
-					new InputStreamReader(getClass().getResourceAsStream(res), 
-							"utf-8"));
+			BufferedReader reader = new BufferedReader(new InputStreamReader(
+					getClass().getResourceAsStream(res), "utf-8"));
 			StringBuilder buffer = new StringBuilder();
 			String line = null;
 			while (null != (line = reader.readLine())) {
@@ -53,32 +41,30 @@ public class PageActivity extends Activity {
 		}
 		return null;
 	}
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		// startService(new Intent(this, Lima1Service.class));
+		// Log.i(TAG, "Service started");
 		try {
 			ScrollView layout = new ScrollView(this);
 			layout.setBackgroundResource(R.color.white_bg);
 			setContentView(layout);
-			UIManager ui = new UIManager(layout, _loadTemplate("/todo.json", "1"), _loadTemplate("/template.json", "2"));
+			UIManager ui = new UIManager(layout, _loadTemplate("/todo.json",
+					"1"), _loadTemplate("/template.json", "2"));
 			ui.openLink("dt:20111115", null);
-//			Renderer renderer = new Renderer(null, ui, layout, object, new JSONObject(), new JSONObject());
-//			renderer.render();
+			// Renderer renderer = new Renderer(null, ui, layout, object, new
+			// JSONObject(), new JSONObject());
+			// renderer.render();
 		} catch (Exception e) {
 			Log.e(TAG, "Error loading test template", e);
 		}
 	}
-	
+
 	@Override
-	protected void onStart() {
-		super.onStart();
-		sync.connect(this);
-	}
-	
-	@Override
-	protected void onStop() {
-		super.onStop();
-		sync.disconnect(this);
+	public void onController(Lima1Controller controller) {
+		super.onController(controller);
+		Log.i(TAG, "Data is available: " + controller.isAvailable());
 	}
 }

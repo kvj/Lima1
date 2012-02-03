@@ -561,7 +561,7 @@ class CheckElement extends UIElement
 		checked = no
 		if property and item[property] is 1
 			checked = yes
-			el.addClass('checked')
+			el.addClass('checked').text('×')
 		if not options.readonly
 			el.bind 'click', (event) =>
 				@renderer.on_edited item, property, if checked then null else 1
