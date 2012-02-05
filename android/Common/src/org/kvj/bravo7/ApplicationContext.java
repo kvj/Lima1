@@ -304,4 +304,8 @@ abstract public class ApplicationContext extends Application {
 	public void setIntPreference(int id, int value) {
 		setIntPreference(getString(id), value);
 	}
+
+	public void setStringPreference(int name, String value) {
+		setStringPreference(getString(name), value);
+	}
 }

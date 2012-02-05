@@ -12,6 +12,8 @@ import org.kvj.lima1.android.ui.manager.UIManager;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.ScrollView;
 
 public class PageActivity extends
@@ -66,5 +68,24 @@ public class PageActivity extends
 	public void onController(Lima1Controller controller) {
 		super.onController(controller);
 		Log.i(TAG, "Data is available: " + controller.isAvailable());
+	}
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		getMenuInflater().inflate(R.menu.main_menu, menu);
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case R.id.menu_sync:
+			String result = controller.sync();
+			if (null != result) {
+				notifyUser(result);
+			}
+			break;
+		}
+		return true;
 	}
 }

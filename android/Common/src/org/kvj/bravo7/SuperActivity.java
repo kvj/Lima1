@@ -5,6 +5,7 @@ import java.io.File;
 import org.kvj.bravo7.ControllerConnector.ControllerReceiver;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Environment;
 import android.widget.Toast;
@@ -66,6 +67,16 @@ public class SuperActivity<A extends ApplicationContext, T, S extends SuperServi
 			}
 		}
 		return dir;
+	}
+
+	protected ProgressDialog showProgressDialog(String message) {
+		final ProgressDialog progressDialog = new ProgressDialog(this);
+		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
+		progressDialog.setMessage(message);
+		progressDialog.setCancelable(false);
+		progressDialog.setIndeterminate(true);
+		progressDialog.show();
+		return progressDialog;
 	}
 
 }

@@ -7,7 +7,7 @@ public class Lima1SyncApp extends ApplicationContext {
 
 	@Override
 	protected void init() {
-		publishBean(new SyncController());
+		publishBean(new SyncController(this));
 	}
 
 }

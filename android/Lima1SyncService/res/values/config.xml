@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="token">token</string>
+    <string name="tokenDefault"></string>
+
+</resources>
