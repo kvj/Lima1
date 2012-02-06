@@ -317,8 +317,11 @@ class StorageProvider
 						value = arr[i+1]
 						if value?.op
 							# custom op
-							result.push fields[name]+value.op+'?'
-							values.push value.var ? null
+							if value.var
+								result.push fields[name]+value.op+'?'
+								values.push value.var ? null
+							else
+								result.push fields[name]+value.op
 						else
 							#equal
 							result.push fields[name]+'=?'
@@ -427,6 +430,15 @@ class DataManager
 			handler null, data
 		, {order: 'place'}
 
+	getPageNavigator: (handler) ->
+		@storage.select 'sheets', ['archived', {op: ' is null'}], (err, data) =>
+			if err then return handler err
+			@storage.select 'bookmarks', [], (err, bmarks) =>
+				if err then return handler err
+				handler null, data, bmarks
+			, {order: 'name'}
+		, {order: 'place'}
+
 	getNotes: (sheet_id, area, handler) ->
 		params = ['sheet_id', sheet_id]
 		if area
@@ -447,6 +459,11 @@ class DataManager
 
 	removeNote: (object, handler) ->
 		@storage.remove 'notes', object, (err) =>
+			if err then return handler err
+			handler null, object
+
+	removeBookmark: (object, handler) ->
+		@storage.remove 'bookmarks', object, (err) =>
 			if err then return handler err
 			handler null, object
 
@@ -471,6 +488,9 @@ class DataManager
 
 	saveTemplate: (object, handler) ->
 		@_save 'templates', object, handler
+	
+	saveBookmark: (object, handler) ->
+		@_save 'bookmarks', object, handler
 	
 	saveSheet: (object, handler) ->
 		@_save 'sheets', object, handler

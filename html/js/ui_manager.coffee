@@ -73,6 +73,140 @@ class DateProtocol extends Protocol
 		# log 'Format', dt, format
 		dt.format format
 
+class PageNavigator
+
+	colors: [
+		[{color: '#556270', dark: yes}, {color: '#4ECDC4', dark: yes}, {color: '#C7F464', dark: no}, {color: '#FF6B6B', dark: yes}, {color: '#C44D58', dark: yes} ]
+		[{color: '#D1F2A5', dark: no}, {color: '#EFFAB4', dark: no}, {color: '#FFC48C', dark: no}, {color: '#FF9F80', dark: no}, {color: '#F56991', dark: yes} ]
+		[{color: '#8C2318', dark: yes}, {color: '#5E8C6A', dark: yes}, {color: '#88A65E', dark: yes}, {color: '#BFB35A', dark: no}, {color: '#F2C45A', dark: no} ]
+		[{color: '#2A044A', dark: yes}, {color: '#0B2E59', dark: yes}, {color: '#0D6759', dark: yes}, {color: '#7AB317', dark: no}, {color: '#A0C55F', dark: no} ]
+		[{color: '#3E4147', dark: yes}, {color: '#FFFEDF', dark: no}, {color: '#DFBA69', dark: no}, {color: '#5A2E2E', dark: yes}, {color: '#2A2C31', dark: yes} ]
+	]
+
+	constructor: (@manager, @ui) ->
+		@root = $('#page_navigator')
+		@bmarkDialog = $('#bmark_dialog')
+		$('#new_bmark_button').bind 'click', () =>
+			@edit_bookmark null
+		$('#bmark_save_button').bind 'click', () =>
+			@save_bookmark null
+		
+
+	load_sheets: () ->
+		@manager.getPageNavigator (err, data, bmarks) =>
+			if err then return @ui.show_error(err)
+			@sheets = data
+			@bookmarks = bmarks
+			log 'PageNavigator sheets', data, bmarks, @root.height()
+			@root.empty()
+			missing = []
+			bmarkMap = {}
+			for bmark in @bookmarks
+				if bmark.sheet_id
+					bmarkMap[bmark.sheet_id] = bmark
+				else
+					missing.push bmark
+			bmarkHeight = 20
+			renderBookmark = (bmark) =>
+				div = $('<div/>').addClass('nav_bmark').appendTo(@root)
+				if bmark.sheet_id
+					div.attr('id', 'pn'+bmark.sheet_id)
+				div.height(bmarkHeight-2)
+				div.bind 'dblclick', (e) =>
+					@edit_bookmark bmark
+					return false
+				div.text bmark.name
+				div.css('backgroundColor', bmark.color).css('color', if bmark.dark then '#ffffff' else '#000000')
+				@root.append('<div class="clear"/>')
+				div.data('type', 'bmark')
+				div.data('item', bmark)
+				div.draggable({
+					zIndex: 3
+					containment: 'document'
+					helper: 'clone' 
+					appendTo: 'body'
+				})
+				return div
+			pages = 0
+			if @sheets.length>0
+				for i in [0...@sheets.length]
+					sheet = @sheets[i]
+					div = null
+					if bmarkMap[sheet.id]
+						div = renderBookmark bmarkMap[sheet.id]
+						do (sheet) =>
+							div.bind 'click', () =>
+								@ui.scroll_sheets sheet.id
+								return false
+					else
+						pages++
+						div = $('<div/>').addClass('nav_sheet').appendTo(@root).attr('id', 'pn'+sheet.id)
+						if i is 0
+							div.addClass('nav_sheet_top')
+						@root.append('<div class="clear"/>')
+			
+			for id, bmark in bmarkMap
+				missing.push bmark
+			for bmark in missing
+				renderBookmark bmark
+			if pages>0
+				pageHeight = Math.floor((@root.innerHeight() + 3 - bmarkHeight*@bookmarks.length)/pages)
+				@root.children('.nav_sheet').height(pageHeight-1)
+			
+	attach_bookmark: (bmark, sheet_id) ->
+		log 'Attach', bmark, sheet_id
+		bmark.sheet_id = sheet_id
+		@manager.saveBookmark bmark, (err) =>
+			if err then return @ui.show_error(err)
+			@load_sheets null
+	
+	page_selected: (sheet_id) ->
+		@root.children().removeClass('nav_page_selected').find('#pn'+sheet_id).addClass('nav_page_selected')
+		@root.children('#pn'+sheet_id).addClass('nav_page_selected')
+
+	edit_bookmark: (@bmark) ->
+		if not @bmark
+			@bmark = 
+				name: 'New bookmark'
+				dark: no
+				color: '#eeeeee'
+		@bmarkDialog.dialog {
+			width: 400
+			height: 300
+		}
+		applyColor = (color) =>
+			log 'applyColor', color
+			$('#color_select_example').css('backgroundColor', color.color).css('color', if color.dark then '#ffffff' else '#000000')
+			@bmark.color = color.color
+			@bmark.dark = color.dark
+
+		applyColor @bmark
+		$('#bmark_name').val @bmark.name
+		$('#color_select').empty()
+		for row in @colors
+			rowItem = $('<div/>').appendTo($('#color_select')).addClass('clear')
+			for col in row
+				item = $('<div/>').appendTo(rowItem).addClass('color_select_item').css('backgroundColor', col.color)
+				item.html '&nbsp;'
+				do (col) =>
+					item.bind 'click', () =>
+						applyColor col
+						no
+			$('<div class="clear"/>').appendTo(rowItem)
+	
+	save_bookmark: () ->
+		@bmark.name = $('#bmark_name').val()
+		@manager.saveBookmark @bmark, (err) =>
+			if err then return @ui.show_error(err)
+			@bmarkDialog.dialog('close')
+			@load_sheets null
+	
+	remove_bookmark: (bmark) ->
+		@manager.removeBookmark bmark, (err) =>
+			if err then return @ui.show_error(err)
+			@load_sheets null
+
+
 class UIManager
 
 	archive_state: null
@@ -111,7 +245,7 @@ class UIManager
 		$('#save_template').bind 'click', () =>
 			@save_template null
 		$('#trash').droppable({
-			accept: '.list_item, .sheet',
+			accept: '.list_item, .sheet, .nav_bmark',
 			hoverClass: 'toolbar_drop',
 			tolerance: 'pointer',
 			drop: (event, ui) =>
@@ -128,13 +262,16 @@ class UIManager
 		}).bind 'click', (event) =>
 			@invert_archive null
 		$('.page').droppable({
-			accept: '.sheet',
+			accept: '.sheet, .nav_bmark',
 			hoverClass: 'page_drop',
 			tolerance: 'pointer',
 			drop: (event, ui) =>
 				item = ui.draggable.data('item')
 				log 'Drop', event.target
-				@show_page item.template_id, item, '#'+$(event.target).attr('id')
+				if ui.draggable.data('type') is 'bmark'
+					@navigator.attach_bookmark item, $(event.target).data('sheet_id')
+				else
+					@show_page item.template_id, item, '#'+$(event.target).attr('id')
 				event.preventDefault()
 		});
 		$('#calendar').datepicker({
@@ -175,6 +312,7 @@ class UIManager
 				page.bind 'mouseout', (event) =>
 					page.children('.page_scroll').hide()
 		@show_pages @pages
+		@navigator = new PageNavigator @manager, @
 
 	invert_archive: () ->
 		if @archive_state is null
@@ -303,6 +441,8 @@ class UIManager
 		# log 'Remove', drag.data('type')
 		if drag.data('type') is 'note'
 			drag.data('renderer').remove_note drag.data('item'), drag
+		if drag.data('type') is 'bmark'
+			@navigator.remove_bookmark drag.data('item')
 		if drag.data('type') is 'sheet'
 			@remove_sheet drag.data('item'), drag
 
@@ -343,6 +483,7 @@ class UIManager
 				return @show_error err
 			@load_templates null
 			@show_sheets null
+			@navigator.load_sheets null
 
 	save_template: () ->
 		@edit_template.name = $('#template_name').val()
@@ -414,6 +555,7 @@ class UIManager
 				if i+@pages >= @sheets_displayed.length
 					i = @sheets_displayed.length-@pages
 				if i<0 then i = 0
+				@navigator.page_selected @sheets_displayed[i].id
 				for j in [i...Math.min(@pages+i, @sheets_displayed.length)]
 					@show_page @sheets_displayed[j].template_id, @sheets_displayed[j], "#page#{j-i}"
 				return
@@ -434,6 +576,7 @@ class UIManager
 				p = @protocols[name]
 				if not p then continue
 				p.prepare sheet, sheet.code
+		$(place).data('sheet_id', sheet.id)
 		renderer = new Renderer @manager, this, $(place), template, sheet
 		renderer.on_sheet_change = () =>
 			@show_sheets null

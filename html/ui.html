@@ -18,6 +18,7 @@
 		<div id="body">
 			<div id="toolbar">
 				<span id="new_sheet_button" class="toolbar_action">New page</span>
+				<span id="new_bmark_button" class="toolbar_action">New bookmark</span>
 				<span id="reload_sheets_button" class="toolbar_action">Reload</span>
 				<span id="templates_button" class="toolbar_action">Templates</span>
 				<span id="archive" class="toolbar_action">Archive</span>
@@ -32,6 +33,7 @@
 					<ul id="sheets"></ul>
 				</div>
 				<div id="right" class="right">
+					<div class="page_navigator" id="page_navigator"></div>
 					<div class="page" id="page0"></div>
 					<div class="page" id="page1"></div>
 					<div class="page" id="page2"></div>
@@ -54,6 +56,15 @@
 				<label for="password">Password:</label>
 				<input type="password" id="password"/>
 				<button id="login_button">Login</button>
+			</div>
+		</div>
+		<div id="bmark_dialog" style="display: none;" title="Bookmark">
+			<div class="form" id="bmark_form">
+				<label for="bmark_name">Name:</label>
+				<input type="text" id="bmark_name"/>
+				<div class="color_select_example nav_bmark" id="color_select_example">Example</div>
+				<div id="color_select" class="color_select clear"></div>
+				<button id="bmark_save_button">Save</button>
 			</div>
 		</div>
 		<div id="templates_dialog" style="display: none;" title="Templates">

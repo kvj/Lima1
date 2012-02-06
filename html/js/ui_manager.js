@@ -1,5 +1,5 @@
 (function() {
-  var DateProtocol, ItemProtocol, Protocol, UIManager,
+  var DateProtocol, ItemProtocol, PageNavigator, Protocol, UIManager,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; },
     __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
@@ -130,6 +130,273 @@
 
   })(Protocol);
 
+  PageNavigator = (function() {
+
+    PageNavigator.prototype.colors = [
+      [
+        {
+          color: '#556270',
+          dark: true
+        }, {
+          color: '#4ECDC4',
+          dark: true
+        }, {
+          color: '#C7F464',
+          dark: false
+        }, {
+          color: '#FF6B6B',
+          dark: true
+        }, {
+          color: '#C44D58',
+          dark: true
+        }
+      ], [
+        {
+          color: '#D1F2A5',
+          dark: false
+        }, {
+          color: '#EFFAB4',
+          dark: false
+        }, {
+          color: '#FFC48C',
+          dark: false
+        }, {
+          color: '#FF9F80',
+          dark: false
+        }, {
+          color: '#F56991',
+          dark: true
+        }
+      ], [
+        {
+          color: '#8C2318',
+          dark: true
+        }, {
+          color: '#5E8C6A',
+          dark: true
+        }, {
+          color: '#88A65E',
+          dark: true
+        }, {
+          color: '#BFB35A',
+          dark: false
+        }, {
+          color: '#F2C45A',
+          dark: false
+        }
+      ], [
+        {
+          color: '#2A044A',
+          dark: true
+        }, {
+          color: '#0B2E59',
+          dark: true
+        }, {
+          color: '#0D6759',
+          dark: true
+        }, {
+          color: '#7AB317',
+          dark: false
+        }, {
+          color: '#A0C55F',
+          dark: false
+        }
+      ], [
+        {
+          color: '#3E4147',
+          dark: true
+        }, {
+          color: '#FFFEDF',
+          dark: false
+        }, {
+          color: '#DFBA69',
+          dark: false
+        }, {
+          color: '#5A2E2E',
+          dark: true
+        }, {
+          color: '#2A2C31',
+          dark: true
+        }
+      ]
+    ];
+
+    function PageNavigator(manager, ui) {
+      var _this = this;
+      this.manager = manager;
+      this.ui = ui;
+      this.root = $('#page_navigator');
+      this.bmarkDialog = $('#bmark_dialog');
+      $('#new_bmark_button').bind('click', function() {
+        return _this.edit_bookmark(null);
+      });
+      $('#bmark_save_button').bind('click', function() {
+        return _this.save_bookmark(null);
+      });
+    }
+
+    PageNavigator.prototype.load_sheets = function() {
+      var _this = this;
+      return this.manager.getPageNavigator(function(err, data, bmarks) {
+        var bmark, bmarkHeight, bmarkMap, div, i, id, missing, pageHeight, pages, renderBookmark, sheet, _i, _j, _len, _len2, _len3, _ref, _ref2;
+        if (err) return _this.ui.show_error(err);
+        _this.sheets = data;
+        _this.bookmarks = bmarks;
+        log('PageNavigator sheets', data, bmarks, _this.root.height());
+        _this.root.empty();
+        missing = [];
+        bmarkMap = {};
+        _ref = _this.bookmarks;
+        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+          bmark = _ref[_i];
+          if (bmark.sheet_id) {
+            bmarkMap[bmark.sheet_id] = bmark;
+          } else {
+            missing.push(bmark);
+          }
+        }
+        bmarkHeight = 20;
+        renderBookmark = function(bmark) {
+          var div;
+          div = $('<div/>').addClass('nav_bmark').appendTo(_this.root);
+          if (bmark.sheet_id) div.attr('id', 'pn' + bmark.sheet_id);
+          div.height(bmarkHeight - 2);
+          div.bind('dblclick', function(e) {
+            _this.edit_bookmark(bmark);
+            return false;
+          });
+          div.text(bmark.name);
+          div.css('backgroundColor', bmark.color).css('color', bmark.dark ? '#ffffff' : '#000000');
+          _this.root.append('<div class="clear"/>');
+          div.data('type', 'bmark');
+          div.data('item', bmark);
+          div.draggable({
+            zIndex: 3,
+            containment: 'document',
+            helper: 'clone',
+            appendTo: 'body'
+          });
+          return div;
+        };
+        pages = 0;
+        if (_this.sheets.length > 0) {
+          for (i = 0, _ref2 = _this.sheets.length; 0 <= _ref2 ? i < _ref2 : i > _ref2; 0 <= _ref2 ? i++ : i--) {
+            sheet = _this.sheets[i];
+            div = null;
+            if (bmarkMap[sheet.id]) {
+              div = renderBookmark(bmarkMap[sheet.id]);
+              (function(sheet) {
+                return div.bind('click', function() {
+                  _this.ui.scroll_sheets(sheet.id);
+                  return false;
+                });
+              })(sheet);
+            } else {
+              pages++;
+              div = $('<div/>').addClass('nav_sheet').appendTo(_this.root).attr('id', 'pn' + sheet.id);
+              if (i === 0) div.addClass('nav_sheet_top');
+              _this.root.append('<div class="clear"/>');
+            }
+          }
+        }
+        for (bmark = 0, _len2 = bmarkMap.length; bmark < _len2; bmark++) {
+          id = bmarkMap[bmark];
+          missing.push(bmark);
+        }
+        for (_j = 0, _len3 = missing.length; _j < _len3; _j++) {
+          bmark = missing[_j];
+          renderBookmark(bmark);
+        }
+        if (pages > 0) {
+          pageHeight = Math.floor((_this.root.innerHeight() + 3 - bmarkHeight * _this.bookmarks.length) / pages);
+          return _this.root.children('.nav_sheet').height(pageHeight - 1);
+        }
+      });
+    };
+
+    PageNavigator.prototype.attach_bookmark = function(bmark, sheet_id) {
+      var _this = this;
+      log('Attach', bmark, sheet_id);
+      bmark.sheet_id = sheet_id;
+      return this.manager.saveBookmark(bmark, function(err) {
+        if (err) return _this.ui.show_error(err);
+        return _this.load_sheets(null);
+      });
+    };
+
+    PageNavigator.prototype.page_selected = function(sheet_id) {
+      this.root.children().removeClass('nav_page_selected').find('#pn' + sheet_id).addClass('nav_page_selected');
+      return this.root.children('#pn' + sheet_id).addClass('nav_page_selected');
+    };
+
+    PageNavigator.prototype.edit_bookmark = function(bmark) {
+      var applyColor, col, item, row, rowItem, _fn, _i, _j, _len, _len2, _ref, _results,
+        _this = this;
+      this.bmark = bmark;
+      if (!this.bmark) {
+        this.bmark = {
+          name: 'New bookmark',
+          dark: false,
+          color: '#eeeeee'
+        };
+      }
+      this.bmarkDialog.dialog({
+        width: 400,
+        height: 300
+      });
+      applyColor = function(color) {
+        log('applyColor', color);
+        $('#color_select_example').css('backgroundColor', color.color).css('color', color.dark ? '#ffffff' : '#000000');
+        _this.bmark.color = color.color;
+        return _this.bmark.dark = color.dark;
+      };
+      applyColor(this.bmark);
+      $('#bmark_name').val(this.bmark.name);
+      $('#color_select').empty();
+      _ref = this.colors;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        row = _ref[_i];
+        rowItem = $('<div/>').appendTo($('#color_select')).addClass('clear');
+        _fn = function(col) {
+          return item.bind('click', function() {
+            applyColor(col);
+            return false;
+          });
+        };
+        for (_j = 0, _len2 = row.length; _j < _len2; _j++) {
+          col = row[_j];
+          item = $('<div/>').appendTo(rowItem).addClass('color_select_item').css('backgroundColor', col.color);
+          item.html('&nbsp;');
+          _fn(col);
+        }
+        _results.push($('<div class="clear"/>').appendTo(rowItem));
+      }
+      return _results;
+    };
+
+    PageNavigator.prototype.save_bookmark = function() {
+      var _this = this;
+      this.bmark.name = $('#bmark_name').val();
+      return this.manager.saveBookmark(this.bmark, function(err) {
+        if (err) return _this.ui.show_error(err);
+        _this.bmarkDialog.dialog('close');
+        return _this.load_sheets(null);
+      });
+    };
+
+    PageNavigator.prototype.remove_bookmark = function(bmark) {
+      var _this = this;
+      return this.manager.removeBookmark(bmark, function(err) {
+        if (err) return _this.ui.show_error(err);
+        return _this.load_sheets(null);
+      });
+    };
+
+    return PageNavigator;
+
+  })();
+
   UIManager = (function() {
 
     UIManager.prototype.archive_state = null;
@@ -177,7 +444,7 @@
         return _this.save_template(null);
       });
       $('#trash').droppable({
-        accept: '.list_item, .sheet',
+        accept: '.list_item, .sheet, .nav_bmark',
         hoverClass: 'toolbar_drop',
         tolerance: 'pointer',
         drop: function(event, ui) {
@@ -197,14 +464,18 @@
         return _this.invert_archive(null);
       });
       $('.page').droppable({
-        accept: '.sheet',
+        accept: '.sheet, .nav_bmark',
         hoverClass: 'page_drop',
         tolerance: 'pointer',
         drop: function(event, ui) {
           var item;
           item = ui.draggable.data('item');
           log('Drop', event.target);
-          _this.show_page(item.template_id, item, '#' + $(event.target).attr('id'));
+          if (ui.draggable.data('type') === 'bmark') {
+            _this.navigator.attach_bookmark(item, $(event.target).data('sheet_id'));
+          } else {
+            _this.show_page(item.template_id, item, '#' + $(event.target).attr('id'));
+          }
           return event.preventDefault();
         }
       });
@@ -254,6 +525,7 @@
         _fn(page);
       }
       this.show_pages(this.pages);
+      this.navigator = new PageNavigator(this.manager, this);
     }
 
     UIManager.prototype.invert_archive = function() {
@@ -418,6 +690,9 @@
       if (drag.data('type') === 'note') {
         drag.data('renderer').remove_note(drag.data('item'), drag);
       }
+      if (drag.data('type') === 'bmark') {
+        this.navigator.remove_bookmark(drag.data('item'));
+      }
       if (drag.data('type') === 'sheet') {
         return this.remove_sheet(drag.data('item'), drag);
       }
@@ -477,7 +752,8 @@
           return _this.show_error(err);
         }
         _this.load_templates(null);
-        return _this.show_sheets(null);
+        _this.show_sheets(null);
+        return _this.navigator.load_sheets(null);
       });
     };
 
@@ -583,6 +859,7 @@
             i = this.sheets_displayed.length - this.pages;
           }
           if (i < 0) i = 0;
+          this.navigator.page_selected(this.sheets_displayed[i].id);
           for (j = i, _ref2 = Math.min(this.pages + i, this.sheets_displayed.length); i <= _ref2 ? j < _ref2 : j > _ref2; i <= _ref2 ? j++ : j--) {
             this.show_page(this.sheets_displayed[j].template_id, this.sheets_displayed[j], "#page" + (j - i));
           }
@@ -617,6 +894,7 @@
           p.prepare(sheet, sheet.code);
         }
       }
+      $(place).data('sheet_id', sheet.id);
       renderer = new Renderer(this.manager, this, $(place), template, sheet);
       renderer.on_sheet_change = function() {
         return _this.show_sheets(null);

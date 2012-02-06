@@ -42,10 +42,4 @@
 			<locationURI>HOBBY_FOLDER/Lima1/android/Common/src</locationURI>
 		</link>
 	</linkedResources>
-	<variableList>
-		<variable>
-			<name>HOBBY_FOLDER</name>
-			<value>file:/C:/Hobby</value>
-		</variable>
-	</variableList>
 </projectDescription>

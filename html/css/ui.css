@@ -62,6 +62,8 @@ body {
 #right {
 	left: 230px;
 	overflow: auto;
+	padding-left: 20px;
+	padding-top: 20px;
 }
 
 .clear {
@@ -89,7 +91,7 @@ body {
 .page {
 	display: none;
 	font-size: 1.1em;
-	margin: 20px;
+	margin-right: 20px;
 	border: 1px solid #aaaaaa;
 	width: 30em;
 	height: 45em;
@@ -559,4 +561,53 @@ li {
 
 .no_area_note .ui-draggable-dragging {
 	min-width: inherit;
+}
+
+.color_select_item {
+	float: left;
+	width: 68px;
+	margin: 2px;
+	border: 1px solid #808080;
+	cursor: pointer;
+}
+
+.page_navigator {
+	font-size: 1.1em;
+	height: 45em;
+	float: left;
+	width: 110px;
+	overflow: visible;
+}
+
+.nav_sheet {
+	border: 1px solid #222222;
+	border-top-width: 0px;
+	border-right-width: 0px;
+	width: 3px;
+	float: right;
+}
+
+.nav_sheet_top {
+	border-top-width: 1px;
+}
+
+.nav_bmark {
+	border: 1px solid #222222;
+	float: right;
+	padding-left: 3px;
+	padding-right: 3px;
+	max-width: 100px;
+	white-space: nowrap;
+	overflow: hidden;
+	vertical-align: center;
+	cursor: pointer;
+}
+
+.nav_page_selected {
+	border-left-width: 3px;
+}
+
+.color_select_example {
+	margin: 10px;
+	float: left;
 }

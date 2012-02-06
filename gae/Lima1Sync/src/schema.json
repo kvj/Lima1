@@ -1,25 +1,32 @@
 {
-"lima1": {
-	"_rev": 2,
-	"templates": {
-		"in": 10,
-		"out": 3,
-		"index": 0,
-		"texts": ["name", "tag"]
-	},
-	"sheets": {
-		"in": 3,
-		"out": 1,
-		"index": 1,
-		"numbers": ["template_id", "place", "archived"],
-		"texts": ["title", "code"]
-	},
-	"notes": {
-		"in": 3,
-		"out": 1,
-		"index": 2,
-		"numbers": ["sheet_id", "place"],
-		"texts": ["area", "text", "due"]
+	"lima1": {
+		"_rev": 3,
+		"templates": {
+			"in": 10,
+			"out": 3,
+			"index": 0,
+			"texts": ["name", "tag"]
+		},
+		"sheets": {
+			"in": 3,
+			"out": 1,
+			"index": 1,
+			"numbers": ["template_id", "place", "archived"],
+			"texts": ["title", "code"]
+		},
+		"notes": {
+			"in": 3,
+			"out": 1,
+			"index": 2,
+			"numbers": ["sheet_id", "place"],
+			"texts": ["area", "text", "due"]
+		},
+		"bookmarks": {
+			"in": 3,
+			"out": 1, 
+			"index": 3,
+			"numbers": ["sheet_id"],
+			"texts": ["name", "color"]
+		}
 	}
-}
 }
