@@ -4,8 +4,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.kvj.lima1.android.ui.R;
 
-import android.util.Log;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
@@ -26,14 +24,16 @@ public class TitleElement extends UIElement {
 		title.setId(renderer.getNextID());
 		title.setTextSize(15);
 		title.setTextColor(0xff000000);
-		LayoutParams titleParams = new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+		LayoutParams titleParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
+				LayoutParams.WRAP_CONTENT);
 		layout.addView(title, titleParams);
 		EditText editor = new EditText(element.getContext());
-		editor.setBackgroundResource(R.color.white_bg);
-		editor.setPadding(0, 0, 0, 0);
+		editor.setBackgroundResource(R.color.opacity);
+		editor.setPadding(2, 0, 0, 0);
 		editor.setTextSize(15);
 		editor.setTextColor(0xff000000);
-		LayoutParams editorParams = new LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.WRAP_CONTENT);
+		LayoutParams editorParams = new LayoutParams(LayoutParams.FILL_PARENT,
+				LayoutParams.WRAP_CONTENT);
 		editorParams.addRule(RelativeLayout.RIGHT_OF, title.getId());
 		layout.addView(editor, editorParams);
 		title.setText(renderer.inject(config.optString("name"), item));

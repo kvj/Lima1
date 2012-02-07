@@ -337,6 +337,9 @@ public class SyncController implements OAuthProviderListener {
 					field = "i" + index;
 				}
 			}
+			if ("id".equals(op.getName())) {
+				field = "id";
+			}
 			if (null != field) {
 				if (fields++ > 0) {
 					buffer.append(" " + orand + " ");
@@ -375,6 +378,7 @@ public class SyncController implements OAuthProviderListener {
 					where += " and (" + cond + ")";
 				}
 			}
+			Log.i(TAG, "Query: " + stream + ", " + where + ", " + values);
 			Cursor c = info.db.getDatabase().query(
 					"data",
 					new String[] { "data" },

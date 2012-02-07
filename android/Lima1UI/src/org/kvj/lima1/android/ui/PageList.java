@@ -1,14 +1,19 @@
 package org.kvj.lima1.android.ui;
 
+import org.json.JSONObject;
 import org.kvj.bravo7.SuperActivity;
 import org.kvj.lima1.android.ui.adapter.PageListAdapter;
 import org.kvj.lima1.android.ui.controller.Lima1App;
 import org.kvj.lima1.android.ui.controller.Lima1Controller;
 import org.kvj.lima1.android.ui.controller.Lima1Service;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 
 public class PageList extends
@@ -29,6 +34,20 @@ public class PageList extends
 		list = (ListView) findViewById(R.id.page_list_list);
 		adapter = new PageListAdapter(this);
 		list.setAdapter(adapter);
+		list.setOnItemClickListener(new OnItemClickListener() {
+
+			public void onItemClick(AdapterView<?> arg0, View arg1, int pos,
+					long id) {
+				itemClick(pos);
+			}
+		});
+	}
+
+	protected void itemClick(int pos) {
+		Intent showPage = new Intent(this, PageActivity.class);
+		JSONObject sheet = adapter.getItem(pos);
+		showPage.putExtra("sheet_id", sheet.optLong("id"));
+		startActivity(showPage);
 	}
 
 	@Override

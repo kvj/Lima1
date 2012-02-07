@@ -4,26 +4,28 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.kvj.lima1.android.ui.R;
 
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewGroup.MarginLayoutParams;
-import android.widget.LinearLayout;
 
 abstract public class UIElement {
 
+	protected static int seq = 0;
+
 	protected int getFullHeight(View view) {
 		MarginLayoutParams params = (MarginLayoutParams) view.getLayoutParams();
-		return view.getMeasuredHeight()+params.topMargin+params.bottomMargin;
+		return view.getMeasuredHeight() + params.topMargin
+				+ params.bottomMargin;
 	}
-	
-	protected void style(ViewGroup element, JSONObject config, MarginLayoutParams layoutParams) {
+
+	protected void style(ViewGroup element, JSONObject config,
+			MarginLayoutParams layoutParams) {
 		if (null == config) {
 			return;
 		}
 		String grid = config.optString("grid");
 		String bg = config.optString("bg");
-//		String delim = config.optString("delimiter");
+		// String delim = config.optString("delimiter");
 		if ("1".equals(grid)) {
 			element.setBackgroundResource(R.drawable.grid_1);
 			layoutParams.setMargins(0, 2, 0, 2);
@@ -39,20 +41,17 @@ abstract public class UIElement {
 			element.setBackgroundResource(R.color.bg2);
 		}
 	}
-	
-	abstract protected void render(Renderer renderer, JSONObject item, 
-			JSONObject config, ViewGroup element, 
-			UIElementOptions options) throws JSONException;
-	
-	protected int stretch(int step, Renderer renderer, JSONObject config, ViewGroup element) throws JSONException {
-		return getFullHeight(element);
+
+	abstract protected void render(Renderer renderer, JSONObject item,
+			JSONObject config, ViewGroup element, UIElementOptions options)
+			throws JSONException;
+
+	protected boolean canGrow(JSONObject config) {
+		return false;
 	}
-	
-	protected void fill(int height, Renderer renderer, JSONObject item, JSONObject config, ViewGroup element, 
-			UIElementOptions options) throws JSONException {
-	}
-	
-	protected void shrink(int step, View view) {
-		
+
+	protected int grow(int height, Renderer renderer, JSONObject config,
+			ViewGroup element, UIElementOptions options) throws JSONException {
+		return height;
 	}
 }
