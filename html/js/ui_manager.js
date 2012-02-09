@@ -402,7 +402,7 @@
     UIManager.prototype.archive_state = null;
 
     function UIManager(manager, oauth) {
-      var i, page, _fn,
+      var i, page,
         _this = this;
       this.manager = manager;
       this.oauth = oauth;
@@ -512,17 +512,8 @@
           return _this.show_pages(ui.value);
         }
       });
-      _fn = function(page) {
-        page.bind('mouseover', function(event) {
-          return page.children('.page_scroll').show();
-        });
-        return page.bind('mouseout', function(event) {
-          return page.children('.page_scroll').hide();
-        });
-      };
       for (i = 0; i < 4; i++) {
         page = $("#page" + i);
-        _fn(page);
       }
       this.show_pages(this.pages);
       this.navigator = new PageNavigator(this.manager, this);
@@ -753,7 +744,7 @@
         }
         _this.load_templates(null);
         _this.show_sheets(null);
-        return _this.navigator.load_sheets(null);
+        return _this.sync(null);
       });
     };
 
@@ -924,7 +915,7 @@
       var ul,
         _this = this;
       ul = $('#sheets').empty();
-      return this.manager.getSheets(function(err, data) {
+      this.manager.getSheets(function(err, data) {
         var index, item, li, _fn, _fn2, _i, _len, _ref;
         if (err) return _this.show_error(err);
         _this.sheets = data;
@@ -976,6 +967,7 @@
           }
         });
       });
+      return this.navigator.load_sheets(null);
     };
 
     UIManager.prototype.new_sheet = function(sheet) {

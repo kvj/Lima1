@@ -139,42 +139,6 @@ body {
 	width: 50%;
 }
 
-.grid1 {
-	border-left: 1px solid #dddddd;
-	border-right: 1px solid #dddddd;
-}
-
-.grid_top1 {
-	margin-top: 3px;
-	border-top: 1px solid #dddddd;
-}
-
-.grid_bottom1 {
-	border-bottom: 1px solid #dddddd !important;
-}
-
-.grid_delimiter1 {
-	border-bottom: 1px solid #dddddd;
-}
-
-.grid2 {
-	border-left: 2px solid #dddddd;
-	border-right: 2px solid #dddddd;
-}
-
-.grid_top2 {
-	margin-top: 3px;
-	border-top: 2px solid #dddddd;
-}
-
-.grid_bottom2 {
-	border-bottom: 2px solid #dddddd !important;
-}
-
-.grid_delimiter2 {
-	border-bottom: 1px dashed #dddddd;
-}
-
 .disabled {
 	opacity: 0.5;
 }
@@ -407,34 +371,6 @@ li {
 	border-width: 0px;
 }
 
-.bg0 {
-	background-color: #ffffff;
-}
-
-.bg1 {
-	background-color: #efefef;
-}
-
-.bg2 {
-	background-color: #dddddd;
-}
-
-.border1l {
-	border-left: 1px solid #dddddd;
-}
-
-.border1t {
-	border-top: 1px solid #dddddd;
-}
-
-.border1r {
-	border-right: 1px solid #dddddd;
-}
-
-.border1b {
-	border-bottom: 1px solid #dddddd;
-}
-
 .ui-timepicker {
 	width: 200px;
 	position: absolute;
@@ -490,13 +426,44 @@ li {
 
 .page_scroll {
 	position: absolute;
-	width: 1em;
-	display: none;
+	width: 15px;
 	height: 100%;
 	border-style: dashed;
 	border-color: #efefef;
 	border-width: 0px;
 	cursor: pointer;
+	opacity: 0.01;
+}
+
+.page_scroll:hover {
+	opacity: 1;
+}
+
+.page_actions {
+	position: absolute;
+	width: 100%;
+	height: 23px;
+	opacity: 0.01;
+}
+
+.page_actions:hover {
+	opacity: 1;
+}
+
+.archive_toggle {
+	background-image: url(/img/icon/toggle_archive.png);
+}
+
+.page_action {
+	width: 16px;
+	height: 16px;
+	margin-top: 3px;
+	margin-left: 20px;
+	cursor: pointer;
+}
+
+.page_action:hover {
+	box-shadow: 1px 1px 1px 1px #888888;
 }
 
 .scroll_left {
@@ -610,4 +577,34 @@ li {
 .color_select_example {
 	margin: 10px;
 	float: left;
+}
+
+.col_g {
+	background-color: #efefef;
+}
+
+.col_1 {
+	border-right: 1px solid #dddddd;
+}
+
+.col_2 {
+	border-right: 2px solid #dddddd;
+}
+
+.border_1 {
+	border: 1px solid #dddddd;
+	margin-bottom: 2px;
+}
+
+.border_2 {
+	border: 2px solid #dddddd;
+	margin-bottom: 3px;
+}
+
+.delimiter_1 {
+	border-top: 1px solid #dddddd;
+}
+
+.delimiter_2 {
+	border-top: 1px dashed #dddddd;
 }

@@ -28,7 +28,6 @@
     jQueryTransport.prototype.request = function(config, handler) {
       var _ref, _ref2, _ref3,
         _this = this;
-      log('Doing request', this.uri, config != null ? config.uri : void 0, config != null ? config.type : void 0);
       return $.ajax({
         url: this.uri + (config != null ? config.uri : void 0),
         type: (_ref = config != null ? config.type : void 0) != null ? _ref : 'GET',
@@ -88,7 +87,6 @@
         data: body,
         contentType: body ? 'text/plain' : null
       }, function(error, data) {
-        log('Rest response:', error, data);
         if (error) {
           if (error.status === 401) _this.on_token_error(null);
           return handler(error.message);

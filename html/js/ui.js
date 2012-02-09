@@ -1,824 +1,9 @@
 (function() {
-  var CheckElement, ColsElement, DateElement, HRElement, HeaderElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, TimeElement, Title1Element, Title2Element, Title3Element, TitleElement, UIElement, swimpleactions, w1, w47, wactions, wcombinedactions, wnotes, wobjective,
-    __slice = Array.prototype.slice,
+  var CheckElement, ColsElement, DateElement, HRElement, HeaderElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, TimeElement, Title1Element, Title2Element, Title3Element, TitleElement, UIElement, __id,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; },
-    __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
-
-  wobjective = {
-    "defaults": {
-      "title": "Objective"
-    },
-    "direct": true,
-    "flow": [
-      {
-        "type": "title",
-        "name": "Objectives",
-        "edit": "@:title"
-      }, {
-        "type": "hr"
-      }, {
-        "type": "title2",
-        "name": "Objective",
-        "edit": "@:objective"
-      }, {
-        "grid": 1,
-        "delimiter": 1,
-        "flow": [
-          {
-            "type": "cols",
-            "bg": 1,
-            "size": [0.15, 0.85],
-            "flow": [
-              {
-                "type": "title3",
-                "name": "Description"
-              }, {
-                "type": "text",
-                "edit": "@:desc",
-                "bg": 0
-              }
-            ]
-          }, {
-            "type": "cols",
-            "bg": 1,
-            "size": [0.15, 0.85],
-            "flow": [
-              {
-                "type": "title3",
-                "name": "Benefits"
-              }, {
-                "type": "text",
-                "edit": "@:benefits",
-                "bg": 0
-              }
-            ]
-          }, {
-            "type": "cols",
-            "bg": 1,
-            "size": [0.15, 0.85],
-            "flow": [
-              {
-                "type": "title3",
-                "name": "Challenges"
-              }, {
-                "type": "text",
-                "edit": "@:challenges",
-                "bg": 0
-              }
-            ]
-          }
-        ]
-      }, {
-        "type": "header",
-        "size": [0.15, 0.75, 0.15],
-        "flow": ["", "Step", "Target"]
-      }, {
-        "type": "list",
-        "area": "main",
-        "grid": 1,
-        "delimiter": 1,
-        "flow": [
-          {
-            "type": "cols",
-            "size": [0.15, 0.75, 0.15],
-            "flow": [
-              {
-                "type": "check",
-                "edit": "@:done",
-                "bg": 1
-              }, {
-                "type": "text",
-                "edit": "@:text"
-              }, {
-                "type": "date",
-                "edit": "@:due",
-                "bg": 1
-              }
-            ]
-          }
-        ]
-      }, {
-        "grid": 1,
-        "delimiter": 1,
-        "flow": [
-          {
-            "type": "cols",
-            "bg": 1,
-            "size": [0.15, 0.85],
-            "flow": [
-              {
-                "type": "title3",
-                "name": "Outcome"
-              }, {
-                "type": "text",
-                "edit": "@:outcome",
-                "bg": 0
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  };
-
-  wcombinedactions = {
-    "defaults": {
-      "title": "Combined Actions"
-    },
-    "direct": true,
-    "flow": [
-      {
-        "type": "title",
-        "name": "Combined Actions",
-        "edit": "@:title"
-      }, {
-        "type": "hr"
-      }, {
-        "type": "cols",
-        "size": [0.48, 0.48],
-        "space": 0.04,
-        "flow": [
-          {
-            "flow": [
-              {
-                "type": "title1",
-                "name": "Actions"
-              }, {
-                "type": "list",
-                "area": "main",
-                "grid": 1,
-                "delimiter": 1,
-                "flow": [
-                  {
-                    "type": "cols",
-                    "size": [0.1, 0.9],
-                    "flow": [
-                      {
-                        "type": "check",
-                        "edit": "@:done",
-                        "bg": 1
-                      }, {
-                        "type": "text",
-                        "edit": "@:text"
-                      }
-                    ]
-                  }
-                ]
-              }
-            ]
-          }, {
-            "flow": [
-              {
-                "type": "title1",
-                "name": "Waiting For"
-              }, {
-                "type": "list",
-                "area": "wfor",
-                "grid": 1,
-                "delimiter": 1,
-                "config": {
-                  "delimiter": 2
-                },
-                "flow": [
-                  {
-                    "type": "cols",
-                    "size": [0.1, 0.9],
-                    "flow": [
-                      {
-                        "type": "check",
-                        "edit": "@:done"
-                      }, {
-                        "type": "text",
-                        "edit": "@:text"
-                      }
-                    ]
-                  }, {
-                    "type": "text",
-                    "edit": "@:notes"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }, {
-        "type": "title1",
-        "name": "Notes"
-      }, {
-        "type": "list",
-        "area": "notes",
-        "grid": 1,
-        "delimiter": 1,
-        "grow": "no",
-        "flow": [
-          {
-            "type": "text",
-            "edit": "@:text"
-          }
-        ]
-      }
-    ]
-  };
-
-  wactions = {
-    "defaults": {
-      "title": "Actions"
-    },
-    "direct": true,
-    "flow": [
-      {
-        "type": "title",
-        "name": "Actions",
-        "edit": "@:title"
-      }, {
-        "type": "hr"
-      }, {
-        "type": "list",
-        "area": "main",
-        "config": {
-          "grid": 2,
-          "delimiter": 1
-        },
-        "flow": [
-          {
-            "type": "cols",
-            "size": [0.05, 0.8, 0.15],
-            "flow": [
-              {
-                "type": "check",
-                "edit": "@:done"
-              }, {
-                "type": "text",
-                "edit": "@:text"
-              }, {
-                "type": "date",
-                "edit": "@:due",
-                "border": "1lb"
-              }
-            ]
-          }, {
-            "type": "cols",
-            "size": [0.05, 0.95],
-            "flow": [
-              {
-                "type": "mark",
-                "edit": "@:mark"
-              }, {
-                "type": "text",
-                "edit": "@:notes"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  };
-
-  swimpleactions = {
-    "defaults": {
-      "title": "To-Do"
-    },
-    "direct": true,
-    "flow": [
-      {
-        "type": "title",
-        "name": "Actions",
-        "edit": "@:title"
-      }, {
-        "type": "hr"
-      }, {
-        "type": "list",
-        "area": "main",
-        "config": {
-          "grid": 1,
-          "delimiter": 1
-        },
-        "flow": [
-          {
-            "type": "cols",
-            "size": [0.05, 0.8, 0.15],
-            "flow": [
-              {
-                "type": "check",
-                "edit": "@:done"
-              }, {
-                "type": "text",
-                "edit": "@:text"
-              }, {
-                "type": "date",
-                "edit": "@:due",
-                "border": "1l"
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  };
-
-  wnotes = {
-    "defaults": {
-      "title": "Notes"
-    },
-    "direct": true,
-    "flow": [
-      {
-        "type": "title",
-        "name": "Notes",
-        "edit": "@:title"
-      }, {
-        "type": "hr"
-      }, {
-        "type": "list",
-        "grid": 2,
-        "delimiter": 2,
-        "area": "main",
-        "flow": [
-          {
-            "type": "text",
-            "edit": "@:text"
-          }
-        ]
-      }
-    ]
-  };
-
-  w1 = {
-    "code": "w13:${dt:(e1)}",
-    "protocol": {
-      "dt": {
-        "e": [1, 2, 3]
-      }
-    },
-    "defaults": {
-      "title": "${dt:(e1)yyyy}: ${dt:(e1)MM/dd} - ${dt:(e3)MM/dd}",
-      "dt": "${dt:(e1)}"
-    },
-    "flow": [
-      {
-        "type": "title",
-        "name": "Week ${dt:ww}/${dt:yyyy}",
-        "edit": "@:title"
-      }, {
-        "type": "hr"
-      }, {
-        "type": "title1",
-        "name": "${dt:(e1)dd} Monday"
-      }, {
-        "type": "cols",
-        "size": [0.55, 0.5],
-        "space": 0.05,
-        "flow": [
-          {
-            "type": "list",
-            "area": "d1",
-            "drag": "right",
-            "grid": 1,
-            "delimiter": 1,
-            "defaults": {
-              "due": "${dt:(e1)}"
-            },
-            "flow": [
-              {
-                "type": "cols",
-                "size": [0.15, 0.85],
-                "flow": [
-                  {
-                    "type": "time",
-                    "edit": "@:time",
-                    "bg": 1
-                  }, {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }, {
-            "flow": [
-              {
-                "type": "list",
-                "area": "t1",
-                "grid": 1,
-                "delimiter": 1,
-                "defaults": {
-                  "due": "${dt:(e1)}"
-                },
-                "flow": [
-                  {
-                    "type": "cols",
-                    "size": [0.1, 0.9],
-                    "flow": [
-                      {
-                        "type": "check",
-                        "edit": "@:done"
-                      }, {
-                        "type": "text",
-                        "edit": "@:text"
-                      }
-                    ]
-                  }
-                ]
-              }, {
-                "type": "list",
-                "area": "n1",
-                "grid": 2,
-                "delimiter": 2,
-                "flow": [
-                  {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }, {
-        "type": "title1",
-        "name": "${dt:(e2)dd} Tuesday"
-      }, {
-        "type": "cols",
-        "size": [0.55, 0.5],
-        "space": 0.05,
-        "flow": [
-          {
-            "type": "list",
-            "area": "d2",
-            "drag": "right",
-            "grid": 1,
-            "delimiter": 1,
-            "defaults": {
-              "due": "${dt:(e2)}"
-            },
-            "flow": [
-              {
-                "type": "cols",
-                "size": [0.15, 0.85],
-                "flow": [
-                  {
-                    "type": "time",
-                    "edit": "@:time",
-                    "bg": 1
-                  }, {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }, {
-            "flow": [
-              {
-                "type": "list",
-                "area": "t2",
-                "grid": 1,
-                "delimiter": 1,
-                "defaults": {
-                  "due": "${dt:(e2)}"
-                },
-                "flow": [
-                  {
-                    "type": "cols",
-                    "size": [0.1, 0.9],
-                    "flow": [
-                      {
-                        "type": "check",
-                        "edit": "@:done"
-                      }, {
-                        "type": "text",
-                        "edit": "@:text"
-                      }
-                    ]
-                  }
-                ]
-              }, {
-                "type": "list",
-                "area": "n2",
-                "grid": 2,
-                "delimiter": 2,
-                "flow": [
-                  {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }, {
-        "type": "title1",
-        "name": "${dt:(e3)dd} Wednesday"
-      }, {
-        "type": "cols",
-        "size": [0.55, 0.5],
-        "space": 0.05,
-        "flow": [
-          {
-            "type": "list",
-            "area": "d3",
-            "drag": "right",
-            "grid": 1,
-            "delimiter": 1,
-            "defaults": {
-              "due": "${dt:(e3)}"
-            },
-            "flow": [
-              {
-                "type": "cols",
-                "size": [0.15, 0.85],
-                "flow": [
-                  {
-                    "type": "time",
-                    "edit": "@:time",
-                    "bg": 1
-                  }, {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }, {
-            "flow": [
-              {
-                "type": "list",
-                "area": "t3",
-                "grid": 1,
-                "delimiter": 1,
-                "defaults": {
-                  "due": "${dt:(e3)}"
-                },
-                "flow": [
-                  {
-                    "type": "cols",
-                    "size": [0.1, 0.9],
-                    "flow": [
-                      {
-                        "type": "check",
-                        "edit": "@:done"
-                      }, {
-                        "type": "text",
-                        "edit": "@:text"
-                      }
-                    ]
-                  }
-                ]
-              }, {
-                "type": "list",
-                "area": "n3",
-                "grid": 2,
-                "delimiter": 2,
-                "flow": [
-                  {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  };
-
-  w47 = {
-    "code": "w47:${dt:(e1)}",
-    "protocol": {
-      "dt": {
-        "e": [4, 5, 6, 0]
-      }
-    },
-    "defaults": {
-      "title": "${dt:(e4)yyyy}: ${dt:(e4)MM/dd} - ${dt:(e7)MM/dd}",
-      "dt": "${dt:(e4)}"
-    },
-    "flow": [
-      {
-        "type": "title",
-        "name": "Week ${dt:ww}/${dt:yyyy}",
-        "edit": "@:title"
-      }, {
-        "type": "hr"
-      }, {
-        "type": "title1",
-        "name": "${dt:(e4)dd} Thursday"
-      }, {
-        "type": "cols",
-        "size": [0.55, 0.5],
-        "space": 0.05,
-        "flow": [
-          {
-            "type": "list",
-            "area": "d1",
-            "drag": "right",
-            "grid": 1,
-            "delimiter": 1,
-            "defaults": {
-              "due": "${dt:(e4)}"
-            },
-            "flow": [
-              {
-                "type": "cols",
-                "size": [0.15, 0.85],
-                "flow": [
-                  {
-                    "type": "time",
-                    "edit": "@:time",
-                    "bg": 1
-                  }, {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }, {
-            "flow": [
-              {
-                "type": "list",
-                "area": "t1",
-                "grid": 1,
-                "delimiter": 1,
-                "defaults": {
-                  "due": "${dt:(e4)}"
-                },
-                "flow": [
-                  {
-                    "type": "cols",
-                    "size": [0.1, 0.9],
-                    "flow": [
-                      {
-                        "type": "check",
-                        "edit": "@:done"
-                      }, {
-                        "type": "text",
-                        "edit": "@:text"
-                      }
-                    ]
-                  }
-                ]
-              }, {
-                "type": "list",
-                "area": "n1",
-                "grid": 2,
-                "delimiter": 2,
-                "flow": [
-                  {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }, {
-        "type": "title1",
-        "name": "${dt:(e5)dd} Friday"
-      }, {
-        "type": "cols",
-        "size": [0.55, 0.5],
-        "space": 0.05,
-        "flow": [
-          {
-            "type": "list",
-            "area": "d2",
-            "drag": "right",
-            "grid": 1,
-            "delimiter": 1,
-            "defaults": {
-              "due": "${dt:(e5)}"
-            },
-            "flow": [
-              {
-                "type": "cols",
-                "size": [0.15, 0.85],
-                "flow": [
-                  {
-                    "type": "time",
-                    "edit": "@:time",
-                    "bg": 1
-                  }, {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }, {
-            "flow": [
-              {
-                "type": "list",
-                "area": "t2",
-                "grid": 1,
-                "delimiter": 1,
-                "defaults": {
-                  "due": "${dt:(e5)}"
-                },
-                "flow": [
-                  {
-                    "type": "cols",
-                    "size": [0.1, 0.9],
-                    "flow": [
-                      {
-                        "type": "check",
-                        "edit": "@:done"
-                      }, {
-                        "type": "text",
-                        "edit": "@:text"
-                      }
-                    ]
-                  }
-                ]
-              }, {
-                "type": "list",
-                "area": "n2",
-                "grid": 2,
-                "delimiter": 2,
-                "flow": [
-                  {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }, {
-        "type": "title1",
-        "name": "${dt:(e6)dd}, ${dt:(e7)dd} Weekend"
-      }, {
-        "type": "cols",
-        "size": [0.55, 0.5],
-        "space": 0.05,
-        "flow": [
-          {
-            "type": "list",
-            "area": "d3",
-            "drag": "right",
-            "grid": 1,
-            "delimiter": 1,
-            "flow": [
-              {
-                "type": "cols",
-                "size": [0.15, 0.85],
-                "flow": [
-                  {
-                    "type": "time",
-                    "edit": "@:time",
-                    "bg": 1
-                  }, {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }, {
-            "flow": [
-              {
-                "type": "list",
-                "area": "t3",
-                "grid": 1,
-                "delimiter": 1,
-                "flow": [
-                  {
-                    "type": "cols",
-                    "size": [0.1, 0.9],
-                    "flow": [
-                      {
-                        "type": "check",
-                        "edit": "@:done"
-                      }, {
-                        "type": "text",
-                        "edit": "@:text"
-                      }
-                    ]
-                  }
-                ]
-              }, {
-                "type": "list",
-                "area": "n3",
-                "grid": 2,
-                "delimiter": 2,
-                "flow": [
-                  {
-                    "type": "text",
-                    "edit": "@:text"
-                  }
-                ]
-              }
-            ]
-          }
-        ]
-      }
-    ]
-  };
+    __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
+    __slice = Array.prototype.slice;
 
   UIElement = (function() {
 
@@ -828,7 +13,12 @@
 
     UIElement.prototype.child = function(element, cl, index) {
       var child;
-      child = element.children(cl).eq(index);
+      child = null;
+      if (index < 0) {
+        child = element.children(cl).eq(element.children(cl).size() + index);
+      } else {
+        child = element.children(cl).eq(index);
+      }
       if (child.size() === 1) {
         return child;
       } else {
@@ -836,27 +26,23 @@
       }
     };
 
-    UIElement.prototype.fix_decoration = function(item, config, element) {
-      var ch, chars, type, _i, _len, _ref, _results;
-      if (config.bg || config.bg === 0) element.addClass('bg' + config.bg);
-      if (config.border) {
-        _ref = config.border.split(''), type = _ref[0], chars = 2 <= _ref.length ? __slice.call(_ref, 1) : [];
-        _results = [];
-        for (_i = 0, _len = chars.length; _i < _len; _i++) {
-          ch = chars[_i];
-          _results.push(element.addClass('border' + type + ch));
-        }
-        return _results;
-      }
-    };
-
     UIElement.prototype.render = function(item, config, element, options, handler) {
       return handler(null);
+    };
+
+    UIElement.prototype.canGrow = function(config) {
+      return false;
+    };
+
+    UIElement.prototype.grow = function(height, config, element, options) {
+      return height;
     };
 
     return UIElement;
 
   })();
+
+  __id = 0;
 
   SimpleElement = (function(_super) {
 
@@ -868,12 +54,58 @@
 
     SimpleElement.prototype.name = 'simple';
 
+    SimpleElement.prototype.canGrow = function() {
+      return true;
+    };
+
+    SimpleElement.prototype.grow = function(height, config, element, options) {
+      var el, fixedHeight, fl, floatHeight, floatPlus, floats, flow, freeHeight, i, id, newHeight, nowHeight, thisHeight, type, _ref;
+      id = ++__id;
+      nowHeight = element.innerHeight();
+      floats = 0;
+      floatHeight = 0;
+      fixedHeight = 0;
+      flow = (_ref = config.flow) != null ? _ref : [];
+      for (i in flow) {
+        fl = flow[i];
+        i = parseInt(i);
+        el = this.child(element, '.simple', i);
+        type = this.renderer.get(fl.type);
+        if (type.canGrow(fl)) {
+          floatHeight += el.outerHeight(true);
+          floats++;
+        } else {
+          fixedHeight += el.outerHeight(true);
+        }
+      }
+      if (floats > 0) {
+        for (i in flow) {
+          fl = flow[i];
+          i = parseInt(i);
+          el = this.child(element, '.simple', i);
+          type = this.renderer.get(fl.type);
+          if (type.canGrow(fl) && floats > 0) {
+            freeHeight = height - fixedHeight - floatHeight;
+            floatPlus = Math.floor(freeHeight / floats);
+            thisHeight = el.outerHeight(true);
+            newHeight = type.grow(thisHeight + floatPlus, fl, el, options);
+            fixedHeight += newHeight;
+            floatHeight -= thisHeight;
+            log('simple grow:', id, thisHeight + floatPlus, newHeight - el.outerHeight(true), element.outerHeight(true), i, height, freeHeight);
+            floats--;
+          }
+        }
+      }
+      return fixedHeight;
+    };
+
     SimpleElement.prototype.render = function(item, config, element, options, handler) {
       var fl, flow, i, _ref, _results,
         _this = this;
       if (config.defaults && !options.empty) {
         this.renderer.applyDefaults(config.defaults, item);
       }
+      if (config.border) element.addClass('border_' + config.border);
       flow = (_ref = config.flow) != null ? _ref : [];
       _results = [];
       for (i in flow) {
@@ -882,12 +114,11 @@
         _results.push((function(i) {
           var el, _ref2;
           el = (_ref2 = _this.child(element, '.simple', i)) != null ? _ref2 : $('<div/>').addClass('simple').appendTo(element);
-          _this.fix_decoration(item, fl, el);
+          if (config.delimiter && i > 0) {
+            el.addClass('delimiter_' + config.delimiter);
+          }
           return _this.renderer.get(fl.type).render(item, fl, el, options, function() {
-            if (i === flow.length - 1) {
-              _this.renderer.fix_grid(element, config.type === 'list' ? config.config : config);
-              return handler(null);
-            }
+            if (i === flow.length - 1) return handler(null);
           });
         })(i));
       }
@@ -1356,6 +587,30 @@
 
     ColsElement.prototype.name = 'cols';
 
+    ColsElement.prototype.canGrow = function() {
+      return true;
+    };
+
+    ColsElement.prototype.grow = function(height, config, element, options) {
+      var el, fl, flow, h, i, maxh, type, _ref;
+      flow = (_ref = config.flow) != null ? _ref : [];
+      maxh = 0;
+      for (i in flow) {
+        fl = flow[i];
+        i = parseInt(i);
+        el = this.child(element, '.col_data', i);
+        type = this.renderer.get(fl.type);
+        h = 0;
+        if (type.canGrow(fl)) {
+          h = type.grow(height, fl, el, options);
+        } else {
+          h = el.outerHeight(true);
+        }
+        if (h > maxh) maxh = h;
+      }
+      return maxh;
+    };
+
     ColsElement.prototype.render = function(item, config, element, options, handler) {
       var diff, el, fl, float_size, flow, i, index, last, lsizes, margin, sizes, space_size, sz, w, width, _i, _len, _ref, _ref2, _results,
         _this = this;
@@ -1396,7 +651,6 @@
           width = lsizes[i];
           if (last) width = w - margin;
           el = $('<div/>').addClass('col col_data').appendTo(element).width(width);
-          this.fix_decoration(item, fl, el);
           diff = el.outerWidth() - el.innerWidth();
           if (diff > 0) el.width(el.innerWidth() - diff);
           if (last) $('<div style="clear: both;"/>').appendTo(element);
@@ -1427,11 +681,40 @@
 
     ListElement.prototype.name = 'list';
 
+    ListElement.prototype.grow = function(height, config, element, options) {
+      var added, emptyHeight, i, nowHeight,
+        _this = this;
+      nowHeight = element.outerHeight(true);
+      emptyHeight = this.child(element, '.list_item', -1).outerHeight(true);
+      added = Math.floor((height - nowHeight) / emptyHeight);
+      for (i = 0; 0 <= added ? i < added : i > added; 0 <= added ? i++ : i--) {
+        this._render({
+          area: config.area
+        }, config.item, element, {
+          disabled: true,
+          delimiter: config.delimiter
+        }, function(el) {
+          return null;
+        });
+        nowHeight += emptyHeight;
+      }
+      return nowHeight;
+    };
+
+    ListElement.prototype.canGrow = function(config) {
+      if (config && config.grow === 'no') {
+        return false;
+      } else {
+        return true;
+      }
+    };
+
     ListElement.prototype._render = function(item, config, element, options, handler) {
       var el, handle,
         _this = this;
       el = $('<div/>').addClass('list_item').appendTo(element);
-      if (options.disable) el.addClass('disabled');
+      if (options.delimiter) el.addClass('delimiter_' + options.delimiter);
+      if (options.disabled) el.addClass('disabled');
       if (options.draggable) {
         handle = $('<div/>').addClass('list_item_handle list_item_handle_left').appendTo(el);
         el.bind('mousemove', function() {
@@ -1467,64 +750,34 @@
       });
       return this.renderer.get('simple').render(item, config, el, {
         empty: false,
-        readonly: options.disable,
+        readonly: options.disabled,
         text_option: options.empty ? item.area : ''
       }, function() {
         return handler(el);
       });
     };
 
-    ListElement.prototype._fill_empty = function(config, element, parent, handler) {
-      var parent_height,
-        _this = this;
-      parent_height = parent.outerHeight();
-      return this._render({
-        area: config.area
-      }, config, element, {
-        disable: true
-      }, function(el) {
-        var need_grid;
-        need_grid = true;
-        if (parent.outerHeight() <= parent_height) {
-          _this.renderer.have_space = true;
-        } else {
-          if (_this.renderer.size_too_big()) {
-            need_grid = false;
-            el.remove();
-          } else {
-            _this.renderer.have_space = true;
-          }
-        }
-        if (need_grid) _this.renderer.fix_grid(element, config);
-        return handler(null);
-      });
-    };
-
     ListElement.prototype.render = function(item, config, element, options, handler) {
-      var flow, parent, _ref,
+      var flow, _ref,
         _this = this;
+      if (config.border) element.addClass('border_' + config.border);
       flow = (_ref = config.flow) != null ? _ref : [];
-      if (options.empty) {
-        if (config.grow === 'no') return handler(null);
-        parent = element.parents('.group').last();
-        return this._fill_empty(config, element, parent, handler);
-      }
       return this.renderer.items(config.area, function(items) {
         var i, itm;
         for (i in items) {
           itm = items[i];
-          _this._render(itm, config, element, {
+          _this._render(itm, config.item, element, {
             disable: false,
             draggable: true
           }, function() {});
         }
         return _this._render({
           area: config.area
-        }, config, element, {
+        }, config.item, element, {
           disable: false,
-          empty: true
+          empty: true,
+          delimiter: items.length > 0 ? config.delimiter : null
         }, function() {
-          _this.renderer.fix_grid(element, config);
           return handler(null);
         });
       });
@@ -1536,6 +789,8 @@
 
   Renderer = (function() {
 
+    Renderer.prototype.show_archived = false;
+
     function Renderer(manager, ui, root, template, data, env) {
       this.manager = manager;
       this.ui = ui;
@@ -1546,21 +801,6 @@
       this.elements = [new SimpleElement(this), new TitleElement(this), new HRElement(this), new Title1Element(this), new Title2Element(this), new Title3Element(this), new HeaderElement(this), new ColsElement(this), new ListElement(this), new Textlement(this), new CheckElement(this), new MarkElement(this), new DateElement(this), new TimeElement(this)];
       this.root.data('sheet', this.data);
     }
-
-    Renderer.prototype.fix_grid = function(element, config) {
-      var ch, gr;
-      if (!config) return;
-      ch = element.children(':not(.list_item_handle)');
-      if (config.delimiter) {
-        ch.slice(0, -1).addClass('grid_delimiter' + config.delimiter);
-      }
-      if (config.grid) {
-        gr = config.grid;
-        ch.removeClass('grid_top' + gr + ' grid_bottom' + gr).addClass('grid' + gr);
-        ch.first().addClass('grid_top' + gr);
-        return ch.last().addClass('grid_bottom' + gr);
-      }
-    };
 
     Renderer.prototype.get = function(name) {
       var el, _i, _len, _ref;
@@ -1754,28 +994,31 @@
     };
 
     Renderer.prototype.fix_height = function(handler) {
-      var _this = this;
-      this.have_space = false;
-      return this.get(this.template.name).render(this.data, this.template, this.content, {
-        empty: true
-      }, function() {
-        var sleft, sright;
-        if (_this.have_space) {
-          return _this.fix_height(handler);
-        } else {
-          _this.prev_content.remove();
-          _this.root.removeClass('page_render');
-          sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(_this.root);
-          sleft.bind('click', function() {
-            return _this.ui.scroll_sheets(_this.data.id, -1);
-          });
-          sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(_this.root);
-          sright.bind('click', function() {
-            return _this.ui.scroll_sheets(_this.data.id, 1);
-          });
-          if (handler) return handler(null);
-        }
+      var archive_toggle, page_actions, sleft, sright,
+        _this = this;
+      if (!this.size_too_big()) {
+        this.get(this.template.name).grow(this.root.innerHeight() - 52 * 2, this.template, this.content, {
+          empty: true,
+          disabled: true
+        });
+      }
+      this.prev_content.remove();
+      this.root.removeClass('page_render');
+      sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(this.root);
+      sleft.bind('click', function() {
+        return _this.ui.scroll_sheets(_this.data.id, -1);
       });
+      sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(this.root);
+      sright.bind('click', function() {
+        return _this.ui.scroll_sheets(_this.data.id, 1);
+      });
+      page_actions = $('<div/>').addClass('page_actions').appendTo(this.root);
+      archive_toggle = $('<div/>').addClass('page_action archive_toggle').appendTo(page_actions);
+      archive_toggle.bind('click', function() {
+        _this.show_archived = !_this.show_archived;
+        return _this.render(null);
+      });
+      if (handler) return handler(null);
     };
 
     Renderer.prototype._load_items = function(handler) {
@@ -1812,6 +1055,7 @@
           }
           for (_j = 0, _len2 = data.length; _j < _len2; _j++) {
             item = data[_j];
+            if (!_this.show_archived && item.done === 1) continue;
             if (_this.notes[item.area]) {
               _this.notes[item.area].push(item);
             } else {

@@ -306,11 +306,11 @@ class UIManager
 		}
 		for i in [0...4]
 			page = $("#page#{i}")
-			do (page) =>
-				page.bind 'mouseover', (event) =>
-					page.children('.page_scroll').show()
-				page.bind 'mouseout', (event) =>
-					page.children('.page_scroll').hide()
+			# do (page) =>
+			# 	page.bind 'mouseover', (event) =>
+			# 		page.children('.page_scroll').show()
+			# 	page.bind 'mouseout', (event) =>
+			# 		page.children('.page_scroll').hide()
 		@show_pages @pages
 		@navigator = new PageNavigator @manager, @
 
@@ -483,7 +483,7 @@ class UIManager
 				return @show_error err
 			@load_templates null
 			@show_sheets null
-			@navigator.load_sheets null
+			@sync null
 
 	save_template: () ->
 		@edit_template.name = $('#template_name').val()
@@ -636,6 +636,7 @@ class UIManager
 					@move_sheet ui.draggable.data('item')
 					event.preventDefault()
 			})
+		@navigator.load_sheets null
 
 	new_sheet: (sheet) ->
 		$('#new_sheet_dialog').dialog({width: 400, height: 200})

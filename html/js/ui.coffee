@@ -1,525 +1,80 @@
-wobjective = {
-	"defaults": {
-		"title": "Objective"
-	},
-	"direct": true,
-	"flow": [
-		{"type": "title", "name": "Objectives", "edit":"@:title"},
-		{"type": "hr"},
-		{"type": "title2", "name": "Objective", "edit": "@:objective"},
-		{
-			"grid": 1,
-			"delimiter": 1,
-			"flow": [
-				{
-					"type": "cols",
-					"bg": 1,
-					"size": [0.15, 0.85],
-					"flow": [
-						{"type": "title3", "name": "Description"},
-						{"type": "text", "edit": "@:desc", "bg": 0}
-					]
-				},
-				{
-					"type": "cols",
-					"bg": 1,
-					"size": [0.15, 0.85],
-					"flow": [
-						{"type": "title3", "name": "Benefits"},
-						{"type": "text", "edit": "@:benefits", "bg": 0}
-					]
-					
-				},
-				{
-					"type": "cols",
-					"bg": 1,
-					"size": [0.15, 0.85],
-					"flow": [
-						{"type": "title3", "name": "Challenges"},
-						{"type": "text", "edit": "@:challenges", "bg": 0}
-					]
-					
-				}
-			]
-		},
-		{"type": "header", "size": [0.15, 0.75, 0.15], "flow": ["", "Step", "Target"]},
-		{
-			"type": "list", 
-			"area": "main", 
-			"grid": 1,
-			"delimiter": 1,
-			"flow": [
-				{"type": "cols", "size": [0.15, 0.75, 0.15], "flow": [
-					{"type": "check", "edit": "@:done", "bg": 1},
-					{"type": "text", "edit": "@:text"},
-					{"type": "date", "edit": "@:due", "bg": 1}
-				]}
-			]
-		},
-		{
-			"grid": 1,
-			"delimiter": 1,
-			"flow": [
-				{
-					"type": "cols",
-					"bg": 1,
-					"size": [0.15, 0.85],
-					"flow": [
-						{"type": "title3", "name": "Outcome"},
-						{"type": "text", "edit": "@:outcome", "bg": 0}
-					]
-				}
-			]
-		}
-	]
-}
-
-wcombinedactions = {
-	"defaults": {
-		"title": "Combined Actions"
-	},
-	"direct": true,
-	"flow": [
-		{"type": "title", "name": "Combined Actions", "edit":"@:title"},
-		{"type": "hr"},
-		{"type": "cols", "size": [0.48, 0.48], "space": 0.04, "flow": [
-			{"flow": [
-				{"type": "title1", "name": "Actions"},
-				{
-					"type": "list", 
-					"area": "main", 
-					"grid": 1,
-					"delimiter": 1,
-					"flow": [
-						{"type": "cols", "size": [0.1, 0.9], "flow": [
-							{"type": "check", "edit": "@:done", "bg": 1},
-							{"type": "text", "edit": "@:text"}
-						]}
-					]
-				}
-			]}, {"flow": [
-				{"type": "title1", "name": "Waiting For"},
-				{
-					"type": "list",
-					"area": "wfor",
-					"grid": 1,
-					"delimiter": 1,
-					"config": {
-						"delimiter": 2
-					},
-					"flow": [
-						{"type": "cols", "size": [0.1, 0.9], "flow": [
-							{"type": "check", "edit": "@:done"},
-							{"type": "text", "edit": "@:text"}
-						]
-						}, {"type": "text", "edit": "@:notes"}
-					]
-				}
-			]}
-		]},
-		{"type": "title1", "name": "Notes"},
-		{
-			"type": "list",
-			"area": "notes",
-			"grid": 1,
-			"delimiter": 1,
-			"grow": "no",
-			"flow": [
-				{"type": "text", "edit": "@:text"}
-			]
-		}
-	]	
-}
-
-wactions = {
-	"defaults": {
-		"title": "Actions"
-	},
-	"direct": true,
-	"flow": [
-		{"type": "title", "name": "Actions", "edit":"@:title"},
-		{"type": "hr"},
-		{
-			"type": "list",
-			"area": "main",
-			"config": {
-				"grid": 2,
-				"delimiter": 1
-			},
-			"flow": [
-				{"type": "cols", "size": [0.05, 0.8, 0.15], "flow": [
-					{"type": "check", "edit": "@:done"},
-					{"type": "text", "edit": "@:text"},
-					{"type": "date", "edit": "@:due", "border": "1lb"}
-				]},
-				{"type": "cols", "size": [0.05, 0.95], "flow": [
-					{"type": "mark", "edit": "@:mark"},
-					{"type": "text", "edit": "@:notes"}
-				]}
-			]
-		}
-	]	
-}
-
-swimpleactions = {
-	"defaults": {
-		"title": "To-Do"
-	},
-	"direct": true,
-	"flow": [
-		{"type": "title", "name": "Actions", "edit":"@:title"},
-		{"type": "hr"},
-		{
-			"type": "list",
-			"area": "main",
-			"config": {
-				"grid": 1,
-				"delimiter": 1
-			},
-			"flow": [
-				{"type": "cols", "size": [0.05, 0.8, 0.15], "flow": [
-					{"type": "check", "edit": "@:done"},
-					{"type": "text", "edit": "@:text"},
-					{"type": "date", "edit": "@:due", "border": "1l"}
-				]}
-			]
-		}
-	]
-}
-
-wnotes = {
-	"defaults": {
-		"title": "Notes"
-	},
-	"direct": true,
-	"flow": [
-		{"type": "title", "name": "Notes", "edit":"@:title"},
-		{"type": "hr"},
-		{
-			"type": "list",
-			"grid": 2,
-			"delimiter": 2,
-			"area": "main",
-			"flow": [
-				{"type": "text", "edit": "@:text"}
-			]
-		}
-	]	
-}
-
-w1 = {
-	"code": "w13:${dt:(e1)}",
-	"protocol": {
-		"dt": {
-			"e": [1, 2, 3]
-		}
-	},
-	"defaults": {
-		"title": "${dt:(e1)yyyy}: ${dt:(e1)MM/dd} - ${dt:(e3)MM/dd}",
-		"dt": "${dt:(e1)}"
-	},
-	"flow": [
-		{"type": "title", "name": "Week ${dt:ww}/${dt:yyyy}", "edit":"@:title"},
-		{"type": "hr"},
-		{"type": "title1", "name": "${dt:(e1)dd} Monday"},
-		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
-			{
-				"type": "list", 
-				"area": "d1",
-				"drag": "right",
-				"grid": 1,
-				"delimiter": 1,
-				"defaults": {"due": "${dt:(e1)}"},
-				"flow": [
-					{"type": "cols", "size": [0.15, 0.85], "flow": [
-						{"type": "time", "edit": "@:time", "bg": 1},
-						{"type": "text", "edit": "@:text"}
-					]}
-				]
-			}, {
-				"flow": [
-					{
-						"type": "list", 
-						"area": "t1",
-						"grid": 1,
-						"delimiter": 1,
-						"defaults": {"due": "${dt:(e1)}"},
-						"flow": [
-							{"type": "cols", "size": [0.1, 0.9], "flow": [
-								{"type": "check", "edit": "@:done"},
-								{"type": "text", "edit": "@:text"}
-							]}
-						]
-					}, {
-						"type": "list",
-						"area": "n1",
-						"grid": 2,
-						"delimiter": 2,
-						"flow": [
-							{"type": "text", "edit": "@:text"}
-						]
-					}
-				]
-			}
-		]},
-		{"type": "title1", "name": "${dt:(e2)dd} Tuesday"},
-		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
-			{
-				"type": "list", 
-				"area": "d2",
-				"drag": "right",
-				"grid": 1,
-				"delimiter": 1,
-				"defaults": {"due": "${dt:(e2)}"},
-				"flow": [
-					{"type": "cols", "size": [0.15, 0.85], "flow": [
-						{"type": "time", "edit": "@:time", "bg": 1},
-						{"type": "text", "edit": "@:text"}
-					]}
-				]
-			}, {
-				"flow": [
-					{
-						"type": "list", 
-						"area": "t2",
-						"grid": 1,
-						"delimiter": 1,
-						"defaults": {"due": "${dt:(e2)}"},
-						"flow": [
-							{"type": "cols", "size": [0.1, 0.9], "flow": [
-								{"type": "check", "edit": "@:done"},
-								{"type": "text", "edit": "@:text"}
-							]}
-						]
-					}, {
-						"type": "list",
-						"area": "n2",
-						"grid": 2,
-						"delimiter": 2,
-						"flow": [
-							{"type": "text", "edit": "@:text"}
-						]
-					}
-				]
-			}
-		]},
-		{"type": "title1", "name": "${dt:(e3)dd} Wednesday"},
-		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
-			{
-				"type": "list", 
-				"area": "d3",
-				"drag": "right",
-				"grid": 1,
-				"delimiter": 1,
-				"defaults": {"due": "${dt:(e3)}"},
-				"flow": [
-					{"type": "cols", "size": [0.15, 0.85], "flow": [
-						{"type": "time", "edit": "@:time", "bg": 1},
-						{"type": "text", "edit": "@:text"}
-					]}
-				]
-			}, {
-				"flow": [
-					{
-						"type": "list", 
-						"area": "t3",
-						"grid": 1,
-						"delimiter": 1,
-						"defaults": {"due": "${dt:(e3)}"},
-						"flow": [
-							{"type": "cols", "size": [0.1, 0.9], "flow": [
-								{"type": "check", "edit": "@:done"},
-								{"type": "text", "edit": "@:text"}
-							]}
-						]
-					}, {
-						"type": "list",
-						"area": "n3",
-						"grid": 2,
-						"delimiter": 2,
-						"flow": [
-							{"type": "text", "edit": "@:text"}
-						]
-					}
-				]
-			}
-		]}
-	]
-}
-
-w47 = {
-	"code": "w47:${dt:(e1)}",
-	"protocol": {
-		"dt": {
-			"e": [4, 5, 6, 0]
-		}
-	},
-	"defaults": {
-		"title": "${dt:(e4)yyyy}: ${dt:(e4)MM/dd} - ${dt:(e7)MM/dd}",
-		"dt": "${dt:(e4)}"
-	},
-	"flow": [
-		{"type": "title", "name": "Week ${dt:ww}/${dt:yyyy}", "edit":"@:title"},
-		{"type": "hr"},
-		{"type": "title1", "name": "${dt:(e4)dd} Thursday"},
-		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
-			{
-				"type": "list", 
-				"area": "d1",
-				"drag": "right",
-				"grid": 1,
-				"delimiter": 1,
-				"defaults": {"due": "${dt:(e4)}"},
-				"flow": [
-					{"type": "cols", "size": [0.15, 0.85], "flow": [
-						{"type": "time", "edit": "@:time", "bg": 1},
-						{"type": "text", "edit": "@:text"}
-					]}
-				]
-			}, {
-				"flow": [
-					{
-						"type": "list", 
-						"area": "t1",
-						"grid": 1,
-						"delimiter": 1,
-						"defaults": {"due": "${dt:(e4)}"},
-						"flow": [
-							{"type": "cols", "size": [0.1, 0.9], "flow": [
-								{"type": "check", "edit": "@:done"},
-								{"type": "text", "edit": "@:text"}
-							]}
-						]
-					}, {
-						"type": "list",
-						"area": "n1",
-						"grid": 2,
-						"delimiter": 2,
-						"flow": [
-							{"type": "text", "edit": "@:text"}
-						]
-					}
-				]
-			}
-		]},
-		{"type": "title1", "name": "${dt:(e5)dd} Friday"},
-		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
-			{
-				"type": "list", 
-				"area": "d2",
-				"drag": "right",
-				"grid": 1,
-				"delimiter": 1,
-				"defaults": {"due": "${dt:(e5)}"},
-				"flow": [
-					{"type": "cols", "size": [0.15, 0.85], "flow": [
-						{"type": "time", "edit": "@:time", "bg": 1},
-						{"type": "text", "edit": "@:text"}
-					]}
-				]
-			}, {
-				"flow": [
-					{
-						"type": "list", 
-						"area": "t2",
-						"grid": 1,
-						"delimiter": 1,
-						"defaults": {"due": "${dt:(e5)}"},
-						"flow": [
-							{"type": "cols", "size": [0.1, 0.9], "flow": [
-								{"type": "check", "edit": "@:done"},
-								{"type": "text", "edit": "@:text"}
-							]}
-						]
-					}, {
-						"type": "list",
-						"area": "n2",
-						"grid": 2,
-						"delimiter": 2,
-						"flow": [
-							{"type": "text", "edit": "@:text"}
-						]
-					}
-				]
-			}
-		]},
-		{"type": "title1", "name": "${dt:(e6)dd}, ${dt:(e7)dd} Weekend"},
-		{"type": "cols", "size": [0.55, 0.5], "space": 0.05, "flow": [
-			{
-				"type": "list", 
-				"area": "d3",
-				"drag": "right",
-				"grid": 1,
-				"delimiter": 1,
-				"flow": [
-					{"type": "cols", "size": [0.15, 0.85], "flow": [
-						{"type": "time", "edit": "@:time", "bg": 1},
-						{"type": "text", "edit": "@:text"}
-					]}
-				]
-			}, {
-				"flow": [
-					{
-						"type": "list", 
-						"area": "t3",
-						"grid": 1,
-						"delimiter": 1,
-						"flow": [
-							{"type": "cols", "size": [0.1, 0.9], "flow": [
-								{"type": "check", "edit": "@:done"},
-								{"type": "text", "edit": "@:text"}
-							]}
-						]
-					}, {
-						"type": "list",
-						"area": "n3",
-						"grid": 2,
-						"delimiter": 2,
-						"flow": [
-							{"type": "text", "edit": "@:text"}
-						]
-					}
-				]
-			}
-		]}
-	]
-}
-
 class UIElement
 	constructor: (@renderer) ->
 
 	child: (element, cl, index) ->
-		child = element.children(cl).eq(index)
+		child = null
+		if index<0
+			child = element.children(cl).eq(element.children(cl).size()+index)
+		else
+			child = element.children(cl).eq(index)
 		if child.size() is 1 then child else null
 	
-	fix_decoration: (item, config, element) ->
-		if config.bg || config.bg is 0
-			element.addClass('bg'+config.bg)
-		if config.border
-			[type, chars...] = config.border.split('')
-			for ch in chars
-				element.addClass('border'+type+ch)
-
 	render: (item, config, element, options, handler) ->
 		handler null
+
+	canGrow: (config) ->
+		no
+
+	grow: (height, config, element, options) ->
+		height
+
+__id = 0
 
 class SimpleElement extends UIElement
 
 	name: 'simple'
 
+	canGrow: ->
+		yes
+
+	grow: (height, config, element, options) ->
+		id = ++__id
+		nowHeight = element.innerHeight()
+		floats = 0
+		floatHeight = 0
+		fixedHeight = 0
+		flow = config.flow ? []
+		for i, fl of flow
+			i = parseInt(i)
+			el = @child element, '.simple', i
+			type = @renderer.get fl.type
+			if type.canGrow fl
+				floatHeight += el.outerHeight true
+				floats++
+			else
+				fixedHeight += el.outerHeight true
+		if floats>0
+			for i, fl of flow
+				i = parseInt(i)
+				el = @child element, '.simple', i
+				type = @renderer.get fl.type
+				# log 'simple grow:', id, type.canGrow(fl), floats
+				if type.canGrow(fl) and floats>0
+					freeHeight = height - fixedHeight - floatHeight
+					floatPlus = Math.floor(freeHeight / floats)
+					thisHeight = el.outerHeight true
+					newHeight = type.grow(thisHeight + floatPlus, fl, el, options)
+					fixedHeight += newHeight
+					floatHeight -= thisHeight
+					log 'simple grow:', id, thisHeight+floatPlus, newHeight-el.outerHeight(true), element.outerHeight(true), i, height, freeHeight
+					floats--
+		return fixedHeight
+
 	render: (item, config, element, options, handler) ->
 		if config.defaults and not options.empty
 			@renderer.applyDefaults config.defaults, item
+		if config.border
+			element.addClass('border_'+config.border)
 		flow = config.flow ? []
 		for i, fl of flow
 			i = parseInt(i)
 			do (i) =>
 				# log i, fl
 				el = @child(element, '.simple', i) ? $('<div/>').addClass('simple').appendTo(element)
-				@fix_decoration item, fl, el
+				if config.delimiter and i>0
+					el.addClass('delimiter_'+config.delimiter)
 				@renderer.get(fl.type).render item, fl, el, options, () =>
 					if i is flow.length-1
-						@renderer.fix_grid element, if config.type is 'list' then config.config else config
 						handler null
 
 class TitleElement extends UIElement
@@ -802,6 +357,26 @@ class ColsElement extends UIElement
 
 	name: 'cols'
 
+	canGrow: ->
+		yes
+
+	grow: (height, config, element, options) ->
+		flow = config.flow ? []
+		maxh = 0
+		for i, fl of flow
+			i = parseInt(i)
+			el = @child(element, '.col_data', i)
+			type = @renderer.get(fl.type)
+			h = 0
+			if type.canGrow fl
+				h = type.grow height, fl, el, options
+				# log 'cols grow', i, h, height, fl.type, fl, type
+			else
+				h = el.outerHeight true
+				# log 'cols fixed', i, h, height, fl, type
+			if h>maxh then maxh = h
+		maxh
+
 	render: (item, config, element, options, handler) ->
 		flow = config.flow ? []
 		sizes = config.size ? []
@@ -841,7 +416,6 @@ class ColsElement extends UIElement
 					# Fix last col
 					width = w-margin
 				el = $('<div/>').addClass('col col_data').appendTo(element).width(width)
-				@fix_decoration item, fl, el
 				diff = el.outerWidth() - el.innerWidth()
 				if diff > 0
 					el.width(el.innerWidth()-diff)
@@ -859,9 +433,26 @@ class ListElement extends UIElement
 
 	name: 'list'
 
+	grow: (height, config, element, options) ->
+		nowHeight = element.outerHeight true
+		emptyHeight = @child(element, '.list_item', -1).outerHeight true
+		added = Math.floor((height - nowHeight) / emptyHeight)
+		# log 'list grow:', height, nowHeight, emptyHeight, added
+		for i in [0...added]
+			# log 'Render empty', i, added, nowHeight, emptyHeight, height, config, element
+			@_render {area: config.area}, config.item, element, {disabled: true, delimiter: config.delimiter}, (el) =>
+				null
+			nowHeight += emptyHeight
+		nowHeight
+
+	canGrow: (config) ->
+		if config and config.grow is 'no' then no else yes
+
 	_render: (item, config, element, options, handler)->
 		el = $('<div/>').addClass('list_item').appendTo(element)
-		if options.disable
+		if options.delimiter
+			el.addClass('delimiter_'+options.delimiter)
+		if options.disabled
 			el.addClass('disabled')
 		if options.draggable
 			handle = $('<div/>').addClass('list_item_handle list_item_handle_left').appendTo(el)
@@ -886,51 +477,24 @@ class ListElement extends UIElement
 					@renderer.render null
 
 		})
-		# if not empty
-			# el.bind 'click', (ev) =>
-			# 	log 'Click!'
-			# 	# el.draggable('destroy')
-			# 	# el.click(ev)
-			# el.draggable({revert: true})
-		@renderer.get('simple').render item, config, el, {empty: false, readonly: options.disable, text_option: if options.empty then item.area else ''}, () =>
+		@renderer.get('simple').render item, config, el, {empty: false, readonly: options.disabled, text_option: if options.empty then item.area else ''}, () =>
 			handler el
-
-	_fill_empty: (config, element, parent, handler) ->
-		parent_height = parent.outerHeight()
-		# log 'Before fill empty', parent_height, parent.outerHeight(), parent
-		@_render {area: config.area}, config, element, {disable: true}, (el) =>
-			need_grid = yes
-			# log 'After fill empty', parent.outerHeight(), parent_height
-			if parent.outerHeight()<=parent_height 
-				@renderer.have_space = yes
-			else
-				if @renderer.size_too_big()
-					need_grid = no
-					el.remove()
-				else
-					@renderer.have_space = yes
-			if need_grid
-				@renderer.fix_grid element, config
-			handler null
 
 	render: (item, config, element, options, handler) ->
 		# log 'list', config.area, empty
+		if config.border
+			element.addClass('border_'+config.border)
 		flow = config.flow ? []
-		if options.empty
-			if config.grow is 'no' then return handler null
-			parent = element.parents('.group').last()
-			return @_fill_empty config, element, parent, handler
 		@renderer.items config.area, (items) =>
 			for i, itm of items
-				# log 'Render', i, itm.text, itm.place
-				@_render itm, config, element, {disable: false, draggable: true}, () =>
-			@_render {area: config.area}, config, element, {disable: false, empty: true}, () =>
-				@renderer.fix_grid element, config
+				@_render itm, config.item, element, {disable: false, draggable: true}, () =>
+			@_render {area: config.area}, config.item, element, {disable: false, empty: true, delimiter: if items.length>0 then config.delimiter else null}, () =>
 				handler null
 
-
-
 class Renderer
+
+	show_archived: no
+
 	constructor: (@manager, @ui, @root, @template, @data, @env) ->
 		@elements = [
 			new SimpleElement this
@@ -949,18 +513,6 @@ class Renderer
 			new TimeElement this
 		]
 		@root.data('sheet', @data)
-
-	fix_grid: (element, config) ->
-		if not config
-			return
-		ch = element.children(':not(.list_item_handle)')
-		if config.delimiter
-			ch.slice(0, -1).addClass('grid_delimiter'+config.delimiter)
-		if config.grid
-			gr = config.grid
-			ch.removeClass('grid_top'+gr+' grid_bottom'+gr).addClass('grid'+gr)
-			ch.first().addClass('grid_top'+gr)
-			ch.last().addClass('grid_bottom'+gr)
 
 	get: (name) ->
 		# log 'get', name, @elements.length
@@ -1094,21 +646,22 @@ class Renderer
 		return @root.innerHeight()<@content.outerHeight(true)
 
 	fix_height: (handler) ->
-		@have_space = no
-		@get(@template.name).render @data, @template, @content, {empty: true}, () =>
-			# log 'Fix done', @have_space
-			if @have_space 
-				@fix_height handler
-			else
-				@prev_content.remove()
-				@root.removeClass 'page_render'
-				sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(@root)
-				sleft.bind 'click', () =>
-					@ui.scroll_sheets @data.id, -1
-				sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(@root)
-				sright.bind 'click', () =>
-					@ui.scroll_sheets @data.id, 1
-				if handler then handler null
+		if not @size_too_big()
+			@get(@template.name).grow @root.innerHeight()-52*2, @template, @content, {empty: true, disabled: true}
+		@prev_content.remove()
+		@root.removeClass 'page_render'
+		sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(@root)
+		sleft.bind 'click', () =>
+			@ui.scroll_sheets @data.id, -1
+		sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(@root)
+		sright.bind 'click', () =>
+			@ui.scroll_sheets @data.id, 1
+		page_actions = $('<div/>').addClass('page_actions').appendTo(@root)
+		archive_toggle = $('<div/>').addClass('page_action archive_toggle').appendTo(page_actions)
+		archive_toggle.bind 'click', () =>
+			@show_archived = not @show_archived
+			@render null
+		if handler then handler null
 	
 	_load_items: (handler) ->
 		areas = []
@@ -1129,6 +682,8 @@ class Renderer
 				for area in areas
 					@notes[area] = []
 				for item in data
+					if !@show_archived and item.done is 1
+						continue
 					if @notes[item.area]
 						@notes[item.area].push item
 					else

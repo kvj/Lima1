@@ -8,7 +8,7 @@ class NetTransport
 class jQueryTransport extends NetTransport
 
 	request: (config, handler) -> 
-		log 'Doing request', @uri, config?.uri, config?.type
+		# log 'Doing request', @uri, config?.uri, config?.type
 		$.ajax({
 			url: @uri+config?.uri
 			type: config?.type ? 'GET'
@@ -48,7 +48,7 @@ class OAuthProvider
 			data: body
 			contentType: if body then 'text/plain' else null
 		}, (error, data) =>
-			log 'Rest response:', error, data
+			# log 'Rest response:', error, data
 			if error
 				if error.status is 401
 					@on_token_error null 
