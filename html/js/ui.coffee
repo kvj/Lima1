@@ -18,14 +18,20 @@ class UIElement
 	grow: (height, config, element, options) ->
 		height
 
+	fullHeight: (element, config, canHaveDelimiter = no) ->
+		w = element.outerHeight element, true
+		if canHaveDelimiter && config.delimiter
+			w++
+		w
+
 __id = 0
 
 class SimpleElement extends UIElement
 
 	name: 'simple'
 
-	canGrow: ->
-		yes
+	canGrow: (config) ->
+		if config and config.grow is 'no' then no else yes
 
 	grow: (height, config, element, options) ->
 		id = ++__id
@@ -39,24 +45,25 @@ class SimpleElement extends UIElement
 			el = @child element, '.simple', i
 			type = @renderer.get fl.type
 			if type.canGrow fl
-				floatHeight += el.outerHeight true
+				floatHeight += @fullHeight el, config, i>0
 				floats++
 			else
-				fixedHeight += el.outerHeight true
+				fixedHeight += @fullHeight el, config, i>0
 		if floats>0
 			for i, fl of flow
 				i = parseInt(i)
-				el = @child element, '.simple', i
 				type = @renderer.get fl.type
-				# log 'simple grow:', id, type.canGrow(fl), floats
+				el = @child element, '.simple', i
+				# log 'simple grow:', id, type.canGrow(fl), floats, type, @fullHeight(el, config, i>0)
 				if type.canGrow(fl) and floats>0
-					freeHeight = height - fixedHeight - floatHeight
+					freeHeight = height - element.innerHeight()
 					floatPlus = Math.floor(freeHeight / floats)
-					thisHeight = el.outerHeight true
-					newHeight = type.grow(thisHeight + floatPlus, fl, el, options)
+					thisHeight = @fullHeight el, config, i>0
+					type.grow(thisHeight + floatPlus, fl, el, options)
+					newHeight = @fullHeight el, config, i>0
 					fixedHeight += newHeight
 					floatHeight -= thisHeight
-					log 'simple grow:', id, thisHeight+floatPlus, newHeight-el.outerHeight(true), element.outerHeight(true), i, height, freeHeight
+					# log 'simple grow after:', id, thisHeight+floatPlus, newHeight, i, height, freeHeight, floats
 					floats--
 		return fixedHeight
 
@@ -89,6 +96,21 @@ class TitleElement extends UIElement
 			@renderer.text_editor el, item, (@renderer.replace config.edit)
 		handler null
 
+class CalendarElement extends UIElement
+
+	name: 'calendar'
+
+	render: (item, config, element, options, handler) ->
+		calendar = $('<div/>').addClass('calendar_element').appendTo(element)
+		calendar.datepicker({
+			dateFormat: 'yymmdd',
+			firstDay: 1,
+			onSelect: (dt) =>
+				@renderer.ui.open_link 'dt:'+dt
+				return false
+		});
+		handler null
+
 class Textlement extends UIElement
 
 	name: 'text'
@@ -102,6 +124,8 @@ class Textlement extends UIElement
 			ed.attr('item_id', item.id)
 			ed.attr('property', property)
 			ed.attr('option', options.text_option)
+			if config.title
+				title = $('<div/>').addClass('text_editor_title').appendTo(element).text(config.title)
 		handler null
 
 class CheckElement extends UIElement
@@ -349,7 +373,7 @@ class HeaderElement extends UIElement
 			if diff > 0
 				el.width(el.innerWidth()-diff)
 			margin += width
-		$('<div style="clear: both;"/>').appendTo(bg)
+		# $('<div style="clear: both;"/>').appendTo(bg)
 		return handler null
 
 
@@ -363,16 +387,17 @@ class ColsElement extends UIElement
 	grow: (height, config, element, options) ->
 		flow = config.flow ? []
 		maxh = 0
+		body = element.children().first()
 		for i, fl of flow
 			i = parseInt(i)
-			el = @child(element, '.col_data', i)
+			el = @child(body, '.col_data', i).children().first()
 			type = @renderer.get(fl.type)
 			h = 0
 			if type.canGrow fl
 				h = type.grow height, fl, el, options
 				# log 'cols grow', i, h, height, fl.type, fl, type
 			else
-				h = el.outerHeight true
+				h = @fullHeight el, config
 				# log 'cols fixed', i, h, height, fl, type
 			if h>maxh then maxh = h
 		maxh
@@ -382,9 +407,9 @@ class ColsElement extends UIElement
 		sizes = config.size ? []
 		if flow.length isnt sizes.length then return handler
 
-		w = element.innerWidth()-4
-		if not options.empty
-			element.addClass('group')
+		w = element.innerWidth()
+		element.addClass('group')
+		body = $('<div/>').addClass('col_body').appendTo(element)
 		float_size = 0
 		if config.space
 			float_size += config.space*(flow.length-1)
@@ -405,27 +430,34 @@ class ColsElement extends UIElement
 			i = parseInt(i)
 			last = i is flow.length-1
 			el = null
-			if not options.empty
-				# First run - create all divs
-				if i>0 and config.space
-					#Create space between cols
-					$('<div/>').appendTo(element).addClass('col').width(space_size).html('&nbsp;')
-					margin += space_size
-				width = lsizes[i]
-				if last
-					# Fix last col
-					width = w-margin
-				el = $('<div/>').addClass('col col_data').appendTo(element).width(width)
-				diff = el.outerWidth() - el.innerWidth()
-				if diff > 0
-					el.width(el.innerWidth()-diff)
-				if last
-					$('<div style="clear: both;"/>').appendTo(element)
-				margin += width
-			else
-				el = @child(element, '.col_data', i)
+			el_body = null
+			# First run - create all divs
+			if i>0 and config.space
+				#Create space between cols
+				$('<div/>').appendTo(body).addClass('col').width(space_size).html('&nbsp;')
+				margin += space_size
+			width = lsizes[i]
+			if last
+				# Fix last col
+				width = w-margin
+			el = $('<div/>').addClass('col col_data').appendTo(body)
+			el_body = $('<div/>').appendTo(el).addClass 'col_item'
+			margin += width
+			if fl.line>0
+				width -= fl.line
+				el.addClass('col_'+fl.line)
+			# if fl.border>0
+			# 	width -= fl.border*2
+			if fl.bg
+				el.addClass('col_g')
+			el.width width
+			diff = el.outerWidth() - el.innerWidth()
+			# if diff > 0
+			# 	el.width(el.innerWidth()-diff)
+			# if last
+			# 	$('<div style="clear: both;"/>').appendTo(element)
 			do (last) =>
-				@renderer.get(fl.type).render item, fl, el, options, () =>
+				@renderer.get(fl.type).render item, fl, el_body, options, () =>
 					if last
 						handler null
 
@@ -434,10 +466,10 @@ class ListElement extends UIElement
 	name: 'list'
 
 	grow: (height, config, element, options) ->
-		nowHeight = element.outerHeight true
-		emptyHeight = @child(element, '.list_item', -1).outerHeight true
+		nowHeight = @fullHeight element, config
+		emptyHeight = @fullHeight @child(element, '.list_item', -1), config, yes
 		added = Math.floor((height - nowHeight) / emptyHeight)
-		# log 'list grow:', height, nowHeight, emptyHeight, added
+		# log 'list grow:', height, nowHeight, emptyHeight, added, nowHeight+added*emptyHeight
 		for i in [0...added]
 			# log 'Render empty', i, added, nowHeight, emptyHeight, height, config, element
 			@_render {area: config.area}, config.item, element, {disabled: true, delimiter: config.delimiter}, (el) =>
@@ -487,7 +519,8 @@ class ListElement extends UIElement
 		flow = config.flow ? []
 		@renderer.items config.area, (items) =>
 			for i, itm of items
-				@_render itm, config.item, element, {disable: false, draggable: true}, () =>
+				i = parseInt i
+				@_render itm, config.item, element, {disable: false, draggable: true, delimiter: if i>0 then config.delimiter else null}, () =>
 			@_render {area: config.area}, config.item, element, {disable: false, empty: true, delimiter: if items.length>0 then config.delimiter else null}, () =>
 				handler null
 
@@ -511,6 +544,7 @@ class Renderer
 			new MarkElement this
 			new DateElement this
 			new TimeElement this
+			new CalendarElement this
 		]
 		@root.data('sheet', @data)
 
@@ -647,7 +681,7 @@ class Renderer
 
 	fix_height: (handler) ->
 		if not @size_too_big()
-			@get(@template.name).grow @root.innerHeight()-52*2, @template, @content, {empty: true, disabled: true}
+			@get(@template.name).grow @root.innerHeight()-50, @template, @content, {empty: true, disabled: true}
 		@prev_content.remove()
 		@root.removeClass 'page_render'
 		sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(@root)
@@ -661,6 +695,7 @@ class Renderer
 		archive_toggle.bind 'click', () =>
 			@show_archived = not @show_archived
 			@render null
+		# $('<div/>').addClass('page_frame').appendTo(@root)
 		if handler then handler null
 	
 	_load_items: (handler) ->

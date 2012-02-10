@@ -82,10 +82,19 @@ body {
 }
 
 .page_content {
-	width: 26em;
-	margin: 2em;
+	width: 350px;
+	margin: 25px;
 	position: absolute;
 	background-color: #ffffff;
+}
+
+.page_frame {
+	border: 1px solid #0000ff;
+	position: absolute;
+	left: 25px;
+	top: 25px;
+	bottom: 25px;
+	right: 25px;
 }
 
 .page {
@@ -93,8 +102,8 @@ body {
 	font-size: 1.1em;
 	margin-right: 20px;
 	border: 1px solid #aaaaaa;
-	width: 30em;
-	height: 45em;
+	width: 400px;
+	height: 570px;
 	float: left;
 	overflow: auto;
 	position: relative;
@@ -109,43 +118,47 @@ body {
 	margin-left: 0.5em;
 	border-bottom: 1px solid #222222;
 	width: 100%;
-	min-width: 5em;
+	min-width: 50px;
 }
 
 .hr {
-	height: 1.4em;
+	height: 14px;
 	border: 1px solid #222222;
 	background-color: #aaaaaa;
-	margin-top: 0.5em;
-	margin-bottom: 0.5em;
+	margin-top: 5px;
+	margin-bottom: 8px;
 }
 
 .title1_bg {
-	margin-top: 0.5em;
-	margin-bottom: 0.5em;
+	margin-top: 5px;
+	margin-bottom: 5px;
 	background-color: #dddddd;
-	height: 1em;
-	border-top-right-radius: 1em;
+	height: 12px;
+	border-top-right-radius: 12px;
 }
 
 .title1 {
 	background-color: #ffffff;
 	position: relative;
-	top: -0.3em;
+	top: -3px;
 	padding: 1px;
-	padding-left: 0.5em;
+	padding-left: 5px;
 	border: 1px solid #222222;
 	float: left;
 	width: 50%;
 }
 
-.disabled {
-	opacity: 0.5;
+.text_editor {
+	margin-left: 3px;
+	min-height: 15px;
 }
 
-.text_editor {
-	margin-left: 0.3em;
-	min-height: 1.5em;
+.text_editor_title {
+	position: absolute;
+	right: 1px;
+	top: 1px;
+	font-size: 0.75em;
+	color: #808080;
 }
 
 .list_item {
@@ -154,7 +167,7 @@ body {
 }
 
 .list_item_handle {
-	width: 1.5em;
+	width: 10px;
 	height: 100%;
 	background-color: #ffffff;
 	display: none;
@@ -166,17 +179,10 @@ body {
 }
 
 .list_item_handle_left {
-	left: -1.5em;
-	border-top-left-radius: 0.8em;
-	border-bottom-left-radius: 0.8em;
+	left: -10px;
+	border-top-left-radius: 10px;
+	border-bottom-left-radius: 10px;
 	border-right: 0px;
-}
-
-.list_item_handle_right {
-	right: -1.5em;
-	border-top-right-radius: 0.8em;
-	border-bottom-right-radius: 0.8em;
-	border-left: 0px;
 }
 
 .list_item_drop {
@@ -191,10 +197,9 @@ body {
 }
 
 .check_editor {
-	width: 1.1em;
-	height: 1.1em;
-	margin-left: -0.5em;
-	margin-top: 1px;
+	width: 12px;
+	height: 12px;
+	margin: 1px;
 	position: relative;
 	border: 1px solid #dddddd;
 	background-color: #ffffff;
@@ -206,14 +211,13 @@ body {
 }
 
 .check_inset {
-	margin-left: 0.5em;
+	margin-left: 5px;
 }
 
 .mark_editor {
-	width: 1em;
-	height: 1em;
-	margin-left: 0.2em;
-	margin-top: 0.2em;
+	width: 12px;
+	height: 12px;
+	margin: 1px;
 	position: relative;
 	border: 1px solid #dddddd;
 	background-color: #ffffff;
@@ -229,20 +233,29 @@ body {
 }
 
 .date_editor {
-	min-height: 1.5em;
+	min-height: 15px;
 	text-align: center;
 	cursor: pointer;
 }
 
 .time_editor {
-	min-height: 1.5em;
+	min-height: 15px;
 	text-align: center;
 	cursor: pointer;
 }
 
+.col_body {
+	display: table-row;
+}
+
+.col_item {
+	position: relative;
+}
+
 .col {
-	float: left;
-	height: auto;
+	display: table-cell;
+	vertical-align: top;
+	height: 100%;
 }
 .ui-datepicker {
 	z-index: 5 !important;
@@ -317,6 +330,10 @@ li {
 	border: 1px solid #dddddd;
 	width: 150px;
 	cursor: pointer;
+}
+
+.simple {
+	position: relative;
 }
 
 .sheet {
@@ -479,6 +496,7 @@ li {
 .title2 {
 	border: 2px solid #222222;
 	padding: 2px;
+	margin-bottom: 5px;
 }
 
 .title2_text {
@@ -491,6 +509,7 @@ li {
 }
 
 .title3_text {
+	margin-left: 2px;
 	font-size: 0.75em;
 }
 
@@ -540,7 +559,7 @@ li {
 
 .page_navigator {
 	font-size: 1.1em;
-	height: 45em;
+	height: 568px;
 	float: left;
 	width: 110px;
 	overflow: visible;
@@ -607,4 +626,14 @@ li {
 
 .delimiter_2 {
 	border-top: 1px dashed #dddddd;
+}
+
+.calendar_element {
+	width: 100%;
+	margin-bottom: 10px;
+	position: relative;
+}
+
+.ui-datepicker-inline {
+	margin: 0pt auto;
 }

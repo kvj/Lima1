@@ -1,5 +1,5 @@
 (function() {
-  var CheckElement, ColsElement, DateElement, HRElement, HeaderElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, TimeElement, Title1Element, Title2Element, Title3Element, TitleElement, UIElement, __id,
+  var CalendarElement, CheckElement, ColsElement, DateElement, HRElement, HeaderElement, ListElement, MarkElement, Renderer, SimpleElement, Textlement, TimeElement, Title1Element, Title2Element, Title3Element, TitleElement, UIElement, __id,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; },
     __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
@@ -38,6 +38,14 @@
       return height;
     };
 
+    UIElement.prototype.fullHeight = function(element, config, canHaveDelimiter) {
+      var w;
+      if (canHaveDelimiter == null) canHaveDelimiter = false;
+      w = element.outerHeight(element, true);
+      if (canHaveDelimiter && config.delimiter) w++;
+      return w;
+    };
+
     return UIElement;
 
   })();
@@ -54,8 +62,12 @@
 
     SimpleElement.prototype.name = 'simple';
 
-    SimpleElement.prototype.canGrow = function() {
-      return true;
+    SimpleElement.prototype.canGrow = function(config) {
+      if (config && config.grow === 'no') {
+        return false;
+      } else {
+        return true;
+      }
     };
 
     SimpleElement.prototype.grow = function(height, config, element, options) {
@@ -72,26 +84,26 @@
         el = this.child(element, '.simple', i);
         type = this.renderer.get(fl.type);
         if (type.canGrow(fl)) {
-          floatHeight += el.outerHeight(true);
+          floatHeight += this.fullHeight(el, config, i > 0);
           floats++;
         } else {
-          fixedHeight += el.outerHeight(true);
+          fixedHeight += this.fullHeight(el, config, i > 0);
         }
       }
       if (floats > 0) {
         for (i in flow) {
           fl = flow[i];
           i = parseInt(i);
-          el = this.child(element, '.simple', i);
           type = this.renderer.get(fl.type);
+          el = this.child(element, '.simple', i);
           if (type.canGrow(fl) && floats > 0) {
-            freeHeight = height - fixedHeight - floatHeight;
+            freeHeight = height - element.innerHeight();
             floatPlus = Math.floor(freeHeight / floats);
-            thisHeight = el.outerHeight(true);
-            newHeight = type.grow(thisHeight + floatPlus, fl, el, options);
+            thisHeight = this.fullHeight(el, config, i > 0);
+            type.grow(thisHeight + floatPlus, fl, el, options);
+            newHeight = this.fullHeight(el, config, i > 0);
             fixedHeight += newHeight;
             floatHeight -= thisHeight;
-            log('simple grow:', id, thisHeight + floatPlus, newHeight - el.outerHeight(true), element.outerHeight(true), i, height, freeHeight);
             floats--;
           }
         }
@@ -154,6 +166,35 @@
 
   })(UIElement);
 
+  CalendarElement = (function(_super) {
+
+    __extends(CalendarElement, _super);
+
+    function CalendarElement() {
+      CalendarElement.__super__.constructor.apply(this, arguments);
+    }
+
+    CalendarElement.prototype.name = 'calendar';
+
+    CalendarElement.prototype.render = function(item, config, element, options, handler) {
+      var calendar,
+        _this = this;
+      calendar = $('<div/>').addClass('calendar_element').appendTo(element);
+      calendar.datepicker({
+        dateFormat: 'yymmdd',
+        firstDay: 1,
+        onSelect: function(dt) {
+          _this.renderer.ui.open_link('dt:' + dt);
+          return false;
+        }
+      });
+      return handler(null);
+    };
+
+    return CalendarElement;
+
+  })(UIElement);
+
   Textlement = (function(_super) {
 
     __extends(Textlement, _super);
@@ -165,7 +206,7 @@
     Textlement.prototype.name = 'text';
 
     Textlement.prototype.render = function(item, config, element, options, handler) {
-      var ed, el, property;
+      var ed, el, property, title;
       if (options.empty) return handler(null);
       el = $('<div/>').addClass('text_editor').appendTo(element);
       if (config.edit && !options.readonly) {
@@ -174,6 +215,9 @@
         ed.attr('item_id', item.id);
         ed.attr('property', property);
         ed.attr('option', options.text_option);
+        if (config.title) {
+          title = $('<div/>').addClass('text_editor_title').appendTo(element).text(config.title);
+        }
       }
       return handler(null);
     };
@@ -569,7 +613,6 @@
         if (diff > 0) el.width(el.innerWidth() - diff);
         margin += width;
       }
-      $('<div style="clear: both;"/>').appendTo(bg);
       return handler(null);
     };
 
@@ -592,19 +635,20 @@
     };
 
     ColsElement.prototype.grow = function(height, config, element, options) {
-      var el, fl, flow, h, i, maxh, type, _ref;
+      var body, el, fl, flow, h, i, maxh, type, _ref;
       flow = (_ref = config.flow) != null ? _ref : [];
       maxh = 0;
+      body = element.children().first();
       for (i in flow) {
         fl = flow[i];
         i = parseInt(i);
-        el = this.child(element, '.col_data', i);
+        el = this.child(body, '.col_data', i).children().first();
         type = this.renderer.get(fl.type);
         h = 0;
         if (type.canGrow(fl)) {
           h = type.grow(height, fl, el, options);
         } else {
-          h = el.outerHeight(true);
+          h = this.fullHeight(el, config);
         }
         if (h > maxh) maxh = h;
       }
@@ -612,13 +656,14 @@
     };
 
     ColsElement.prototype.render = function(item, config, element, options, handler) {
-      var diff, el, fl, float_size, flow, i, index, last, lsizes, margin, sizes, space_size, sz, w, width, _i, _len, _ref, _ref2, _results,
+      var body, diff, el, el_body, fl, float_size, flow, i, index, last, lsizes, margin, sizes, space_size, sz, w, width, _i, _len, _ref, _ref2, _results,
         _this = this;
       flow = (_ref = config.flow) != null ? _ref : [];
       sizes = (_ref2 = config.size) != null ? _ref2 : [];
       if (flow.length !== sizes.length) return handler;
-      w = element.innerWidth() - 4;
-      if (!options.empty) element.addClass('group');
+      w = element.innerWidth();
+      element.addClass('group');
+      body = $('<div/>').addClass('col_body').appendTo(element);
       float_size = 0;
       if (config.space) float_size += config.space * (flow.length - 1);
       lsizes = [];
@@ -643,23 +688,25 @@
         i = parseInt(i);
         last = i === flow.length - 1;
         el = null;
-        if (!options.empty) {
-          if (i > 0 && config.space) {
-            $('<div/>').appendTo(element).addClass('col').width(space_size).html('&nbsp;');
-            margin += space_size;
-          }
-          width = lsizes[i];
-          if (last) width = w - margin;
-          el = $('<div/>').addClass('col col_data').appendTo(element).width(width);
-          diff = el.outerWidth() - el.innerWidth();
-          if (diff > 0) el.width(el.innerWidth() - diff);
-          if (last) $('<div style="clear: both;"/>').appendTo(element);
-          margin += width;
-        } else {
-          el = this.child(element, '.col_data', i);
+        el_body = null;
+        if (i > 0 && config.space) {
+          $('<div/>').appendTo(body).addClass('col').width(space_size).html('&nbsp;');
+          margin += space_size;
         }
+        width = lsizes[i];
+        if (last) width = w - margin;
+        el = $('<div/>').addClass('col col_data').appendTo(body);
+        el_body = $('<div/>').appendTo(el).addClass('col_item');
+        margin += width;
+        if (fl.line > 0) {
+          width -= fl.line;
+          el.addClass('col_' + fl.line);
+        }
+        if (fl.bg) el.addClass('col_g');
+        el.width(width);
+        diff = el.outerWidth() - el.innerWidth();
         _results.push((function(last) {
-          return _this.renderer.get(fl.type).render(item, fl, el, options, function() {
+          return _this.renderer.get(fl.type).render(item, fl, el_body, options, function() {
             if (last) return handler(null);
           });
         })(last));
@@ -684,8 +731,8 @@
     ListElement.prototype.grow = function(height, config, element, options) {
       var added, emptyHeight, i, nowHeight,
         _this = this;
-      nowHeight = element.outerHeight(true);
-      emptyHeight = this.child(element, '.list_item', -1).outerHeight(true);
+      nowHeight = this.fullHeight(element, config);
+      emptyHeight = this.fullHeight(this.child(element, '.list_item', -1), config, true);
       added = Math.floor((height - nowHeight) / emptyHeight);
       for (i = 0; 0 <= added ? i < added : i > added; 0 <= added ? i++ : i--) {
         this._render({
@@ -766,9 +813,11 @@
         var i, itm;
         for (i in items) {
           itm = items[i];
+          i = parseInt(i);
           _this._render(itm, config.item, element, {
             disable: false,
-            draggable: true
+            draggable: true,
+            delimiter: i > 0 ? config.delimiter : null
           }, function() {});
         }
         return _this._render({
@@ -798,7 +847,7 @@
       this.template = template;
       this.data = data;
       this.env = env;
-      this.elements = [new SimpleElement(this), new TitleElement(this), new HRElement(this), new Title1Element(this), new Title2Element(this), new Title3Element(this), new HeaderElement(this), new ColsElement(this), new ListElement(this), new Textlement(this), new CheckElement(this), new MarkElement(this), new DateElement(this), new TimeElement(this)];
+      this.elements = [new SimpleElement(this), new TitleElement(this), new HRElement(this), new Title1Element(this), new Title2Element(this), new Title3Element(this), new HeaderElement(this), new ColsElement(this), new ListElement(this), new Textlement(this), new CheckElement(this), new MarkElement(this), new DateElement(this), new TimeElement(this), new CalendarElement(this)];
       this.root.data('sheet', this.data);
     }
 
@@ -997,7 +1046,7 @@
       var archive_toggle, page_actions, sleft, sright,
         _this = this;
       if (!this.size_too_big()) {
-        this.get(this.template.name).grow(this.root.innerHeight() - 52 * 2, this.template, this.content, {
+        this.get(this.template.name).grow(this.root.innerHeight() - 50, this.template, this.content, {
           empty: true,
           disabled: true
         });
