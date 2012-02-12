@@ -8,9 +8,12 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.kvj.lima1.android.ui.R;
+import org.kvj.lima1.android.ui.manager.EditorInfo;
 import org.kvj.lima1.android.ui.manager.UIManager;
 
 import android.util.Log;
+import android.view.View;
+import android.view.View.OnFocusChangeListener;
 import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
@@ -29,6 +32,7 @@ public class Renderer {
 	protected int nextID = 0;
 	protected LinearLayout pageLayout = null;
 	protected RenderState renderState = RenderState.Initial;
+	private int pageHeight = 0;
 
 	private static Map<String, UIElement> elements = new HashMap<String, UIElement>();
 	private static SimpleElement simpleElement;
@@ -62,30 +66,47 @@ public class Renderer {
 		pageLayout = new LinearLayout(root.getContext()) {
 			@Override
 			protected void onLayout(boolean changed, int l, int t, int r, int b) {
-				super.onLayout(changed, l, t, r, b);
+				Log.i(TAG, "onLayout: " + renderState + ", " + changed);
 				if (renderState != RenderState.Initial) {
+					super.onLayout(changed, l, t, r, b);
 					return;
 				}
 				renderState = RenderState.Growing;
 				if (changed) {
-					UIElementOptions options = new UIElementOptions();
+					final UIElementOptions options = new UIElementOptions();
 					options.empty = true;
 					try {
-						int rootWidth = root.getMeasuredWidth();
-						int rootHeight = root.getMeasuredHeight();
-						if (rootHeight < SQRT_2 * rootWidth) {
-							rootHeight = (int) (SQRT_2 * rootWidth);
+						if (0 == pageHeight) {
+							int rootWidth = root.getMeasuredWidth();
+							int rootHeight = root.getMeasuredHeight();
+							if (rootHeight < SQRT_2 * rootWidth) {
+								rootHeight = (int) (SQRT_2 * rootWidth);
+							}
+							pageHeight = rootHeight;
 						}
 						int h = pageLayout.getMeasuredHeight();
-						if (h < rootHeight) {
-							get(null).grow(rootHeight, Renderer.this, template,
-									pageLayout, options);
+						Log.i(TAG, "Before grow: " + pageHeight + ", " + h);
+						if (h < pageHeight) {
+							post(new Runnable() {
+
+								public void run() {
+									try {
+										get(null).grow(pageHeight,
+												Renderer.this, template,
+												pageLayout, options);
+									} catch (Exception e) {
+										e.printStackTrace();
+									}
+									Log.i(TAG, "Second layout...");
+								}
+							});
 						}
-						// Log.i(TAG, "Resize done");
+						Log.i(TAG, "Resize done: " + pageHeight + ", " + h);
 					} catch (Exception e) {
 						Log.e(TAG, "Error adding: ", e);
 					}
 				}
+				super.onLayout(changed, l, t, r, b);
 			}
 		};
 		pageLayout.setBackgroundResource(R.color.white_bg);
@@ -107,6 +128,7 @@ public class Renderer {
 		elements.put("cols", new ColsElement());
 		elements.put("title1", new Title1Element());
 		elements.put("list", new ListElement());
+		elements.put("calendar", new CalendarElement());
 	}
 
 	public void applyDefaults(JSONObject jsonObject, JSONObject item)
@@ -130,5 +152,15 @@ public class Renderer {
 
 	public String replace(String text, JSONObject item) {
 		return ui.replace(text, item);
+	}
+
+	protected void setupTextEditor(final EditorInfo info) {
+		info.editor.setOnFocusChangeListener(new OnFocusChangeListener() {
+
+			public void onFocusChange(View v, boolean hasFocus) {
+				// Log.i(TAG, "Focus: " + hasFocus + ", " + info.field);
+				ui.textEditorFocus(hasFocus, info);
+			}
+		});
 	}
 }

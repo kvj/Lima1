@@ -32,11 +32,19 @@ import android.util.Log;
 
 public class SyncController implements OAuthProviderListener {
 
+	public static interface SyncControllerListener {
+
+		public void syncStarted();
+
+		public void syncCompleted(String error);
+	}
+
 	private static final int LOGIN_ID = 1;
 	private static final String TAG = "Sync";
 	private HttpClientTransport transport;
 	private OAuthProvider net;
 	private Map<String, AppInfo> infos = new HashMap<String, AppInfo>();
+	private SyncControllerListener listener = null;
 
 	public SyncController(Lima1SyncApp context) {
 		this.transport = new HttpClientTransport();
@@ -51,7 +59,7 @@ public class SyncController implements OAuthProviderListener {
 	public void onNeedToken() {
 		NotificationManager notificationManager = (NotificationManager) Lima1SyncApp
 				.getInstance().getSystemService(Context.NOTIFICATION_SERVICE);
-		Notification notification = new Notification(R.drawable.ic_launcher,
+		Notification notification = new Notification(R.drawable.ic_login,
 				"Lima1", System.currentTimeMillis());
 		PendingIntent intent = PendingIntent.getActivity(
 				Lima1SyncApp.getInstance(), 0,
@@ -81,6 +89,9 @@ public class SyncController implements OAuthProviderListener {
 		AppInfo info = getInfo(app);
 		if (null == info.db) {
 			return "DB error";
+		}
+		if (null != listener) {
+			listener.syncStarted();
 		}
 		try {
 			info.db.getDatabase().beginTransaction();
@@ -176,9 +187,15 @@ public class SyncController implements OAuthProviderListener {
 					new String[] { "3" });
 			info.db.getDatabase().setTransactionSuccessful();
 			Log.i(TAG, "Sync done: out: " + itemSent + ", in: " + itemReceived);
+			if (null != listener) {
+				listener.syncCompleted(null);
+			}
 			return null;
 		} catch (Exception e) {
 			e.printStackTrace();
+			if (null != listener) {
+				listener.syncCompleted("Error in sync");
+			}
 			return e.getMessage();
 		} finally {
 			info.db.getDatabase().endTransaction();
@@ -400,4 +417,9 @@ public class SyncController implements OAuthProviderListener {
 			return null;
 		}
 	}
+
+	public void setListener(SyncControllerListener listener) {
+		this.listener = listener;
+	}
+
 }

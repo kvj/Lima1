@@ -4,4 +4,5 @@ public class UIElementOptions {
 	protected boolean empty = false;
 	protected boolean disabled = false;
 	protected boolean firstPass = false;
+	public String type = "sheets";
 }

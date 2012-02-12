@@ -3,7 +3,9 @@ package org.kvj.lima1.android.ui.page;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.kvj.lima1.android.ui.R;
+import org.kvj.lima1.android.ui.manager.EditorInfo;
 
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import android.widget.EditText;
 import android.widget.RelativeLayout;
@@ -27,17 +29,17 @@ public class TitleElement extends UIElement {
 		LayoutParams titleParams = new LayoutParams(LayoutParams.WRAP_CONTENT,
 				LayoutParams.WRAP_CONTENT);
 		layout.addView(title, titleParams);
-		EditText editor = new EditText(element.getContext());
-		editor.setBackgroundResource(R.color.opacity);
-		editor.setPadding(2, 0, 0, 0);
-		editor.setTextSize(15);
-		editor.setTextColor(0xff000000);
+		String property = renderer.replace(config.optString("edit"), item);
+		EditText editor = (EditText) LayoutInflater.from(element.getContext())
+				.inflate(R.layout.text_item, element, false);
+		renderer.setupTextEditor(new EditorInfo(editor, item, options.type,
+				property, options.empty));
 		LayoutParams editorParams = new LayoutParams(LayoutParams.FILL_PARENT,
 				LayoutParams.WRAP_CONTENT);
 		editorParams.addRule(RelativeLayout.RIGHT_OF, title.getId());
 		layout.addView(editor, editorParams);
 		title.setText(renderer.inject(config.optString("name"), item));
-		editor.setText(renderer.replace(config.optString("edit"), item));
+		editor.setText(item.optString(property, ""));
 	}
 
 }

@@ -36,6 +36,8 @@ public class UIManager {
 	ViewGroup root = null;
 	UIManagerDataProvider provider = null;
 	PJSONObject[] notes = null;
+	boolean showArchived = false;
+	EditorInfo editorInfo = null;
 
 	Pattern injectPattern = Pattern.compile("\\$\\{([a-z\\@]+)\\:"
 			+ VALUE_PATTERN + "\\}");
@@ -43,6 +45,7 @@ public class UIManager {
 			+ "$");
 	Pattern linkPattern = Pattern.compile("^([a-z\\@]+)\\:" + VALUE_PATTERN
 			+ "$");
+	private Renderer renderer = null;
 
 	public UIManager(ViewGroup root, UIManagerDataProvider provider) {
 		this.root = root;
@@ -88,7 +91,7 @@ public class UIManager {
 	protected void render(JSONObject template, JSONObject sheet, int place)
 			throws JSONException {
 		notes = null;
-		Renderer renderer = new Renderer(null, this, root, template, sheet);
+		renderer = new Renderer(null, this, root, template, sheet);
 		renderer.render();
 	}
 
@@ -186,10 +189,39 @@ public class UIManager {
 		for (int i = 0; i < notes.length; i++) {
 			JSONObject note = notes[i];
 			if (null != area && area.equals(note.optString("area"))) {
+				if (!showArchived && 1 == note.optInt("done")) {
+					continue;
+				}
 				result.add(note);
 			}
 		}
 		return result;
 	}
 
+	public void toggleArchived() {
+		showArchived = !showArchived;
+		redraw();
+	}
+
+	public void textEditorFocus(boolean hasFocus, EditorInfo info) {
+		if (hasFocus) {
+			editorInfo = info;
+		} else {
+			editorInfo = null;
+		}
+	}
+
+	public EditorInfo getEditorInfo() {
+		return editorInfo;
+	}
+
+	public void redraw() {
+		if (null != renderer) {
+			try {
+				renderer.render();
+			} catch (JSONException e) {
+				e.printStackTrace();
+			}
+		}
+	}
 }

@@ -14,7 +14,6 @@ public class ListElement extends UIElement {
 	private LinearLayout newElement(Renderer renderer, JSONObject item,
 			JSONObject config, ViewGroup element, UIElementOptions options,
 			boolean disabled) throws JSONException {
-		LinearLayout el = new LinearLayout(element.getContext());
 		// if (!disabled) {
 		// el.setOnTouchListener(new OnTouchListener() {
 		//
@@ -37,18 +36,21 @@ public class ListElement extends UIElement {
 		// }
 		// });
 		// }
+		LinearLayout el = new LinearLayout(element.getContext());
 		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
 				LinearLayout.LayoutParams.MATCH_PARENT,
 				LinearLayout.LayoutParams.WRAP_CONTENT);
 		el.setOrientation(LinearLayout.VERTICAL);
 		el.setBackgroundResource(R.color.opacity);
-		style(el, config.optJSONObject("config"), params);
+		// style(el, config.optJSONObject("config"), params);
 		element.addView(el, params);
 		LinearLayout parent = (LinearLayout) element;
 		parent.forceLayout();
 		UIElementOptions options2 = new UIElementOptions();
 		options2.disabled = disabled;
-		renderer.get(null).render(renderer, item, config, el, options2);
+		options2.type = "notes";
+		renderer.get(null).render(renderer, item, config.getJSONObject("item"),
+				el, options2);
 		return el;
 	}
 
@@ -57,10 +59,16 @@ public class ListElement extends UIElement {
 	@Override
 	protected int grow(int height, Renderer renderer, JSONObject config,
 			ViewGroup element, UIElementOptions options) throws JSONException {
+		ViewGroup root = (ViewGroup) element.getChildAt(0);
 		String area = config.optString("area", "main");
-		int emptyViewHeight = getFullHeight(element.getChildAt(element
+		int emptyViewHeight = getFullHeight(root.getChildAt(root
 				.getChildCount() - 1));
-		int nowHeight = getFullHeight(element);
+		if (root.getChildCount() == 1
+				&& !"".equals(config.optString("delimiter"))) {
+			emptyViewHeight += element.getContext().getResources()
+					.getDisplayMetrics().density;
+		}
+		int nowHeight = getFullHeight(root);
 
 		int added = (int) Math.floor((height - nowHeight) / emptyViewHeight);
 		// Log.i(TAG, "Grow: height: " + height + ", nowHeight: " + nowHeight
@@ -69,7 +77,9 @@ public class ListElement extends UIElement {
 			JSONObject empty = new JSONObject();
 			empty.put("area", area);
 			nowHeight += emptyViewHeight;
-			newElement(renderer, empty, config, element, options, true);
+			ViewGroup child = newElement(renderer, empty, config, root,
+					options, true);
+			styleDelimiter(child, config);
 		}
 		return nowHeight;
 	}
@@ -86,15 +96,34 @@ public class ListElement extends UIElement {
 	protected void render(Renderer renderer, JSONObject item,
 			JSONObject config, ViewGroup element, UIElementOptions options)
 			throws JSONException {
+		LinearLayout root = new LinearLayout(element.getContext());
+		LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.MATCH_PARENT,
+				LinearLayout.LayoutParams.WRAP_CONTENT);
+		root.setOrientation(LinearLayout.VERTICAL);
+		root.setBackgroundResource(R.color.opacity);
+		styleGrid(root, config, params);
+		element.addView(root, params);
 		String area = config.optString("area", "main");
 		List<JSONObject> items = renderer.items(area);
 		for (int i = 0; i < items.size(); i++) {
 			JSONObject itm = items.get(i);
-			newElement(renderer, itm, config, element, options, false);
+			ViewGroup child = newElement(renderer, itm, config, root, options,
+					false);
+			if (i > 0) {
+				styleDelimiter(child, config);
+			}
 		}
 		JSONObject empty = new JSONObject();
 		empty.put("area", area);
-		newElement(renderer, empty, config, element, options, false);
+		empty.put("sheet_id", item.getLong("id"));
+		ViewGroup child = newElement(renderer, empty, config, root, options,
+				false);
+		if (items.size() > 0) {
+			styleDelimiter(child, config);
+			// } else {
+			// child.setBackgroundResource(R.drawable.delimiter_0);
+		}
 		element.setTag(R.id.empty_items, new Integer(0));
 	}
 

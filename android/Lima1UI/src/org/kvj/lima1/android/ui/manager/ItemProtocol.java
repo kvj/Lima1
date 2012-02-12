@@ -6,6 +6,6 @@ public class ItemProtocol extends PageProtocol {
 
 	@Override
 	public String convert(String text, JSONObject value) {
-		return value.optString(text, "");
+		return text;
 	}
 }

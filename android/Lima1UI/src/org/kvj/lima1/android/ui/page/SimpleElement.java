@@ -6,6 +6,7 @@ import org.json.JSONObject;
 import org.kvj.lima1.android.ui.R;
 
 import android.view.ViewGroup;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 
 public class SimpleElement extends UIElement {
@@ -19,6 +20,8 @@ public class SimpleElement extends UIElement {
 		if (config.has("defaults")) {
 			renderer.applyDefaults(config.getJSONObject("defaults"), item);
 		}
+		styleGrid(element, config,
+				(MarginLayoutParams) element.getLayoutParams());
 		JSONArray flow = config.optJSONArray("flow");
 		if (null == flow) {
 			flow = new JSONArray();
@@ -32,7 +35,9 @@ public class SimpleElement extends UIElement {
 			LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
 					LinearLayout.LayoutParams.MATCH_PARENT,
 					LinearLayout.LayoutParams.WRAP_CONTENT);
-			style(el, fl, params);
+			if (i > 0) {
+				styleDelimiter(el, config);
+			}
 			element.addView(el, params);
 			renderer.get(fl.optString("type")).render(renderer, item, fl, el,
 					options);
@@ -41,6 +46,9 @@ public class SimpleElement extends UIElement {
 
 	@Override
 	protected boolean canGrow(JSONObject config) {
+		if (!"yes".equals(config.optString("grow", "yes"))) {
+			return false;
+		}
 		return true;
 	}
 

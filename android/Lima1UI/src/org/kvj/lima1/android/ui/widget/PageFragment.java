@@ -3,6 +3,7 @@ package org.kvj.lima1.android.ui.widget;
 import org.json.JSONObject;
 import org.kvj.bravo7.SuperActivity;
 import org.kvj.lima1.android.ui.controller.Lima1Controller;
+import org.kvj.lima1.android.ui.manager.EditorInfo;
 import org.kvj.lima1.android.ui.manager.UIManager;
 import org.kvj.lima1.android.ui.manager.UIManager.UIManagerDataProvider;
 import org.kvj.lima1.sync.PJSONObject;
@@ -59,5 +60,17 @@ public class PageFragment extends Fragment implements UIManagerDataProvider {
 
 	public PJSONObject[] getNotes(String sheetID) {
 		return controller.getNotes(sheetID);
+	}
+
+	public void toggleArchived() {
+		manager.toggleArchived();
+	}
+
+	public EditorInfo getEditorInfo() {
+		return manager.getEditorInfo();
+	}
+
+	public void redraw() {
+		manager.redraw();
 	}
 }
