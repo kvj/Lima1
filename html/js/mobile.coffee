@@ -115,7 +115,7 @@ class MobileUIManager
 					if not p then continue
 					p.prepare sheet, sheet.code
 			$(place).data('sheet_id', sheet.id)
-			height = $('#main_page').outerHeight() - $('#main_page_header').outerHeight() - 40
+			height = $('#main_page').outerHeight() - $('#main_page_header').outerHeight() - $('#main_page_footer').outerHeight() - 40
 			renderer = new Renderer @manager, this, $(place), template, sheet, height
 			renderer.on_sheet_change = () =>
 				@load_sheets no

@@ -31,3 +31,7 @@
     display: none;
     z-index: 10;
 }
+
+.text_editor {
+    font-size: 1.2em;
+}

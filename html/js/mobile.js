@@ -161,7 +161,7 @@
           }
         }
         $(place).data('sheet_id', sheet.id);
-        height = $('#main_page').outerHeight() - $('#main_page_header').outerHeight() - 40;
+        height = $('#main_page').outerHeight() - $('#main_page_header').outerHeight() - $('#main_page_footer').outerHeight() - 40;
         renderer = new Renderer(_this.manager, _this, $(place), template, sheet, height);
         renderer.on_sheet_change = function() {
           return _this.load_sheets(false);
