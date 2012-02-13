@@ -15,18 +15,20 @@
         android:targetSdkVersion="14" />
 
     <application
-        android:icon="@drawable/ic_launcher"
+        android:icon="@drawable/ic_icon"
         android:label="@string/app_name"
         android:name=".controller.Lima1App"
         android:theme="@android:style/Theme.Holo.Light" >
         <activity
             android:configChanges="keyboardHidden|orientation"
             android:label="Test page"
-            android:name=".PageActivity" >
+            android:name=".PageActivity" 
+            android:uiOptions="splitActionBarWhenNarrow"
+            android:windowSoftInputMode="adjustResize" >
         </activity>
         <activity
             android:configChanges="keyboardHidden|orientation"
-            android:label="Page list"
+            android:label="@string/app_name"
             android:name=".PageList" 
             android:uiOptions="splitActionBarWhenNarrow">
             <intent-filter >

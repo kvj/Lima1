@@ -146,4 +146,24 @@ public class Lima1Controller {
 		return new PJSONObject[0];
 	}
 
+	public String save(String type, JSONObject object) {
+		if (null == db) {
+			return "DB not available";
+		}
+		try {
+			Log.i(TAG, "Saving: " + object + ": " + type);
+			if (object.has("id")) {
+				db.update(type, new PJSONObject(object.toString()));
+			} else {
+				PJSONObject result = db.create(type,
+						new PJSONObject(object.toString()));
+				object.put("id", result.getLong("id"));
+			}
+			return null;
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "DB error";
+		}
+	}
+
 }

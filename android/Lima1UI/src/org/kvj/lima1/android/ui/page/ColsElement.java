@@ -7,6 +7,7 @@ import org.kvj.lima1.android.ui.R;
 
 import android.util.Log;
 import android.view.ViewGroup;
+import android.view.ViewGroup.MarginLayoutParams;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout.LayoutParams;
 
@@ -48,12 +49,30 @@ public class ColsElement extends UIElement {
 			sp.setBackgroundResource(R.color.opacity);
 			LinearLayout.LayoutParams spParams = new LinearLayout.LayoutParams(
 					0, LayoutParams.MATCH_PARENT, (float) sizes.getDouble(i));
-			style(sp, fl, spParams);
+			styleCol(sp, fl, spParams);
 			layout.addView(sp, spParams);
 			renderer.get(fl.optString("type")).render(renderer, item, fl, sp,
 					options);
 			// Log.i(TAG, "Add col: "+sizes.getDouble(i));
 		}
+	}
+
+	private void styleCol(ViewGroup sp, JSONObject config,
+			MarginLayoutParams layoutParams) {
+		String bg = config.optString("bg");
+		String line = config.optString("line");
+		if ("".equals(bg) && "".equals(line)) {
+			return;
+		}
+		if ("1".equals(bg) && "".equals(line)) {
+			sp.setBackgroundResource(R.drawable.col_g);
+			return;
+		}
+		if ("".equals(bg) && "1".equals(line)) {
+			sp.setBackgroundResource(R.drawable.line_w1);
+			return;
+		}
+		Log.w(TAG, "Undefined design: " + line + ", " + bg);
 	}
 
 	@Override

@@ -18,14 +18,25 @@ abstract public class UIElement {
 				+ params.bottomMargin;
 	}
 
-	protected void style(ViewGroup element, JSONObject config,
+	protected void styleDelimiter(ViewGroup element, JSONObject config) {
+		if (null == config) {
+			return;
+		}
+		String delim = config.optString("delimiter");
+		if ("1".equals(delim)) {
+			element.setBackgroundResource(R.drawable.delimiter_1);
+		}
+		if ("2".equals(delim)) {
+			element.setBackgroundResource(R.drawable.delimiter_2);
+		}
+	}
+
+	protected void styleGrid(ViewGroup element, JSONObject config,
 			MarginLayoutParams layoutParams) {
 		if (null == config) {
 			return;
 		}
-		String grid = config.optString("grid");
-		String bg = config.optString("bg");
-		// String delim = config.optString("delimiter");
+		String grid = config.optString("border");
 		if ("1".equals(grid)) {
 			element.setBackgroundResource(R.drawable.grid_1);
 			layoutParams.setMargins(0, 2, 0, 2);
@@ -33,12 +44,6 @@ abstract public class UIElement {
 		if ("2".equals(grid)) {
 			element.setBackgroundResource(R.drawable.grid_2);
 			layoutParams.setMargins(0, 3, 0, 3);
-		}
-		if ("1".equals(bg)) {
-			element.setBackgroundResource(R.color.bg1);
-		}
-		if ("2".equals(bg)) {
-			element.setBackgroundResource(R.color.bg2);
 		}
 	}
 

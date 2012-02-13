@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+
+	<item android:id="@+id/menu_save_edit"
+		android:title="Save"
+		android:showAsAction="ifRoom"/>    
+
+	<item android:id="@+id/menu_toggle_archived"
+		android:title="Toggle"
+		android:showAsAction="ifRoom"/>    
+
+	<item android:id="@+id/menu_redraw"
+		android:title="Redraw"
+		android:showAsAction="ifRoom"/>    
+	
+</menu>

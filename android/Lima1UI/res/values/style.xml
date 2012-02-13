@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="page_text_editor" parent="@android:style/Widget.EditText">
+        <item name="android:textSize">14dp</item>
+        <item name="android:autoText">true</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:imeOptions">actionDone</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:textColor">#ff222222</item>
+        <item name="android:inputType">text|textAutoCorrect|textShortMessage|textCapSentences</item>
+    </style>
+</resources>
