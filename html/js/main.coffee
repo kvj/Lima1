@@ -21,7 +21,7 @@ class HTML5Provider extends DBProvider
 		return handler 'HTML5 DB not supported' unless window and window.openDatabase
 		log 'Ready to open'
 		try
-			@db = window.openDatabase @name, '', @name, 1024 * 1024 * 10
+			@db = window.openDatabase env.prefix+@name, '', env.prefix+@name, 1024 * 1024 * 10
 			log 'Opened', @db.version, @version
 			@version_match = @db.version is @version
 			@clean = clean
@@ -98,10 +98,10 @@ class HTML5Provider extends DBProvider
 				handler null, false
 
 	get: (name, def) ->
-		return window?.localStorage[name] ? def
+		return window?.localStorage[env.prefix+name] ? def
 
 	set: (name, value) ->
-		window?.localStorage[name] = value
+		window?.localStorage[env.prefix+name] = value
 
 class StorageProvider
 
@@ -419,6 +419,12 @@ class DataManager
 			if err then return handler err
 			handler null, data
 
+	findTemplate: (id, handler) ->
+		@storage.select 'templates', ['id', id], (err, data) =>
+			if err then return handler err
+			if data.length isnt 1 then return handler 'Template not found'
+			handler null, JSON.parse(data[0].body)
+
 	findSheet: (query, handler) ->
 		@storage.select 'sheets', query, (err, data) =>
 			if err then return handler err
@@ -513,6 +519,9 @@ class DataManager
 window.HTML5Provider = HTML5Provider
 window.StorageProvider = StorageProvider
 window.DataManager = DataManager
+window.env =
+	mobile: no
+	prefix: ''
 # db = new HTML5Provider 'test.db', '1'
 # storage = new StorageProvider null, db
 # manager = new DataManager storage

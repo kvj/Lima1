@@ -69,7 +69,7 @@ class OAuthProvider
 			}
 		}, (error, data) =>
 			log 'Response:', error, data
-			if error then return handler error
+			if error then return handler data ? error
 			@token = data.access_token
 			@on_new_token @token
 			handler null, data

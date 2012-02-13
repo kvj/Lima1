@@ -101,14 +101,15 @@ class CalendarElement extends UIElement
 	name: 'calendar'
 
 	render: (item, config, element, options, handler) ->
-		calendar = $('<div/>').addClass('calendar_element').appendTo(element)
-		calendar.datepicker({
-			dateFormat: 'yymmdd',
-			firstDay: 1,
-			onSelect: (dt) =>
-				@renderer.ui.open_link 'dt:'+dt
-				return false
-		});
+		if not env.mobile
+			calendar = $('<div/>').addClass('calendar_element').appendTo(element)
+			calendar.datepicker({
+				dateFormat: 'yymmdd',
+				firstDay: 1,
+				onSelect: (dt) =>
+					@renderer.ui.open_link 'dt:'+dt
+					return false
+			});
 		handler null
 
 class Textlement extends UIElement
@@ -486,29 +487,30 @@ class ListElement extends UIElement
 			el.addClass('delimiter_'+options.delimiter)
 		if options.disabled
 			el.addClass('disabled')
-		if options.draggable
-			handle = $('<div/>').addClass('list_item_handle list_item_handle_left').appendTo(el)
-			el.bind 'mousemove', () =>
-				handle.show()
-			el.bind 'mouseout', () =>
-				handle.hide()
-			el.data('type', 'note')
-			el.data('renderer', @renderer)
-			el.data('item', item)
-			el.draggable({handle: handle, zIndex: 3, containment: 'document', helper: 'clone', appendTo: 'body'})
-		el.droppable({
-			accept: '.list_item',
-			hoverClass: 'list_item_drop',
-			tolerance: 'pointer',
-			drop: (event, ui) =>
-				drop = ui.draggable.data('item')
-				renderer = ui.draggable.data('renderer')
-				@renderer.move_note drop, item.area, (if item.id then item else null), () =>
-					if renderer isnt @renderer
-						renderer.render null
-					@renderer.render null
+		if not env.mobile
+			if options.draggable
+				handle = $('<div/>').addClass('list_item_handle list_item_handle_left').appendTo(el)
+				el.bind 'mousemove', () =>
+					handle.show()
+				el.bind 'mouseout', () =>
+					handle.hide()
+				el.data('type', 'note')
+				el.data('renderer', @renderer)
+				el.data('item', item)
+				el.draggable({handle: handle, zIndex: 3, containment: 'document', helper: 'clone', appendTo: 'body'})
+			el.droppable({
+				accept: '.list_item',
+				hoverClass: 'list_item_drop',
+				tolerance: 'pointer',
+				drop: (event, ui) =>
+					drop = ui.draggable.data('item')
+					renderer = ui.draggable.data('renderer')
+					@renderer.move_note drop, item.area, (if item.id then item else null), () =>
+						if renderer isnt @renderer
+							renderer.render null
+						@renderer.render null
 
-		})
+			})
 		@renderer.get('simple').render item, config, el, {empty: false, readonly: options.disabled, text_option: if options.empty then item.area else ''}, () =>
 			handler el
 
@@ -528,7 +530,7 @@ class Renderer
 
 	show_archived: no
 
-	constructor: (@manager, @ui, @root, @template, @data, @env) ->
+	constructor: (@manager, @ui, @root, @template, @data, @max_height) ->
 		@elements = [
 			new SimpleElement this
 			new TitleElement this
@@ -630,11 +632,9 @@ class Renderer
 	text_editor: (element, item, property, handler) ->
 		if not property
 			return null
-		element.attr('contentEditable', true)
 		old_value = item[property] ? ''
 		element.text(old_value)
-		_on_finish_edit = () =>
-			value = element.text() ? ''
+		_on_finish_edit = (value) =>
 			element.text value
 			if value is old_value
 				return
@@ -642,13 +642,27 @@ class Renderer
 				handler item, property, value
 			else
 				@on_edited item, property, value
-		element.bind 'keypress', (event) =>
-			if event.keyCode is 13
-				event.preventDefault()
-				_on_finish_edit null
-				return false
-		# element.bind 'blur', (event) =>
-		# 	_on_finish_edit null
+		if env.mobile
+			# dialog
+			element.bind 'tap', (event) =>
+				log 'Show dialog'
+				$.mobile.changePage($('#text_dialog'))
+				$('#text_editor').focus().val(old_value)
+				$('#text_save').unbind('click').bind 'click', () =>
+					$('#text_dialog').dialog('close')
+					_on_finish_edit($('#text_editor').val() ? '')
+				$('#text_remove').unbind('click').bind 'click', () =>
+					$('#text_dialog').dialog('close')
+					if item.id
+						@remove_note item
+					
+		else
+			element.attr('contentEditable', true)
+			element.bind 'keypress', (event) =>
+				if event.keyCode is 13
+					event.preventDefault()
+					_on_finish_edit(element.text() ? '')
+					return false
 		return element
 
 	render: () ->
@@ -659,14 +673,15 @@ class Renderer
 		@content = $('<div/>').addClass('page_content group').prependTo(@root)
 		if @data.archived then @content.addClass 'sheet_archived'
 		@_load_items () =>
+			log 'Items loaded'
 			@get(@template.name).render @data, @template, @content, {empty: false}, () =>
-				# log 'Fixing height'
+				log 'Fixing height'
 				@fix_height () =>
 					if focus.attr('option')
 						@root.find('.text_editor[property='+focus.attr('property')+'][option='+focus.attr('option')+']').focus()
 					else
 						@root.find('.text_editor[property='+focus.attr('property')+'][item_id='+focus.attr('item_id')+']').focus()
-					if @no_area.length>0
+					if @no_area.length>0 and not env.mobile
 						no_area_div = $('<div/>').addClass('no_area_notes').appendTo(@root)
 						for item in @no_area
 							el = $('<div/>').addClass('list_item no_area_note').appendTo(no_area_div)
@@ -676,25 +691,23 @@ class Renderer
 							el.draggable({zIndex: 4, containment: 'document', helper: 'clone', appendTo: 'body'})
 							el.attr('title', item.text)
 	
-	size_too_big: () ->
-		return @root.innerHeight()<@content.outerHeight(true)
-
 	fix_height: (handler) ->
-		if not @size_too_big()
-			@get(@template.name).grow @root.innerHeight()-50, @template, @content, {empty: true, disabled: true}
+		log 'Grow to', @max_height
+		@get(@template.name).grow @max_height, @template, @content, {empty: true, disabled: true}
 		@prev_content.remove()
 		@root.removeClass 'page_render'
-		sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(@root)
-		sleft.bind 'click', () =>
-			@ui.scroll_sheets @data.id, -1
-		sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(@root)
-		sright.bind 'click', () =>
-			@ui.scroll_sheets @data.id, 1
-		page_actions = $('<div/>').addClass('page_actions').appendTo(@root)
-		archive_toggle = $('<div/>').addClass('page_action archive_toggle').appendTo(page_actions)
-		archive_toggle.bind 'click', () =>
-			@show_archived = not @show_archived
-			@render null
+		if not env.mobile
+			sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(@root)
+			sleft.bind 'click', () =>
+				@ui.scroll_sheets @data.id, -1
+			sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(@root)
+			sright.bind 'click', () =>
+				@ui.scroll_sheets @data.id, 1
+			page_actions = $('<div/>').addClass('page_actions').appendTo(@root)
+			archive_toggle = $('<div/>').addClass('page_action archive_toggle').appendTo(page_actions)
+			archive_toggle.bind 'click', () =>
+				@show_archived = not @show_archived
+				@render null
 		# $('<div/>').addClass('page_frame').appendTo(@root)
 		if handler then handler null
 	
@@ -738,19 +751,6 @@ window.log = (params...) ->
 
 window.Renderer = Renderer
 
-$(document).ready () ->
-	Date::firstDayOfWeek = 1
-	db = new HTML5Provider 'test.db', '1.1'
-	storage = new StorageProvider null, db
-	manager = new DataManager storage
-	# 'http://localhost:8888'
-	jqnet = new jQueryTransport 'http://lima1sync.appspot.com'
-	oauth = new OAuthProvider {
-		clientID: 'lima1web'
-		token: manager.get('token')
-	}, jqnet
-	ui = new UIManager manager, oauth
-	ui.start null
 	
 	# renderer = new Renderer manager, ui, $('#page0'), wobjective, {}
 	# renderer.render null

@@ -1,5 +1,5 @@
 (function() {
-  var DateProtocol, ItemProtocol, PageNavigator, Protocol, UIManager,
+  var DateProtocol, ItemProtocol, PageNavigator, Protocol, ProtocolManager, UIManager,
     __hasProp = Object.prototype.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor; child.__super__ = parent.prototype; return child; },
     __indexOf = Array.prototype.indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; },
@@ -397,6 +397,94 @@
 
   })();
 
+  ProtocolManager = (function() {
+
+    function ProtocolManager() {
+      this.protocols = {
+        "dt": new DateProtocol(null),
+        "@": new ItemProtocol(null)
+      };
+    }
+
+    ProtocolManager.prototype.get = function(name) {
+      return this.protocols[name];
+    };
+
+    ProtocolManager.prototype.replace = function(text, item) {
+      var exp, m, name, p, value, _ref;
+      exp = /^([a-z\@]+\:)([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)$/;
+      if (m = text.match(exp)) {
+        value = '';
+        _ref = this.protocols;
+        for (name in _ref) {
+          p = _ref[name];
+          if (name + ':' === m[1]) {
+            value = p.convert(m[2], item);
+            break;
+          }
+        }
+        return value;
+      }
+      return text;
+    };
+
+    ProtocolManager.prototype.inject = function(text, item) {
+      var exp, m, name, p, value, _ref;
+      exp = /\$\{([a-z\@]+\:)([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)\}/;
+      while (m = text.match(exp)) {
+        if (!m) return text;
+        value = '';
+        _ref = this.protocols;
+        for (name in _ref) {
+          p = _ref[name];
+          if (name + ':' === m[1]) {
+            value = p.convert(m[2], item);
+            break;
+          }
+        }
+        text = text.replace(m[0], value != null ? value : '');
+      }
+      return text;
+    };
+
+    ProtocolManager.prototype.open_link = function(link, place, templates) {
+      var code, config, exp, id, m, name, p, templates_found, tmpl;
+      log('Open link', link);
+      exp = /^([a-z\@]+)\:([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)$/;
+      templates_found = [];
+      if (m = link.match(exp)) {
+        name = m[1];
+        p = this.protocols[name];
+        if (!p) return;
+        for (id in templates) {
+          tmpl = templates[id];
+          if (tmpl.protocol && tmpl.protocol[name] && tmpl.code) {
+            config = p.accept(tmpl.protocol[name], m[2]);
+            if (!config) continue;
+            code = this.inject(tmpl.code, config);
+            if (code) {
+              templates_found.push({
+                code: code,
+                template_id: id
+              });
+            }
+          }
+        }
+      }
+      log('Templates found:', templates_found);
+      if (templates_found.length === 0) {
+        return ['No templates matching link', null, null];
+      }
+      if (templates_found.length === 1) {
+        return [null, templates_found[0].code, templates_found[0].template_id];
+      }
+      if (templates_found.length > 1) return ['Too many templates', null, null];
+    };
+
+    return ProtocolManager;
+
+  })();
+
   UIManager = (function() {
 
     UIManager.prototype.archive_state = null;
@@ -407,10 +495,7 @@
       this.manager = manager;
       this.oauth = oauth;
       this.scroll_sheets = __bind(this.scroll_sheets, this);
-      this.protocols = {
-        "dt": new DateProtocol(null),
-        "@": new ItemProtocol(null)
-      };
+      this.protocols = new ProtocolManager();
       $('button').button();
       $('#templates_button').bind('click', function() {
         return _this.edit_templates(null);
@@ -580,76 +665,21 @@
     };
 
     UIManager.prototype.replace = function(text, item) {
-      var exp, m, name, p, value, _ref;
-      exp = /^([a-z\@]+\:)([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)$/;
-      if (m = text.match(exp)) {
-        value = '';
-        _ref = this.protocols;
-        for (name in _ref) {
-          p = _ref[name];
-          if (name + ':' === m[1]) {
-            value = p.convert(m[2], item);
-            break;
-          }
-        }
-        return value;
-      }
-      return text;
+      return this.protocols.replace(text, item);
     };
 
     UIManager.prototype.inject = function(txt, item) {
-      var exp, m, name, p, text, value, _ref;
-      text = txt;
-      exp = /\$\{([a-z\@]+\:)([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)\}/;
-      while (m = text.match(exp)) {
-        if (!m) return text;
-        value = '';
-        _ref = this.protocols;
-        for (name in _ref) {
-          p = _ref[name];
-          if (name + ':' === m[1]) {
-            value = p.convert(m[2], item);
-            break;
-          }
-        }
-        text = text.replace(m[0], value != null ? value : '');
-      }
-      return text;
+      return this.protocols.inject(txt, item);
     };
 
     UIManager.prototype.open_link = function(link, place) {
-      var code, config, exp, id, m, name, p, templates_found, tmpl, _ref;
-      log('Open link', link);
-      exp = /^([a-z\@]+)\:([a-zA-Z0-9\s\(\)\+\-\_\/\:\.]*)$/;
-      templates_found = [];
-      if (m = link.match(exp)) {
-        name = m[1];
-        p = this.protocols[name];
-        if (!p) return;
-        _ref = this.templates;
-        for (id in _ref) {
-          tmpl = _ref[id];
-          if (tmpl.protocol && tmpl.protocol[name] && tmpl.code) {
-            config = p.accept(tmpl.protocol[name], m[2]);
-            if (!config) continue;
-            code = this.inject(tmpl.code, config);
-            if (code) {
-              templates_found.push({
-                code: code,
-                template_id: id
-              });
-            }
-          }
-        }
+      var code, err, id, _ref;
+      _ref = this.protocols.open_link(link, place, this.templates), err = _ref[0], code = _ref[1], id = _ref[2];
+      if (err) {
+        return this.show_error(err);
+      } else {
+        return this.open_sheet_by_code(code, id);
       }
-      log('Templates found:', templates_found);
-      if (templates_found.length === 0) {
-        this.show_error('No templates matching link');
-      }
-      if (templates_found.length === 1) {
-        this.open_sheet_by_code(templates_found[0].code, templates_found[0].template_id);
-      }
-      if (templates_found.length > 1) return this.show_error('Too many templates');
     };
 
     UIManager.prototype.open_sheet_by_code = function(code, template_id) {
@@ -880,13 +910,13 @@
         _ref = template.protocol;
         for (name in _ref) {
           conf = _ref[name];
-          p = this.protocols[name];
+          p = this.protocols.get(name);
           if (!p) continue;
           p.prepare(sheet, sheet.code);
         }
       }
       $(place).data('sheet_id', sheet.id);
-      renderer = new Renderer(this.manager, this, $(place), template, sheet);
+      renderer = new Renderer(this.manager, this, $(place), template, sheet, $(place).innerHeight() - 50);
       renderer.on_sheet_change = function() {
         return _this.show_sheets(null);
       };
@@ -1009,5 +1039,9 @@
   })();
 
   window.UIManager = UIManager;
+
+  window.ProtocolManager = ProtocolManager;
+
+  window.PageNavigator = PageNavigator;
 
 }).call(this);

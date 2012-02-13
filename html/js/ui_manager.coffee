@@ -207,15 +207,84 @@ class PageNavigator
 			@load_sheets null
 
 
+class ProtocolManager
+
+	constructor: ->
+		@protocols = {
+			"dt": new DateProtocol null
+			"@": new ItemProtocol null
+		}
+
+	get: (name) ->
+		return @protocols[name]
+
+	replace: (text, item) ->
+		exp = ///^
+			([a-z\@]+\:)					#protocol:
+			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
+			$
+		///
+		if m = text.match exp
+			value = ''
+			for name, p of @protocols
+				if name+':' is m[1]
+					value = p.convert m[2], item
+					break
+			return value
+		return text
+	
+	inject: (text, item) ->
+		# log 'Inject', text, item
+		exp = ///
+			\$\{ 							#${
+			([a-z\@]+\:)					#protocol:
+			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
+			\}								#}
+		///
+		while m = text.match exp
+			if not m then return text
+			value = ''
+			for name, p of @protocols
+				if name+':' is m[1]
+					value = p.convert m[2], item
+					break
+			text = text.replace m[0], (value ? '')
+		return text
+
+	open_link: (link, place, templates) ->
+		log 'Open link', link
+		exp = ///^
+			([a-z\@]+)\:					#protocol:
+			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
+			$
+		///
+		templates_found = []
+		if m = link.match exp
+			name = m[1]
+			p = @protocols[name]
+			if not p then return
+			for id, tmpl of templates
+				if tmpl.protocol and tmpl.protocol[name] and tmpl.code
+					config = p.accept tmpl.protocol[name], m[2]
+					if not config then continue
+					code = @inject tmpl.code, config
+					if code
+						templates_found.push {code: code, template_id: id}
+		log 'Templates found:', templates_found
+		if templates_found.length is 0
+			return ['No templates matching link', null, null]
+		if templates_found.length is 1
+			return [null, templates_found[0].code, templates_found[0].template_id]
+		if templates_found.length > 1
+			return ['Too many templates', null, null]
+
+
 class UIManager
 
 	archive_state: null
 
 	constructor: (@manager, @oauth) ->
-		@protocols = {
-			"dt": new DateProtocol null
-			"@": new ItemProtocol null
-		}
+		@protocols = new ProtocolManager()
 		# log 'Create UI...'
 		$('button').button();
 		$('#templates_button').bind 'click', () =>
@@ -361,66 +430,17 @@ class UIManager
 		$('#password').val('')
 
 	replace: (text, item) ->
-		# log 'Replace', text, item
-		exp = ///^
-			([a-z\@]+\:)					#protocol:
-			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
-			$
-		///
-		if m = text.match exp
-			value = ''
-			for name, p of @protocols
-				if name+':' is m[1]
-					value = p.convert m[2], item
-					break
-			return value
-		return text
+		return @protocols.replace text, item
 	
 	inject: (txt, item) ->
-		text = txt
-		# log 'Inject', text, item
-		exp = ///
-			\$\{ 							#${
-			([a-z\@]+\:)					#protocol:
-			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
-			\}								#}
-		///
-		while m = text.match exp
-			if not m then return text
-			value = ''
-			for name, p of @protocols
-				if name+':' is m[1]
-					value = p.convert m[2], item
-					break
-			text = text.replace m[0], (value ? '')
-		return text
+		return @protocols.inject txt, item
 
 	open_link: (link, place) ->
-		log 'Open link', link
-		exp = ///^
-			([a-z\@]+)\:					#protocol:
-			([a-zA-Z0-9\s\(\)\+\-\_/\:\.]*)	#value
-			$
-		///
-		templates_found = []
-		if m = link.match exp
-			name = m[1]
-			p = @protocols[name]
-			if not p then return
-			for id, tmpl of @templates
-				if tmpl.protocol and tmpl.protocol[name] and tmpl.code
-					config = p.accept tmpl.protocol[name], m[2]
-					if not config then continue
-					code = @inject tmpl.code, config
-					if code
-						templates_found.push {code: code, template_id: id}
-		log 'Templates found:', templates_found
-		if templates_found.length is 0
-			@show_error 'No templates matching link'
-		if templates_found.length is 1
-			@open_sheet_by_code templates_found[0].code, templates_found[0].template_id
-		if templates_found.length > 1
-			@show_error 'Too many templates'
+		[err, code, id] = @protocols.open_link link, place, @templates
+		if err
+			@show_error err
+		else
+			@open_sheet_by_code code, id
 
 	open_sheet_by_code: (code, template_id) ->
 		@manager.findSheet ['code', code], (err, data) =>
@@ -573,11 +593,11 @@ class UIManager
 		config = {}
 		if template.protocol and sheet.code
 			for name, conf of template.protocol
-				p = @protocols[name]
+				p = @protocols.get name
 				if not p then continue
 				p.prepare sheet, sheet.code
 		$(place).data('sheet_id', sheet.id)
-		renderer = new Renderer @manager, this, $(place), template, sheet
+		renderer = new Renderer @manager, this, $(place), template, sheet, $(place).innerHeight()-50
 		renderer.on_sheet_change = () =>
 			@show_sheets null
 		renderer.render null
@@ -664,3 +684,5 @@ class UIManager
 			$('<div/>').addClass('clear').appendTo(ul)
 
 window.UIManager = UIManager
+window.ProtocolManager = ProtocolManager
+window.PageNavigator = PageNavigator

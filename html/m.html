@@ -1,0 +1,67 @@
+<!DOCTYPE html> 
+<html> 
+	<head> 
+	<title>Lima1</title> 
+	<meta name="viewport" content="width=device-width, initial-scale=1"> 
+	<link rel="stylesheet" href="jqm/jquery.mobile-1.0.1.min.css" />
+	<link type="text/css" href="css/ui.css" rel="stylesheet" />	
+	<link type="text/css" href="css/mobile.css" rel="stylesheet" />	
+	<script src="lib/jquery-1.6.4.min.js"></script>
+	<script type="text/javascript" src="lib/date.js"></script>
+	<script type="text/javascript" src="lib/json2.js"></script>
+	<script type="text/javascript" src="js/main.js"></script>
+	<script type="text/javascript" src="js/ui_manager.js"></script>
+	<script type="text/javascript" src="js/net.js"></script>
+	<script type="text/javascript" src="js/ui.js"></script>
+	<script type="text/javascript" src="js/mobile.js"></script>
+	<script type="text/javascript" src="js/start.js"></script>
+	<script src="jqm/jquery.mobile-1.0.1.min.js"></script>
+</head> 
+<body> 
+
+<div data-role="page" id="main_page">
+
+	<div data-role="header" id="main_page_header">
+		<!--<a href="#" id="sheets_left">Left</a>-->
+		<h1 id="main_title">Lima1</h1>
+		<!--<a href="#" id="sheets_right">Right</a>-->
+		<a href="#" id="sheets_sync">Sync</a>
+	</div>
+	<div data-role="content" id="main_page_content">	
+		<div id="page0" class="page_mobile"></div>
+	</div>
+
+</div>
+<div data-role="dialog" id="login_dialog">
+	<div data-role="header">
+		<h1>Login</h1>
+	</div>
+	<div data-role="content">
+		<form>
+			<label for="username" class="ui-hidden-accessible">Username:</label>
+			<input type="text" id="username" value="" placeholder="Username"/>
+			<label for="password" class="ui-hidden-accessible">Password:</label>
+			<input type="password" id="password" value="" placeholder="Password"/>
+		</form>
+		<a href="#" data-role="button" id="do_login">Login</a>
+	</div>
+</div>
+<div data-role="dialog" id="text_dialog">
+	<div data-role="header">
+		<h1>Text editor</h1>
+	</div>
+	<div data-role="content">
+		<form method="post" action="#" onsubmit="return false;">
+			<label for="text_editor" class="ui-hidden-accessible">Type here:</label>
+			<input type="text" id="text_editor" value="" placeholder="Type here"/>
+		</form>
+		<fieldset class="ui-grid-b">
+			<div class="ui-block-a"><button type="submit" data-theme="c" id="text_save">Save</button></div>
+			<div class="ui-block-b"><button type="submit" data-theme="b" id="text_remove">Remove</button></div>
+			<div class="ui-block-c"><button type="submit" data-theme="a" id="text_move">Move</button></div>
+		</fieldset>
+	</div>
+</div>
+<div id="info_dialog"></div>
+</body>
+</html>

@@ -179,15 +179,17 @@
     CalendarElement.prototype.render = function(item, config, element, options, handler) {
       var calendar,
         _this = this;
-      calendar = $('<div/>').addClass('calendar_element').appendTo(element);
-      calendar.datepicker({
-        dateFormat: 'yymmdd',
-        firstDay: 1,
-        onSelect: function(dt) {
-          _this.renderer.ui.open_link('dt:' + dt);
-          return false;
-        }
-      });
+      if (!env.mobile) {
+        calendar = $('<div/>').addClass('calendar_element').appendTo(element);
+        calendar.datepicker({
+          dateFormat: 'yymmdd',
+          firstDay: 1,
+          onSelect: function(dt) {
+            _this.renderer.ui.open_link('dt:' + dt);
+            return false;
+          }
+        });
+      }
       return handler(null);
     };
 
@@ -762,39 +764,41 @@
       el = $('<div/>').addClass('list_item').appendTo(element);
       if (options.delimiter) el.addClass('delimiter_' + options.delimiter);
       if (options.disabled) el.addClass('disabled');
-      if (options.draggable) {
-        handle = $('<div/>').addClass('list_item_handle list_item_handle_left').appendTo(el);
-        el.bind('mousemove', function() {
-          return handle.show();
-        });
-        el.bind('mouseout', function() {
-          return handle.hide();
-        });
-        el.data('type', 'note');
-        el.data('renderer', this.renderer);
-        el.data('item', item);
-        el.draggable({
-          handle: handle,
-          zIndex: 3,
-          containment: 'document',
-          helper: 'clone',
-          appendTo: 'body'
-        });
-      }
-      el.droppable({
-        accept: '.list_item',
-        hoverClass: 'list_item_drop',
-        tolerance: 'pointer',
-        drop: function(event, ui) {
-          var drop, renderer;
-          drop = ui.draggable.data('item');
-          renderer = ui.draggable.data('renderer');
-          return _this.renderer.move_note(drop, item.area, (item.id ? item : null), function() {
-            if (renderer !== _this.renderer) renderer.render(null);
-            return _this.renderer.render(null);
+      if (!env.mobile) {
+        if (options.draggable) {
+          handle = $('<div/>').addClass('list_item_handle list_item_handle_left').appendTo(el);
+          el.bind('mousemove', function() {
+            return handle.show();
+          });
+          el.bind('mouseout', function() {
+            return handle.hide();
+          });
+          el.data('type', 'note');
+          el.data('renderer', this.renderer);
+          el.data('item', item);
+          el.draggable({
+            handle: handle,
+            zIndex: 3,
+            containment: 'document',
+            helper: 'clone',
+            appendTo: 'body'
           });
         }
-      });
+        el.droppable({
+          accept: '.list_item',
+          hoverClass: 'list_item_drop',
+          tolerance: 'pointer',
+          drop: function(event, ui) {
+            var drop, renderer;
+            drop = ui.draggable.data('item');
+            renderer = ui.draggable.data('renderer');
+            return _this.renderer.move_note(drop, item.area, (item.id ? item : null), function() {
+              if (renderer !== _this.renderer) renderer.render(null);
+              return _this.renderer.render(null);
+            });
+          }
+        });
+      }
       return this.renderer.get('simple').render(item, config, el, {
         empty: false,
         readonly: options.disabled,
@@ -840,13 +844,13 @@
 
     Renderer.prototype.show_archived = false;
 
-    function Renderer(manager, ui, root, template, data, env) {
+    function Renderer(manager, ui, root, template, data, max_height) {
       this.manager = manager;
       this.ui = ui;
       this.root = root;
       this.template = template;
       this.data = data;
-      this.env = env;
+      this.max_height = max_height;
       this.elements = [new SimpleElement(this), new TitleElement(this), new HRElement(this), new Title1Element(this), new Title2Element(this), new Title3Element(this), new HeaderElement(this), new ColsElement(this), new ListElement(this), new Textlement(this), new CheckElement(this), new MarkElement(this), new DateElement(this), new TimeElement(this), new CalendarElement(this)];
       this.root.data('sheet', this.data);
     }
@@ -970,12 +974,9 @@
       var old_value, _on_finish_edit, _ref,
         _this = this;
       if (!property) return null;
-      element.attr('contentEditable', true);
       old_value = (_ref = item[property]) != null ? _ref : '';
       element.text(old_value);
-      _on_finish_edit = function() {
-        var value, _ref2;
-        value = (_ref2 = element.text()) != null ? _ref2 : '';
+      _on_finish_edit = function(value) {
         element.text(value);
         if (value === old_value) return;
         if (handler) {
@@ -984,13 +985,32 @@
           return _this.on_edited(item, property, value);
         }
       };
-      element.bind('keypress', function(event) {
-        if (event.keyCode === 13) {
-          event.preventDefault();
-          _on_finish_edit(null);
-          return false;
-        }
-      });
+      if (env.mobile) {
+        element.bind('tap', function(event) {
+          log('Show dialog');
+          $.mobile.changePage($('#text_dialog'));
+          $('#text_editor').focus().val(old_value);
+          $('#text_save').unbind('click').bind('click', function() {
+            var _ref2;
+            $('#text_dialog').dialog('close');
+            return _on_finish_edit((_ref2 = $('#text_editor').val()) != null ? _ref2 : '');
+          });
+          return $('#text_remove').unbind('click').bind('click', function() {
+            $('#text_dialog').dialog('close');
+            if (item.id) return _this.remove_note(item);
+          });
+        });
+      } else {
+        element.attr('contentEditable', true);
+        element.bind('keypress', function(event) {
+          var _ref2;
+          if (event.keyCode === 13) {
+            event.preventDefault();
+            _on_finish_edit((_ref2 = element.text()) != null ? _ref2 : '');
+            return false;
+          }
+        });
+      }
       return element;
     };
 
@@ -1003,9 +1023,11 @@
       this.content = $('<div/>').addClass('page_content group').prependTo(this.root);
       if (this.data.archived) this.content.addClass('sheet_archived');
       return this._load_items(function() {
+        log('Items loaded');
         return _this.get(_this.template.name).render(_this.data, _this.template, _this.content, {
           empty: false
         }, function() {
+          log('Fixing height');
           return _this.fix_height(function() {
             var el, item, no_area_div, _i, _len, _ref, _results;
             if (focus.attr('option')) {
@@ -1013,7 +1035,7 @@
             } else {
               _this.root.find('.text_editor[property=' + focus.attr('property') + '][item_id=' + focus.attr('item_id') + ']').focus();
             }
-            if (_this.no_area.length > 0) {
+            if (_this.no_area.length > 0 && !env.mobile) {
               no_area_div = $('<div/>').addClass('no_area_notes').appendTo(_this.root);
               _ref = _this.no_area;
               _results = [];
@@ -1038,35 +1060,32 @@
       });
     };
 
-    Renderer.prototype.size_too_big = function() {
-      return this.root.innerHeight() < this.content.outerHeight(true);
-    };
-
     Renderer.prototype.fix_height = function(handler) {
       var archive_toggle, page_actions, sleft, sright,
         _this = this;
-      if (!this.size_too_big()) {
-        this.get(this.template.name).grow(this.root.innerHeight() - 50, this.template, this.content, {
-          empty: true,
-          disabled: true
-        });
-      }
+      log('Grow to', this.max_height);
+      this.get(this.template.name).grow(this.max_height, this.template, this.content, {
+        empty: true,
+        disabled: true
+      });
       this.prev_content.remove();
       this.root.removeClass('page_render');
-      sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(this.root);
-      sleft.bind('click', function() {
-        return _this.ui.scroll_sheets(_this.data.id, -1);
-      });
-      sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(this.root);
-      sright.bind('click', function() {
-        return _this.ui.scroll_sheets(_this.data.id, 1);
-      });
-      page_actions = $('<div/>').addClass('page_actions').appendTo(this.root);
-      archive_toggle = $('<div/>').addClass('page_action archive_toggle').appendTo(page_actions);
-      archive_toggle.bind('click', function() {
-        _this.show_archived = !_this.show_archived;
-        return _this.render(null);
-      });
+      if (!env.mobile) {
+        sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(this.root);
+        sleft.bind('click', function() {
+          return _this.ui.scroll_sheets(_this.data.id, -1);
+        });
+        sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(this.root);
+        sright.bind('click', function() {
+          return _this.ui.scroll_sheets(_this.data.id, 1);
+        });
+        page_actions = $('<div/>').addClass('page_actions').appendTo(this.root);
+        archive_toggle = $('<div/>').addClass('page_action archive_toggle').appendTo(page_actions);
+        archive_toggle.bind('click', function() {
+          _this.show_archived = !_this.show_archived;
+          return _this.render(null);
+        });
+      }
       if (handler) return handler(null);
     };
 
@@ -1136,20 +1155,5 @@
   };
 
   window.Renderer = Renderer;
-
-  $(document).ready(function() {
-    var db, jqnet, manager, oauth, storage, ui;
-    Date.prototype.firstDayOfWeek = 1;
-    db = new HTML5Provider('test.db', '1.1');
-    storage = new StorageProvider(null, db);
-    manager = new DataManager(storage);
-    jqnet = new jQueryTransport('http://lima1sync.appspot.com');
-    oauth = new OAuthProvider({
-      clientID: 'lima1web',
-      token: manager.get('token')
-    }, jqnet);
-    ui = new UIManager(manager, oauth);
-    return ui.start(null);
-  });
 
 }).call(this);

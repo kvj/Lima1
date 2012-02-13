@@ -49,7 +49,7 @@
       }
       log('Ready to open');
       try {
-        this.db = window.openDatabase(this.name, '', this.name, 1024 * 1024 * 10);
+        this.db = window.openDatabase(env.prefix + this.name, '', env.prefix + this.name, 1024 * 1024 * 10);
         log('Opened', this.db.version, this.version);
         this.version_match = this.db.version === this.version;
         this.clean = clean;
@@ -146,11 +146,11 @@
 
     HTML5Provider.prototype.get = function(name, def) {
       var _ref;
-      return (_ref = typeof window !== "undefined" && window !== null ? window.localStorage[name] : void 0) != null ? _ref : def;
+      return (_ref = typeof window !== "undefined" && window !== null ? window.localStorage[env.prefix + name] : void 0) != null ? _ref : def;
     };
 
     HTML5Provider.prototype.set = function(name, value) {
-      return typeof window !== "undefined" && window !== null ? window.localStorage[name] = value : void 0;
+      return typeof window !== "undefined" && window !== null ? window.localStorage[env.prefix + name] = value : void 0;
     };
 
     return HTML5Provider;
@@ -592,6 +592,15 @@
       });
     };
 
+    DataManager.prototype.findTemplate = function(id, handler) {
+      var _this = this;
+      return this.storage.select('templates', ['id', id], function(err, data) {
+        if (err) return handler(err);
+        if (data.length !== 1) return handler('Template not found');
+        return handler(null, JSON.parse(data[0].body));
+      });
+    };
+
     DataManager.prototype.findSheet = function(query, handler) {
       var _this = this;
       return this.storage.select('sheets', query, function(err, data) {
@@ -746,5 +755,10 @@
   window.StorageProvider = StorageProvider;
 
   window.DataManager = DataManager;
+
+  window.env = {
+    mobile: false,
+    prefix: ''
+  };
 
 }).call(this);

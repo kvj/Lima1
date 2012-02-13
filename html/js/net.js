@@ -110,7 +110,7 @@
         }
       }, function(error, data) {
         log('Response:', error, data);
-        if (error) return handler(error);
+        if (error) return handler(data != null ? data : error);
         _this.token = data.access_token;
         _this.on_new_token(_this.token);
         return handler(null, data);
