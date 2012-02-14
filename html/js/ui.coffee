@@ -77,7 +77,7 @@ class SimpleElement extends UIElement
 			i = parseInt(i)
 			do (i) =>
 				# log i, fl
-				el = @child(element, '.simple', i) ? $('<div/>').addClass('simple').appendTo(element)
+				el = @child(element, '.simple', i) ? $(document.createElement('div')).addClass('simple').appendTo(element)
 				if config.delimiter and i>0
 					el.addClass('delimiter_'+config.delimiter)
 				@renderer.get(fl.type).render item, fl, el, options, () =>
@@ -90,9 +90,9 @@ class TitleElement extends UIElement
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler null
-		$('<span/>').addClass('title0_text').appendTo(element).text(@renderer.inject config.name ? ' ')
+		$(document.createElement('span')).addClass('title0_text').appendTo(element).text(@renderer.inject config.name ? ' ')
 		if config.edit
-			el = $('<span/>').addClass('text_editor title0_editor').appendTo(element)
+			el = $(document.createElement('span')).addClass('text_editor title0_editor').appendTo(element)
 			@renderer.text_editor el, item, (@renderer.replace config.edit)
 		handler null
 
@@ -101,8 +101,15 @@ class CalendarElement extends UIElement
 	name: 'calendar'
 
 	render: (item, config, element, options, handler) ->
-		if not env.mobile
-			calendar = $('<div/>').addClass('calendar_element').appendTo(element)
+		if env.mobile
+			dt = new Date()
+			calendar = $(document.createElement('div')).addClass('calendar_mobile').appendTo(element).text(dt.format('dddd, MMMM d, yyyy'))
+			calendar.bind 'tap', () =>
+				@renderer.ui.date_dialog dt, (set, dt) =>
+					if set then @renderer.ui.open_link 'dt:'+dt.format('yyyyMMdd')
+
+		else
+			calendar = $(document.createElement('div')).addClass('calendar_element').appendTo(element)
 			calendar.datepicker({
 				dateFormat: 'yymmdd',
 				firstDay: 1,
@@ -118,15 +125,15 @@ class Textlement extends UIElement
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler null
-		el = $('<div/>').addClass('text_editor').appendTo(element)
+		el = $(document.createElement('div')).addClass('text_editor').appendTo(element)
 		if config.edit and not options.readonly
 			property = @renderer.replace config.edit, item
 			ed = @renderer.text_editor el, item, property
 			ed.attr('item_id', item.id)
 			ed.attr('property', property)
 			ed.attr('option', options.text_option)
-			if config.title
-				title = $('<div/>').addClass('text_editor_title').appendTo(element).text(config.title)
+			if config.title and not env.mobile
+				title = $(document.createElement('div')).addClass('text_editor_title').appendTo(element).text(config.title)
 		handler null
 
 class CheckElement extends UIElement
@@ -135,7 +142,7 @@ class CheckElement extends UIElement
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler null
-		el = $('<div/>').addClass('check_editor').appendTo(element)
+		el = $(document.createElement('div')).addClass('check_editor').appendTo(element)
 		if config.inset then el.addClass 'check_inset'
 		property = @renderer.replace config.edit, item
 		checked = no
@@ -163,17 +170,27 @@ class DateElement extends UIElement
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler null
-		el = $('<div/>').addClass('date_editor').appendTo(element)
+		el = $(document.createElement('div')).addClass('date_editor').appendTo(element)
 		property = @renderer.replace config.edit, item
 		@print_date item[property], el
-		el.bind 'click', (e) =>
+		el.bind 'click', (e) => 
 			if e.shiftKey
 				@renderer.on_edited item, property, null
 			else
-				el.datepicker 'dialog' , null, (date) =>
-					if @print_date date, el
-						@renderer.on_edited item, property, date
-				, {dateFormat: 'yymmdd'}, e
+				if env.mobile
+					log 'prop:', property, item[property]
+					dt = new Date()
+					@renderer.ui.date_dialog dt.fromString(item[property]) ? new Date(), (set, dt) =>
+						log 'date', set, dt
+						if set
+							@renderer.on_edited item, property, dt.format('yyyyMMdd')
+						else
+							@renderer.on_edited item, property, null
+				else 
+					el.datepicker 'dialog' , null, (date) =>
+						if @print_date date, el
+							@renderer.on_edited item, property, date
+					, {dateFormat: 'yymmdd'}, e
 		$('<div style="clear: both;"/>').appendTo(element)
 		handler null
 
@@ -198,21 +215,29 @@ class TimeElement extends UIElement
 		return ''+hr+(if min>0 then ':'+min else '')+ap
 
 	show_editor: (value, element, handler) ->
+		[hr_val, min_val] = @_split_value value
+		if env.mobile
+			@renderer.ui.time_dialog hr_val, min_val, (set, hr, min) =>
+				if set
+					val = ''+(if hr<10 then '0' else '')+hr+(if min<10 then '0' else '')+min
+					handler val
+				else
+					handler null
+			return
 		connect_to = element.offset()
-		el = $('<div/>').addClass('ui-timepicker ui-corner-all ui-widget-content').appendTo(document.body)
+		el = $(document.createElement('div')).addClass('ui-timepicker ui-corner-all ui-widget-content').appendTo(document.body)
 		x = Math.floor(connect_to.left-el.width()/2)
 		x = 0 if x<0
 		y = connect_to.top+element.height()
-		caption_div = $('<div/>').addClass('ui-timepicker-caption').appendTo(el)
-		hour_div = $('<div/>').addClass('ui-timepicker-slider').appendTo(el)
-		minute_div = $('<div/>').addClass('ui-timepicker-slider').appendTo(el)
+		caption_div = $(document.createElement('div')).addClass('ui-timepicker-caption').appendTo(el)
+		hour_div = $(document.createElement('div')).addClass('ui-timepicker-slider').appendTo(el)
+		minute_div = $(document.createElement('div')).addClass('ui-timepicker-slider').appendTo(el)
 		val = value
 		_on_change = (hour, minute) =>
 			hr = parseInt(hour ? hour_div.slider 'value')
 			min = parseInt(minute ? minute_div.slider 'value')
 			val = ''+(if hr<10 then '0' else '')+hr+(if min<10 then '0' else '')+min
 			caption_div.text @value_to_string val
-		[hr_val, min_val] = @_split_value value
 		hour_div.slider({
 			min: 0
 			max: 23
@@ -232,11 +257,11 @@ class TimeElement extends UIElement
 
 		_on_close = () =>
 			el.remove()
-		buttons = $('<div/>').addClass('ui-timepicker-buttons').appendTo(el)
-		$('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('OK').bind 'click', () =>
+		buttons = $(document.createElement('div')).addClass('ui-timepicker-buttons').appendTo(el)
+		$(document.createElement('button')).addClass('ui-timepicker-button').appendTo(buttons).text('OK').bind 'click', () =>
 			_on_close null
 			handler val
-		$('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('Cancel').bind 'click', () =>
+		$(document.createElement('button')).addClass('ui-timepicker-button').appendTo(buttons).text('Cancel').bind 'click', () =>
 			_on_close null
 		_on_change null
 		buttons.find('button').button()
@@ -245,7 +270,7 @@ class TimeElement extends UIElement
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler
-		el = $('<div/>').addClass('time_editor').appendTo(element)
+		el = $(document.createElement('div')).addClass('time_editor').appendTo(element)
 		property = @renderer.replace config.edit, item
 		parts = (@value_to_string item[property]).split(':')
 		if parts.length is 2
@@ -281,7 +306,7 @@ class MarkElement extends UIElement
 		if options.empty then return handler null
 		property = @renderer.replace config.edit, item
 		value = item[property]
-		el = $('<div/>').addClass('mark_editor').appendTo(element)
+		el = $(document.createElement('div')).addClass('mark_editor').appendTo(element)
 		@_show_value value, el
 		el.bind 'click', (event) =>
 			if not value
@@ -301,7 +326,7 @@ class HRElement extends UIElement
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler null
-		$('<div/>').addClass('hr').appendTo(element)
+		$(document.createElement('div')).addClass('hr').appendTo(element)
 		handler null
 
 class Title1Element extends UIElement
@@ -310,9 +335,9 @@ class Title1Element extends UIElement
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler null
-		bg = $('<div/>').addClass('title1_bg').appendTo(element)
-		$('<div/>').addClass('title1').appendTo(bg).text(@renderer.inject config.name, item)
-		$('<div style="clear: both;"/>').appendTo(element)
+		bg = $(document.createElement('div')).addClass('title1_bg').appendTo(element)
+		$(document.createElement('div')).addClass('title1').appendTo(bg).text(@renderer.inject config.name, item)
+		$(document.createElement('div')).addClass('clear').appendTo(element)
 		handler null
 
 class Title2Element extends UIElement
@@ -321,10 +346,10 @@ class Title2Element extends UIElement
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler null
-		bg = $('<div/>').addClass('title2').appendTo(element)
-		$('<span/>').addClass('title2_text').appendTo(bg).text(@renderer.inject config.name ? ' ')
+		bg = $(document.createElement('div')).addClass('title2').appendTo(element)
+		$(document.createElement('span')).addClass('title2_text').appendTo(bg).text(@renderer.inject config.name ? ' ')
 		if config.edit
-			el = $('<span/>').addClass('text_editor title2_editor').appendTo(bg)
+			el = $(document.createElement('span')).addClass('text_editor title2_editor').appendTo(bg)
 			@renderer.text_editor el, item, (@renderer.replace config.edit)
 		handler null
 
@@ -334,8 +359,8 @@ class Title3Element extends UIElement
 
 	render: (item, config, element, options, handler) ->
 		if options.empty then return handler null
-		bg = $('<div/>').addClass('title3').appendTo(element)
-		$('<span/>').addClass('title3_text').appendTo(bg).text(@renderer.inject config.name, item)
+		bg = $(document.createElement('span')).addClass('title3').appendTo(element)
+		$(document.createElement('span')).addClass('title3_text').appendTo(bg).text(@renderer.inject config.name, item)
 		handler null
 
 class HeaderElement extends UIElement
@@ -349,7 +374,7 @@ class HeaderElement extends UIElement
 		if flow.length is 1 and sizes.length is 0
 			sizes = [1]
 		if flow.length isnt sizes.length then return handler null
-		bg = $('<div/>').addClass('header').appendTo(element)
+		bg = $(document.createElement('div')).addClass('header').appendTo(element)
 		w = element.innerWidth()-2
 		float_size = 0
 		lsizes = []
@@ -368,7 +393,7 @@ class HeaderElement extends UIElement
 			if last
 				# Fix last col
 				width = w-margin
-			el = $('<div/>').addClass('col header_col').appendTo(bg).width(width)
+			el = $(document.createElement('div')).addClass('col header_col').appendTo(bg).width(width)
 			if fl then el.text(@renderer.inject fl) else el.html('&nbsp;')
 			diff = el.outerWidth() - el.innerWidth()
 			if diff > 0
@@ -410,7 +435,7 @@ class ColsElement extends UIElement
 
 		w = element.innerWidth()
 		element.addClass('group')
-		body = $('<div/>').addClass('col_body').appendTo(element)
+		body = $(document.createElement('div')).addClass('col_body').appendTo(element)
 		float_size = 0
 		if config.space
 			float_size += config.space*(flow.length-1)
@@ -435,28 +460,21 @@ class ColsElement extends UIElement
 			# First run - create all divs
 			if i>0 and config.space
 				#Create space between cols
-				$('<div/>').appendTo(body).addClass('col').width(space_size).html('&nbsp;')
+				$(document.createElement('div')).appendTo(body).addClass('col').width(space_size).html('&nbsp;')
 				margin += space_size
 			width = lsizes[i]
 			if last
 				# Fix last col
 				width = w-margin
-			el = $('<div/>').addClass('col col_data').appendTo(body)
-			el_body = $('<div/>').appendTo(el).addClass 'col_item'
+			el = $(document.createElement('div')).addClass('col col_data').appendTo(body)
+			el_body = $(document.createElement('div')).appendTo(el).addClass 'col_item'
 			margin += width
 			if fl.line>0
 				width -= fl.line
 				el.addClass('col_'+fl.line)
-			# if fl.border>0
-			# 	width -= fl.border*2
 			if fl.bg
 				el.addClass('col_g')
 			el.width width
-			diff = el.outerWidth() - el.innerWidth()
-			# if diff > 0
-			# 	el.width(el.innerWidth()-diff)
-			# if last
-			# 	$('<div style="clear: both;"/>').appendTo(element)
 			do (last) =>
 				@renderer.get(fl.type).render item, fl, el_body, options, () =>
 					if last
@@ -482,14 +500,14 @@ class ListElement extends UIElement
 		if config and config.grow is 'no' then no else yes
 
 	_render: (item, config, element, options, handler)->
-		el = $('<div/>').addClass('list_item').appendTo(element)
+		el = $(document.createElement('div')).addClass('list_item').appendTo(element)
 		if options.delimiter
 			el.addClass('delimiter_'+options.delimiter)
 		if options.disabled
 			el.addClass('disabled')
 		if not env.mobile
 			if options.draggable
-				handle = $('<div/>').addClass('list_item_handle list_item_handle_left').appendTo(el)
+				handle = $(document.createElement('div')).addClass('list_item_handle list_item_handle_left').appendTo(el)
 				el.bind 'mousemove', () =>
 					handle.show()
 				el.bind 'mouseout', () =>
@@ -641,13 +659,20 @@ class Renderer
 			if handler
 				handler item, property, value
 			else
-				@on_edited item, property, value
+				if env.mobile
+					setTimeout () =>
+						@on_edited item, property, value
+					, @renderer.ui.close_delay
+				else
+					@on_edited item, property, value
 		if env.mobile
-			# dialog
 			element.bind 'tap', (event) =>
-				log 'Show dialog'
+				$('#text_dialog_title').text(if item?.id then 'Edit text' else 'New text')
 				$.mobile.changePage($('#text_dialog'))
 				$('#text_editor').focus().val(old_value)
+				$('#text_editor').unbind('keydown').bind 'keydown', (e) =>
+					if e.keyCode is 13
+						_on_finish_edit($('#text_editor').val() ? '')
 				$('#text_save').unbind('click').bind 'click', () =>
 					$('#text_dialog').dialog('close')
 					_on_finish_edit($('#text_editor').val() ? '')
@@ -670,21 +695,19 @@ class Renderer
 		@root.addClass 'page_render'
 		focus = @root.find('*:focus')
 		@prev_content = @root.children()
-		@content = $('<div/>').addClass('page_content group').prependTo(@root)
+		@content = $(document.createElement('div')).addClass('page_content group').prependTo(@root)
 		if @data.archived then @content.addClass 'sheet_archived'
 		@_load_items () =>
-			log 'Items loaded'
 			@get(@template.name).render @data, @template, @content, {empty: false}, () =>
-				log 'Fixing height'
 				@fix_height () =>
 					if focus.attr('option')
 						@root.find('.text_editor[property='+focus.attr('property')+'][option='+focus.attr('option')+']').focus()
 					else
 						@root.find('.text_editor[property='+focus.attr('property')+'][item_id='+focus.attr('item_id')+']').focus()
 					if @no_area.length>0 and not env.mobile
-						no_area_div = $('<div/>').addClass('no_area_notes').appendTo(@root)
+						no_area_div = $(document.createElement('div')).addClass('no_area_notes').appendTo(@root)
 						for item in @no_area
-							el = $('<div/>').addClass('list_item no_area_note').appendTo(no_area_div)
+							el = $(document.createElement('div')).addClass('list_item no_area_note').appendTo(no_area_div)
 							el.data('type', 'note')
 							el.data('renderer', @)
 							el.data('item', item)
@@ -692,19 +715,18 @@ class Renderer
 							el.attr('title', item.text)
 	
 	fix_height: (handler) ->
-		log 'Grow to', @max_height
 		@get(@template.name).grow @max_height, @template, @content, {empty: true, disabled: true}
 		@prev_content.remove()
 		@root.removeClass 'page_render'
 		if not env.mobile
-			sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(@root)
+			sleft = $(document.createElement('div')).addClass('page_scroll scroll_left').appendTo(@root)
 			sleft.bind 'click', () =>
 				@ui.scroll_sheets @data.id, -1
-			sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(@root)
+			sright = $(document.createElement('div')).addClass('page_scroll scroll_right').appendTo(@root)
 			sright.bind 'click', () =>
 				@ui.scroll_sheets @data.id, 1
-			page_actions = $('<div/>').addClass('page_actions').appendTo(@root)
-			archive_toggle = $('<div/>').addClass('page_action archive_toggle').appendTo(page_actions)
+			page_actions = $(document.createElement('div')).addClass('page_actions').appendTo(@root)
+			archive_toggle = $(document.createElement('div')).addClass('page_action archive_toggle').appendTo(page_actions)
 			archive_toggle.bind 'click', () =>
 				@show_archived = not @show_archived
 				@render null

@@ -16,6 +16,9 @@ start_app = () ->
 		ui = new MobileUIManager manager, oauth
 	ui.start null
 
+$(document).bind 'mobileinit', () ->
+	$.mobile.defaultPageTransition = 'none'
+	$.mobile.defaultDialogTransition = 'none'
 
 $(document).ready () ->
 	if env.mobile

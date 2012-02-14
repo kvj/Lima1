@@ -125,7 +125,7 @@
         i = parseInt(i);
         _results.push((function(i) {
           var el, _ref2;
-          el = (_ref2 = _this.child(element, '.simple', i)) != null ? _ref2 : $('<div/>').addClass('simple').appendTo(element);
+          el = (_ref2 = _this.child(element, '.simple', i)) != null ? _ref2 : $(document.createElement('div')).addClass('simple').appendTo(element);
           if (config.delimiter && i > 0) {
             el.addClass('delimiter_' + config.delimiter);
           }
@@ -154,9 +154,9 @@
     TitleElement.prototype.render = function(item, config, element, options, handler) {
       var el, _ref;
       if (options.empty) return handler(null);
-      $('<span/>').addClass('title0_text').appendTo(element).text(this.renderer.inject((_ref = config.name) != null ? _ref : ' '));
+      $(document.createElement('span')).addClass('title0_text').appendTo(element).text(this.renderer.inject((_ref = config.name) != null ? _ref : ' '));
       if (config.edit) {
-        el = $('<span/>').addClass('text_editor title0_editor').appendTo(element);
+        el = $(document.createElement('span')).addClass('text_editor title0_editor').appendTo(element);
         this.renderer.text_editor(el, item, this.renderer.replace(config.edit));
       }
       return handler(null);
@@ -177,10 +177,20 @@
     CalendarElement.prototype.name = 'calendar';
 
     CalendarElement.prototype.render = function(item, config, element, options, handler) {
-      var calendar,
+      var calendar, dt,
         _this = this;
-      if (!env.mobile) {
-        calendar = $('<div/>').addClass('calendar_element').appendTo(element);
+      if (env.mobile) {
+        dt = new Date();
+        calendar = $(document.createElement('div')).addClass('calendar_mobile').appendTo(element).text(dt.format('dddd, MMMM d, yyyy'));
+        calendar.bind('tap', function() {
+          return _this.renderer.ui.date_dialog(dt, function(set, dt) {
+            if (set) {
+              return _this.renderer.ui.open_link('dt:' + dt.format('yyyyMMdd'));
+            }
+          });
+        });
+      } else {
+        calendar = $(document.createElement('div')).addClass('calendar_element').appendTo(element);
         calendar.datepicker({
           dateFormat: 'yymmdd',
           firstDay: 1,
@@ -210,15 +220,15 @@
     Textlement.prototype.render = function(item, config, element, options, handler) {
       var ed, el, property, title;
       if (options.empty) return handler(null);
-      el = $('<div/>').addClass('text_editor').appendTo(element);
+      el = $(document.createElement('div')).addClass('text_editor').appendTo(element);
       if (config.edit && !options.readonly) {
         property = this.renderer.replace(config.edit, item);
         ed = this.renderer.text_editor(el, item, property);
         ed.attr('item_id', item.id);
         ed.attr('property', property);
         ed.attr('option', options.text_option);
-        if (config.title) {
-          title = $('<div/>').addClass('text_editor_title').appendTo(element).text(config.title);
+        if (config.title && !env.mobile) {
+          title = $(document.createElement('div')).addClass('text_editor_title').appendTo(element).text(config.title);
         }
       }
       return handler(null);
@@ -242,7 +252,7 @@
       var checked, el, property,
         _this = this;
       if (options.empty) return handler(null);
-      el = $('<div/>').addClass('check_editor').appendTo(element);
+      el = $(document.createElement('div')).addClass('check_editor').appendTo(element);
       if (config.inset) el.addClass('check_inset');
       property = this.renderer.replace(config.edit, item);
       checked = false;
@@ -289,20 +299,34 @@
       var el, property,
         _this = this;
       if (options.empty) return handler(null);
-      el = $('<div/>').addClass('date_editor').appendTo(element);
+      el = $(document.createElement('div')).addClass('date_editor').appendTo(element);
       property = this.renderer.replace(config.edit, item);
       this.print_date(item[property], el);
       el.bind('click', function(e) {
+        var dt, _ref;
         if (e.shiftKey) {
           return _this.renderer.on_edited(item, property, null);
         } else {
-          return el.datepicker('dialog', null, function(date) {
-            if (_this.print_date(date, el)) {
-              return _this.renderer.on_edited(item, property, date);
-            }
-          }, {
-            dateFormat: 'yymmdd'
-          }, e);
+          if (env.mobile) {
+            log('prop:', property, item[property]);
+            dt = new Date();
+            return _this.renderer.ui.date_dialog((_ref = dt.fromString(item[property])) != null ? _ref : new Date(), function(set, dt) {
+              log('date', set, dt);
+              if (set) {
+                return _this.renderer.on_edited(item, property, dt.format('yyyyMMdd'));
+              } else {
+                return _this.renderer.on_edited(item, property, null);
+              }
+            });
+          } else {
+            return el.datepicker('dialog', null, function(date) {
+              if (_this.print_date(date, el)) {
+                return _this.renderer.on_edited(item, property, date);
+              }
+            }, {
+              dateFormat: 'yymmdd'
+            }, e);
+          }
         }
       });
       $('<div style="clear: both;"/>').appendTo(element);
@@ -347,14 +371,27 @@
     TimeElement.prototype.show_editor = function(value, element, handler) {
       var buttons, caption_div, connect_to, el, hour_div, hr_val, min_val, minute_div, val, x, y, _on_change, _on_close, _ref,
         _this = this;
+      _ref = this._split_value(value), hr_val = _ref[0], min_val = _ref[1];
+      if (env.mobile) {
+        this.renderer.ui.time_dialog(hr_val, min_val, function(set, hr, min) {
+          var val;
+          if (set) {
+            val = '' + (hr < 10 ? '0' : '') + hr + (min < 10 ? '0' : '') + min;
+            return handler(val);
+          } else {
+            return handler(null);
+          }
+        });
+        return;
+      }
       connect_to = element.offset();
-      el = $('<div/>').addClass('ui-timepicker ui-corner-all ui-widget-content').appendTo(document.body);
+      el = $(document.createElement('div')).addClass('ui-timepicker ui-corner-all ui-widget-content').appendTo(document.body);
       x = Math.floor(connect_to.left - el.width() / 2);
       if (x < 0) x = 0;
       y = connect_to.top + element.height();
-      caption_div = $('<div/>').addClass('ui-timepicker-caption').appendTo(el);
-      hour_div = $('<div/>').addClass('ui-timepicker-slider').appendTo(el);
-      minute_div = $('<div/>').addClass('ui-timepicker-slider').appendTo(el);
+      caption_div = $(document.createElement('div')).addClass('ui-timepicker-caption').appendTo(el);
+      hour_div = $(document.createElement('div')).addClass('ui-timepicker-slider').appendTo(el);
+      minute_div = $(document.createElement('div')).addClass('ui-timepicker-slider').appendTo(el);
       val = value;
       _on_change = function(hour, minute) {
         var hr, min;
@@ -363,7 +400,6 @@
         val = '' + (hr < 10 ? '0' : '') + hr + (min < 10 ? '0' : '') + min;
         return caption_div.text(_this.value_to_string(val));
       };
-      _ref = this._split_value(value), hr_val = _ref[0], min_val = _ref[1];
       hour_div.slider({
         min: 0,
         max: 23,
@@ -385,12 +421,12 @@
       _on_close = function() {
         return el.remove();
       };
-      buttons = $('<div/>').addClass('ui-timepicker-buttons').appendTo(el);
-      $('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('OK').bind('click', function() {
+      buttons = $(document.createElement('div')).addClass('ui-timepicker-buttons').appendTo(el);
+      $(document.createElement('button')).addClass('ui-timepicker-button').appendTo(buttons).text('OK').bind('click', function() {
         _on_close(null);
         return handler(val);
       });
-      $('<button/>').addClass('ui-timepicker-button').appendTo(buttons).text('Cancel').bind('click', function() {
+      $(document.createElement('button')).addClass('ui-timepicker-button').appendTo(buttons).text('Cancel').bind('click', function() {
         return _on_close(null);
       });
       _on_change(null);
@@ -402,7 +438,7 @@
       var el, parts, property,
         _this = this;
       if (options.empty) return handler;
-      el = $('<div/>').addClass('time_editor').appendTo(element);
+      el = $(document.createElement('div')).addClass('time_editor').appendTo(element);
       property = this.renderer.replace(config.edit, item);
       parts = (this.value_to_string(item[property])).split(':');
       if (parts.length === 2) {
@@ -452,7 +488,7 @@
       if (options.empty) return handler(null);
       property = this.renderer.replace(config.edit, item);
       value = item[property];
-      el = $('<div/>').addClass('mark_editor').appendTo(element);
+      el = $(document.createElement('div')).addClass('mark_editor').appendTo(element);
       this._show_value(value, el);
       el.bind('click', function(event) {
         if (!value) {
@@ -486,7 +522,7 @@
 
     HRElement.prototype.render = function(item, config, element, options, handler) {
       if (options.empty) return handler(null);
-      $('<div/>').addClass('hr').appendTo(element);
+      $(document.createElement('div')).addClass('hr').appendTo(element);
       return handler(null);
     };
 
@@ -507,9 +543,9 @@
     Title1Element.prototype.render = function(item, config, element, options, handler) {
       var bg;
       if (options.empty) return handler(null);
-      bg = $('<div/>').addClass('title1_bg').appendTo(element);
-      $('<div/>').addClass('title1').appendTo(bg).text(this.renderer.inject(config.name, item));
-      $('<div style="clear: both;"/>').appendTo(element);
+      bg = $(document.createElement('div')).addClass('title1_bg').appendTo(element);
+      $(document.createElement('div')).addClass('title1').appendTo(bg).text(this.renderer.inject(config.name, item));
+      $(document.createElement('div')).addClass('clear').appendTo(element);
       return handler(null);
     };
 
@@ -530,10 +566,10 @@
     Title2Element.prototype.render = function(item, config, element, options, handler) {
       var bg, el, _ref;
       if (options.empty) return handler(null);
-      bg = $('<div/>').addClass('title2').appendTo(element);
-      $('<span/>').addClass('title2_text').appendTo(bg).text(this.renderer.inject((_ref = config.name) != null ? _ref : ' '));
+      bg = $(document.createElement('div')).addClass('title2').appendTo(element);
+      $(document.createElement('span')).addClass('title2_text').appendTo(bg).text(this.renderer.inject((_ref = config.name) != null ? _ref : ' '));
       if (config.edit) {
-        el = $('<span/>').addClass('text_editor title2_editor').appendTo(bg);
+        el = $(document.createElement('span')).addClass('text_editor title2_editor').appendTo(bg);
         this.renderer.text_editor(el, item, this.renderer.replace(config.edit));
       }
       return handler(null);
@@ -556,8 +592,8 @@
     Title3Element.prototype.render = function(item, config, element, options, handler) {
       var bg;
       if (options.empty) return handler(null);
-      bg = $('<div/>').addClass('title3').appendTo(element);
-      $('<span/>').addClass('title3_text').appendTo(bg).text(this.renderer.inject(config.name, item));
+      bg = $(document.createElement('span')).addClass('title3').appendTo(element);
+      $(document.createElement('span')).addClass('title3_text').appendTo(bg).text(this.renderer.inject(config.name, item));
       return handler(null);
     };
 
@@ -582,7 +618,7 @@
       sizes = (_ref2 = config.size) != null ? _ref2 : [];
       if (flow.length === 1 && sizes.length === 0) sizes = [1];
       if (flow.length !== sizes.length) return handler(null);
-      bg = $('<div/>').addClass('header').appendTo(element);
+      bg = $(document.createElement('div')).addClass('header').appendTo(element);
       w = element.innerWidth() - 2;
       float_size = 0;
       lsizes = [];
@@ -605,7 +641,7 @@
         last = i === flow.length - 1;
         width = lsizes[i];
         if (last) width = w - margin;
-        el = $('<div/>').addClass('col header_col').appendTo(bg).width(width);
+        el = $(document.createElement('div')).addClass('col header_col').appendTo(bg).width(width);
         if (fl) {
           el.text(this.renderer.inject(fl));
         } else {
@@ -658,14 +694,14 @@
     };
 
     ColsElement.prototype.render = function(item, config, element, options, handler) {
-      var body, diff, el, el_body, fl, float_size, flow, i, index, last, lsizes, margin, sizes, space_size, sz, w, width, _i, _len, _ref, _ref2, _results,
+      var body, el, el_body, fl, float_size, flow, i, index, last, lsizes, margin, sizes, space_size, sz, w, width, _i, _len, _ref, _ref2, _results,
         _this = this;
       flow = (_ref = config.flow) != null ? _ref : [];
       sizes = (_ref2 = config.size) != null ? _ref2 : [];
       if (flow.length !== sizes.length) return handler;
       w = element.innerWidth();
       element.addClass('group');
-      body = $('<div/>').addClass('col_body').appendTo(element);
+      body = $(document.createElement('div')).addClass('col_body').appendTo(element);
       float_size = 0;
       if (config.space) float_size += config.space * (flow.length - 1);
       lsizes = [];
@@ -692,13 +728,13 @@
         el = null;
         el_body = null;
         if (i > 0 && config.space) {
-          $('<div/>').appendTo(body).addClass('col').width(space_size).html('&nbsp;');
+          $(document.createElement('div')).appendTo(body).addClass('col').width(space_size).html('&nbsp;');
           margin += space_size;
         }
         width = lsizes[i];
         if (last) width = w - margin;
-        el = $('<div/>').addClass('col col_data').appendTo(body);
-        el_body = $('<div/>').appendTo(el).addClass('col_item');
+        el = $(document.createElement('div')).addClass('col col_data').appendTo(body);
+        el_body = $(document.createElement('div')).appendTo(el).addClass('col_item');
         margin += width;
         if (fl.line > 0) {
           width -= fl.line;
@@ -706,7 +742,6 @@
         }
         if (fl.bg) el.addClass('col_g');
         el.width(width);
-        diff = el.outerWidth() - el.innerWidth();
         _results.push((function(last) {
           return _this.renderer.get(fl.type).render(item, fl, el_body, options, function() {
             if (last) return handler(null);
@@ -761,12 +796,12 @@
     ListElement.prototype._render = function(item, config, element, options, handler) {
       var el, handle,
         _this = this;
-      el = $('<div/>').addClass('list_item').appendTo(element);
+      el = $(document.createElement('div')).addClass('list_item').appendTo(element);
       if (options.delimiter) el.addClass('delimiter_' + options.delimiter);
       if (options.disabled) el.addClass('disabled');
       if (!env.mobile) {
         if (options.draggable) {
-          handle = $('<div/>').addClass('list_item_handle list_item_handle_left').appendTo(el);
+          handle = $(document.createElement('div')).addClass('list_item_handle list_item_handle_left').appendTo(el);
           el.bind('mousemove', function() {
             return handle.show();
           });
@@ -982,14 +1017,27 @@
         if (handler) {
           return handler(item, property, value);
         } else {
-          return _this.on_edited(item, property, value);
+          if (env.mobile) {
+            return setTimeout(function() {
+              return _this.on_edited(item, property, value);
+            }, _this.renderer.ui.close_delay);
+          } else {
+            return _this.on_edited(item, property, value);
+          }
         }
       };
       if (env.mobile) {
         element.bind('tap', function(event) {
-          log('Show dialog');
+          log('dialog', item);
+          $('#text_dialog_title').text((item != null ? item.id : void 0) ? 'Edit text' : 'New text');
           $.mobile.changePage($('#text_dialog'));
           $('#text_editor').focus().val(old_value);
+          $('#text_editor').unbind('keydown').bind('keydown', function(e) {
+            var _ref2;
+            if (e.keyCode === 13) {
+              return _on_finish_edit((_ref2 = $('#text_editor').val()) != null ? _ref2 : '');
+            }
+          });
           $('#text_save').unbind('click').bind('click', function() {
             var _ref2;
             $('#text_dialog').dialog('close');
@@ -1020,14 +1068,12 @@
       this.root.addClass('page_render');
       focus = this.root.find('*:focus');
       this.prev_content = this.root.children();
-      this.content = $('<div/>').addClass('page_content group').prependTo(this.root);
+      this.content = $(document.createElement('div')).addClass('page_content group').prependTo(this.root);
       if (this.data.archived) this.content.addClass('sheet_archived');
       return this._load_items(function() {
-        log('Items loaded');
         return _this.get(_this.template.name).render(_this.data, _this.template, _this.content, {
           empty: false
         }, function() {
-          log('Fixing height');
           return _this.fix_height(function() {
             var el, item, no_area_div, _i, _len, _ref, _results;
             if (focus.attr('option')) {
@@ -1036,12 +1082,12 @@
               _this.root.find('.text_editor[property=' + focus.attr('property') + '][item_id=' + focus.attr('item_id') + ']').focus();
             }
             if (_this.no_area.length > 0 && !env.mobile) {
-              no_area_div = $('<div/>').addClass('no_area_notes').appendTo(_this.root);
+              no_area_div = $(document.createElement('div')).addClass('no_area_notes').appendTo(_this.root);
               _ref = _this.no_area;
               _results = [];
               for (_i = 0, _len = _ref.length; _i < _len; _i++) {
                 item = _ref[_i];
-                el = $('<div/>').addClass('list_item no_area_note').appendTo(no_area_div);
+                el = $(document.createElement('div')).addClass('list_item no_area_note').appendTo(no_area_div);
                 el.data('type', 'note');
                 el.data('renderer', _this);
                 el.data('item', item);
@@ -1063,7 +1109,6 @@
     Renderer.prototype.fix_height = function(handler) {
       var archive_toggle, page_actions, sleft, sright,
         _this = this;
-      log('Grow to', this.max_height);
       this.get(this.template.name).grow(this.max_height, this.template, this.content, {
         empty: true,
         disabled: true
@@ -1071,16 +1116,16 @@
       this.prev_content.remove();
       this.root.removeClass('page_render');
       if (!env.mobile) {
-        sleft = $('<div/>').addClass('page_scroll scroll_left').appendTo(this.root);
+        sleft = $(document.createElement('div')).addClass('page_scroll scroll_left').appendTo(this.root);
         sleft.bind('click', function() {
           return _this.ui.scroll_sheets(_this.data.id, -1);
         });
-        sright = $('<div/>').addClass('page_scroll scroll_right').appendTo(this.root);
+        sright = $(document.createElement('div')).addClass('page_scroll scroll_right').appendTo(this.root);
         sright.bind('click', function() {
           return _this.ui.scroll_sheets(_this.data.id, 1);
         });
-        page_actions = $('<div/>').addClass('page_actions').appendTo(this.root);
-        archive_toggle = $('<div/>').addClass('page_action archive_toggle').appendTo(page_actions);
+        page_actions = $(document.createElement('div')).addClass('page_actions').appendTo(this.root);
+        archive_toggle = $(document.createElement('div')).addClass('page_action archive_toggle').appendTo(page_actions);
         archive_toggle.bind('click', function() {
           _this.show_archived = !_this.show_archived;
           return _this.render(null);

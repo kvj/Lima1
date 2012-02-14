@@ -1,5 +1,6 @@
 (function() {
-  var MobileUIManager;
+  var MobileUIManager,
+    __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
 
   env.mobile = true;
 
@@ -13,10 +14,14 @@
 
     MobileUIManager.prototype.currentPage = 0;
 
+    MobileUIManager.prototype.close_delay = 500;
+
     function MobileUIManager(manager, oauth) {
       var _this = this;
       this.manager = manager;
       this.oauth = oauth;
+      this.date_dialog = __bind(this.date_dialog, this);
+      this.time_dialog = __bind(this.time_dialog, this);
       this.protocols = new ProtocolManager();
       this.oauth.on_new_token = function(token) {
         return _this.manager.set('token', token);
@@ -45,6 +50,12 @@
       $('#sheets_sync').bind('click', function() {
         return _this.sync(false);
       });
+      $('#bmarks_toggle').bind('click', function() {
+        return _this.navigator.root.toggle();
+      });
+      this.navigator = new PageNavigator(this.manager, this);
+      this.navigator.left = true;
+      this.navigator.auto_hide = true;
       this._title(this.title);
     }
 
@@ -88,7 +99,7 @@
         out_items = sync_data.out;
         in_items = sync_data["in"];
         _this.show_error("Sync done: " + sync_at + " sent: " + out_items + " received: " + in_items);
-        if (load_sheets) return _this.load_sheets(true);
+        return _this.load_sheets(load_sheets);
       });
     };
 
@@ -96,6 +107,8 @@
       var _this = this;
       return this.manager.open(function(err) {
         if (err) return _this.show_error(err);
+        _this.navigator.root.height(_this._page_height() + 10);
+        $('.page_mobile').css('min-height', _this._page_height() + 10);
         return _this.load_sheets(true);
       });
     };
@@ -106,17 +119,30 @@
 
     MobileUIManager.prototype.load_sheets = function(show_sheets) {
       var _this = this;
-      return this.manager.getPageNavigator(function(err, data) {
+      return this.manager.getPageNavigator(function(err, data, bmarks) {
         if (err) return _this.show_error(err);
         _this.sheets = data;
-        log('load_sheets', show_sheets, _this.sheets);
+        _this.navigator.show_sheets(data, bmarks);
         if (data.length > 0 && show_sheets) return _this.show_sheets(0);
       });
     };
 
+    MobileUIManager.prototype.find_scroll_sheets = function(id) {
+      var i, item, _ref;
+      _ref = this.sheets;
+      for (i in _ref) {
+        item = _ref[i];
+        i = parseInt(i);
+        if (item.id === id) {
+          this.currentPage = i;
+          return this.scroll_sheets(0);
+        }
+      }
+      return this.show_error('Page not found');
+    };
+
     MobileUIManager.prototype.scroll_sheets = function(inc) {
       var index;
-      log('scroll_sheets', inc, this.pages, this.currentPage);
       index = this.currentPage + inc * this.pages;
       if (index >= this.sheets.length - this.pages) {
         index = this.sheets.length - this.pages;
@@ -134,6 +160,10 @@
       this.currentPage = index;
       sheet = this.sheets[index];
       return this.show_sheet(sheet.template_id, sheet);
+    };
+
+    MobileUIManager.prototype._page_height = function() {
+      return window.innerHeight - $('#main_page_header').outerHeight() - $('#main_page_footer').outerHeight() - 40;
     };
 
     MobileUIManager.prototype.show_sheet = function(template_id, sheet, place) {
@@ -161,7 +191,8 @@
           }
         }
         $(place).data('sheet_id', sheet.id);
-        height = $('#main_page').outerHeight() - $('#main_page_header').outerHeight() - $('#main_page_footer').outerHeight() - 40;
+        log('Height:', screen.height, window.outerHeight, window.innerHeight, screen.availHeight);
+        height = _this._page_height();
         renderer = new Renderer(_this.manager, _this, $(place), template, sheet, height);
         renderer.on_sheet_change = function() {
           return _this.load_sheets(false);
@@ -179,17 +210,27 @@
     };
 
     MobileUIManager.prototype.open_link = function(link, place) {
-      var code, err, id, _ref;
-      _ref = this.protocols.open_link(link, place, this.templates), err = _ref[0], code = _ref[1], id = _ref[2];
-      if (err) {
-        return this.show_error(err);
-      } else {
-        return this.open_sheet_by_code(code, id);
-      }
+      var _this = this;
+      return this.manager.getTemplates(function(err, data) {
+        var code, id, index, obj, templates, _ref;
+        if (err) return _this.show_error(err);
+        templates = {};
+        for (index in data) {
+          obj = data[index];
+          templates[obj.id] = JSON.parse(obj.body);
+        }
+        _ref = _this.protocols.open_link(link, place, templates), err = _ref[0], code = _ref[1], id = _ref[2];
+        if (err) {
+          return _this.show_error(err);
+        } else {
+          return _this.open_sheet_by_code(code, id);
+        }
+      });
     };
 
     MobileUIManager.prototype.open_sheet_by_code = function(code, template_id) {
       var _this = this;
+      log('open_sheet_by_code', code, template_id);
       return this.manager.findSheet(['code', code], function(err, data) {
         if (err) return _this.show_error(err);
         if (data.length > 0) {
@@ -199,6 +240,51 @@
             code: code
           });
         }
+      });
+    };
+
+    MobileUIManager.prototype.time_dialog = function(hour, min, handler) {
+      var _this = this;
+      $.mobile.changePage($('#time_dialog'));
+      $('#hour_slide').val(hour).slider('refresh');
+      $('#min_slide').val(min).slider('refresh');
+      $('#time_save').unbind('click').bind('click', function() {
+        $('#time_dialog').dialog('close');
+        return setTimeout(function() {
+          return handler(true, $('#hour_slide').val(), $('#min_slide').val());
+        }, _this.close_delay);
+      });
+      return $('#time_remove').unbind('click').bind('click', function() {
+        $('#time_dialog').dialog('close');
+        return setTimeout(function() {
+          return handler(false);
+        }, _this.close_delay);
+      });
+    };
+
+    MobileUIManager.prototype.date_dialog = function(dt, handler) {
+      var _this = this;
+      log('show date dialog', dt);
+      $.mobile.changePage($('#date_dialog'));
+      $('#date_day').val(dt.getDate()).selectmenu('refresh');
+      $('#date_month').val(dt.getMonth()).selectmenu('refresh');
+      $('#date_year').val(dt.getFullYear()).selectmenu('refresh');
+      $('#date_save').unbind('click').bind('click', function() {
+        $('#date_dialog').dialog('close');
+        return setTimeout(function() {
+          var result;
+          result = new Date();
+          result.setFullYear($('#date_year').val());
+          result.setMonth($('#date_month').val());
+          result.setDate($('#date_day').val());
+          return handler(true, result);
+        }, _this.close_delay);
+      });
+      return $('#date_remove').unbind('click').bind('click', function() {
+        $('#date_dialog').dialog('close');
+        return setTimeout(function() {
+          return handler(false);
+        }, _this.close_delay);
       });
     };
 

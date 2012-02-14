@@ -21,6 +21,11 @@
     return ui.start(null);
   };
 
+  $(document).bind('mobileinit', function() {
+    $.mobile.defaultPageTransition = 'none';
+    return $.mobile.defaultDialogTransition = 'none';
+  });
+
   $(document).ready(function() {
     if (env.mobile) {
       return $('#main_page').live('pageinit', function() {

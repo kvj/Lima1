@@ -1,3 +1,8 @@
+body {
+    position: relative;
+    overflow: hidden;
+}
+
 .page_mobile {
 	border: 1px solid #dddddd;
 	width: 100%;
@@ -34,4 +39,50 @@
 
 .text_editor {
     font-size: 1.2em;
+}
+
+.calendar_mobile {
+    width: 100%;
+    text-align: center;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-weight: bold;
+    font-size: 1.2em;
+}
+
+.page_navigator_mobile {
+    font-size: 1.1em;
+    width: 110px;
+    overflow: visible;
+    z-index: 9;
+    background-color: rgba(200, 200, 200, 0.2);
+}
+
+#main_page_content {
+    position: relative;
+}
+
+#main_content_mobile {
+    position: relative;
+    margin: 0pt auto;
+}
+
+.page_navigator_mobile_small {
+    position: absolute;
+    left: 0px;
+    top: 0px;
+}
+
+.nav_sheet_left {
+    float: left;
+    border-right-width: 1px;
+    border-left-width: 1px;
+}
+
+.nav_bmark {
+    font-size: 1.2em;
+}
+
+.nav_bmark_left {
+    float: left;
 }

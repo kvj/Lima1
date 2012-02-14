@@ -82,6 +82,8 @@ class PageNavigator
 		[{color: '#2A044A', dark: yes}, {color: '#0B2E59', dark: yes}, {color: '#0D6759', dark: yes}, {color: '#7AB317', dark: no}, {color: '#A0C55F', dark: no} ]
 		[{color: '#3E4147', dark: yes}, {color: '#FFFEDF', dark: no}, {color: '#DFBA69', dark: no}, {color: '#5A2E2E', dark: yes}, {color: '#2A2C31', dark: yes} ]
 	]
+	left: no
+	auto_hide: no
 
 	constructor: (@manager, @ui) ->
 		@root = $('#page_navigator')
@@ -91,33 +93,34 @@ class PageNavigator
 		$('#bmark_save_button').bind 'click', () =>
 			@save_bookmark null
 		
-
-	load_sheets: () ->
-		@manager.getPageNavigator (err, data, bmarks) =>
-			if err then return @ui.show_error(err)
-			@sheets = data
-			@bookmarks = bmarks
-			log 'PageNavigator sheets', data, bmarks, @root.height()
-			@root.empty()
-			missing = []
-			bmarkMap = {}
-			for bmark in @bookmarks
-				if bmark.sheet_id
-					bmarkMap[bmark.sheet_id] = bmark
-				else
-					missing.push bmark
-			bmarkHeight = 20
-			renderBookmark = (bmark) =>
-				div = $('<div/>').addClass('nav_bmark').appendTo(@root)
-				if bmark.sheet_id
-					div.attr('id', 'pn'+bmark.sheet_id)
-				div.height(bmarkHeight-2)
+	show_sheets: (data, bmarks) -> 
+		@sheets = data
+		@bookmarks = bmarks
+		log 'PageNavigator sheets', data, bmarks, @root.height()
+		@root.empty()
+		missing = []
+		bmarkMap = {}
+		for bmark in @bookmarks
+			if bmark.sheet_id
+				bmarkMap[bmark.sheet_id] = bmark
+			else
+				missing.push bmark
+		bmarkHeight = 20
+		renderBookmark = (bmark) =>
+			div = $('<div/>').addClass('nav_bmark').appendTo(@root)
+			if @left
+				div.addClass('nav_bmark_left')
+			if bmark.sheet_id
+				div.attr('id', 'pn'+bmark.sheet_id)
+			div.height(bmarkHeight-2)
+			if not env.mobile
 				div.bind 'dblclick', (e) =>
 					@edit_bookmark bmark
 					return false
-				div.text bmark.name
-				div.css('backgroundColor', bmark.color).css('color', if bmark.dark then '#ffffff' else '#000000')
-				@root.append('<div class="clear"/>')
+			div.text bmark.name
+			div.css('backgroundColor', bmark.color).css('color', if bmark.dark then '#ffffff' else '#000000')
+			@root.append('<div class="clear"/>')
+			if not env.mobile
 				div.data('type', 'bmark')
 				div.data('item', bmark)
 				div.draggable({
@@ -126,32 +129,41 @@ class PageNavigator
 					helper: 'clone' 
 					appendTo: 'body'
 				})
-				return div
-			pages = 0
-			if @sheets.length>0
-				for i in [0...@sheets.length]
-					sheet = @sheets[i]
-					div = null
-					if bmarkMap[sheet.id]
-						div = renderBookmark bmarkMap[sheet.id]
-						do (sheet) =>
-							div.bind 'click', () =>
-								@ui.scroll_sheets sheet.id
-								return false
-					else
-						pages++
-						div = $('<div/>').addClass('nav_sheet').appendTo(@root).attr('id', 'pn'+sheet.id)
-						if i is 0
-							div.addClass('nav_sheet_top')
-						@root.append('<div class="clear"/>')
-			
-			for id, bmark in bmarkMap
-				missing.push bmark
-			for bmark in missing
-				renderBookmark bmark
-			if pages>0
-				pageHeight = Math.floor((@root.innerHeight() + 3 - bmarkHeight*@bookmarks.length)/pages)
-				@root.children('.nav_sheet').height(pageHeight-1)
+			return div
+		pages = 0
+		if @sheets.length>0
+			for i in [0...@sheets.length]
+				sheet = @sheets[i]
+				div = null
+				if bmarkMap[sheet.id]
+					div = renderBookmark bmarkMap[sheet.id]
+					do (sheet) =>
+						div.bind 'click', () =>
+							@ui.find_scroll_sheets sheet.id
+							if @auto_hide then @root.hide()
+							return false
+				else
+					pages++
+					div = $('<div/>').addClass('nav_sheet').appendTo(@root).attr('id', 'pn'+sheet.id)
+					if @left
+						div.addClass 'nav_sheet_left'
+					if i is 0
+						div.addClass('nav_sheet_top')
+					@root.append('<div class="clear"/>')
+		
+		for id, bmark in bmarkMap
+			missing.push bmark
+		for bmark in missing
+			renderBookmark bmark
+		if pages>0
+			pageHeight = Math.floor((@root.innerHeight() + 3 - bmarkHeight*@bookmarks.length)/pages)
+			@root.children('.nav_sheet').height(pageHeight-1)
+
+
+	load_sheets: () ->
+		@manager.getPageNavigator (err, data, bmarks) =>
+			if err then return @ui.show_error(err)
+			@show_sheets data, bmarks
 			
 	attach_bookmark: (bmark, sheet_id) ->
 		log 'Attach', bmark, sheet_id
@@ -563,6 +575,9 @@ class UIManager
 					@templates[item.id] = JSON.parse item.body
 				catch e
 					log 'JSON error', e
+
+	find_scroll_sheets: (id) ->
+		@scroll_sheets id
 
 	scroll_sheets: (from, step = 0) =>
 		# log 'scroll', from, step
