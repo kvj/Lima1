@@ -305,12 +305,12 @@
       el.bind('click', function(e) {
         var dt, _ref;
         if (e.shiftKey) {
-          return _this.renderer.on_edited(item, property, null);
+          _this.renderer.on_edited(item, property, null);
         } else {
           if (env.mobile) {
             log('prop:', property, item[property]);
             dt = new Date();
-            return _this.renderer.ui.date_dialog((_ref = dt.fromString(item[property])) != null ? _ref : new Date(), function(set, dt) {
+            _this.renderer.ui.date_dialog((_ref = dt.fromString(item[property])) != null ? _ref : new Date(), function(set, dt) {
               log('date', set, dt);
               if (set) {
                 return _this.renderer.on_edited(item, property, dt.format('yyyyMMdd'));
@@ -319,7 +319,7 @@
               }
             });
           } else {
-            return el.datepicker('dialog', null, function(date) {
+            el.datepicker('dialog', null, function(date) {
               if (_this.print_date(date, el)) {
                 return _this.renderer.on_edited(item, property, date);
               }
@@ -328,6 +328,7 @@
             }, e);
           }
         }
+        return false;
       });
       $('<div style="clear: both;"/>').appendTo(element);
       return handler(null);
@@ -448,12 +449,13 @@
       }
       el.bind('click', function(e) {
         if (e.shiftKey) {
-          return _this.renderer.on_edited(item, property, null);
+          _this.renderer.on_edited(item, property, null);
         } else {
-          return _this.show_editor(item[property], el, function(time) {
+          _this.show_editor(item[property], el, function(time) {
             return _this.renderer.on_edited(item, property, time);
           });
         }
+        return false;
       });
       $('<div class="clear"/>').appendTo(element);
       return handler(null);
@@ -1027,8 +1029,7 @@
         }
       };
       if (env.mobile) {
-        element.bind('tap', function(event) {
-          log('dialog', item);
+        element.bind('click', function(event) {
           $('#text_dialog_title').text((item != null ? item.id : void 0) ? 'Edit text' : 'New text');
           $.mobile.changePage($('#text_dialog'));
           $('#text_editor').focus().val(old_value);
@@ -1043,10 +1044,11 @@
             $('#text_dialog').dialog('close');
             return _on_finish_edit((_ref2 = $('#text_editor').val()) != null ? _ref2 : '');
           });
-          return $('#text_remove').unbind('click').bind('click', function() {
+          $('#text_remove').unbind('click').bind('click', function() {
             $('#text_dialog').dialog('close');
             if (item.id) return _this.remove_note(item);
           });
+          return false;
         });
       } else {
         element.attr('contentEditable', true);

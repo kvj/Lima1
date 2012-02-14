@@ -191,6 +191,7 @@ class DateElement extends UIElement
 						if @print_date date, el
 							@renderer.on_edited item, property, date
 					, {dateFormat: 'yymmdd'}, e
+			return false
 		$('<div style="clear: both;"/>').appendTo(element)
 		handler null
 
@@ -283,6 +284,7 @@ class TimeElement extends UIElement
 		 	else
 		 		@show_editor item[property], el, (time) =>
 		 			@renderer.on_edited item, property, time
+		 	return false
 		# 		el.datepicker 'dialog' , null, (date) =>
 		# 			if @print_date date, el
 		# 				@renderer.on_edited item, property, date
@@ -666,7 +668,7 @@ class Renderer
 				else
 					@on_edited item, property, value
 		if env.mobile
-			element.bind 'tap', (event) =>
+			element.bind 'click', (event) =>
 				$('#text_dialog_title').text(if item?.id then 'Edit text' else 'New text')
 				$.mobile.changePage($('#text_dialog'))
 				$('#text_editor').focus().val(old_value)
@@ -680,6 +682,7 @@ class Renderer
 					$('#text_dialog').dialog('close')
 					if item.id
 						@remove_note item
+				return false
 					
 		else
 			element.attr('contentEditable', true)
