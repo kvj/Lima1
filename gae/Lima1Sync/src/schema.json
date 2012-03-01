@@ -28,5 +28,67 @@
 			"numbers": ["sheet_id"],
 			"texts": ["name", "color"]
 		}
+	},
+	"sstack": {
+		"_rev": 1,
+		"sheets": {
+			"in": 2,
+			"out": 1,
+			"index": 0,
+			"texts": ["title", "group", "ref", "display"],
+			"numbers": ["visible"]
+		},
+		"notes": {
+			"in": 3,
+			"out": 1,
+			"index": 1,
+			"texts": ["ref", "link", "text"],
+			"numbers": ["created"]
+		},
+		"tags": {
+			"in": 2,
+			"out": 1,
+			"index": 2,
+			"texts": ["text"],
+			"numbers": ["weight"]
+		},
+		"notes_tags": {
+			"in": 2,
+			"out": 1,
+			"index": 3,
+			"texts": ["text", "type"],
+			"numbers": ["value", "note_id"]
+		}
+	},
+	"dict": {
+		"_rev": 1,
+		"collections": {
+			"in": 2,
+			"out": 1,
+			"index": 0,
+			"texts": ["name", "code"],
+			"numbers": []
+		},
+		"chapters": {
+			"in": 10,
+			"out": 3,
+			"index": 1,
+			"texts": ["name"],
+			"numbers": ["collection_id", "date_created", "read"]
+		},
+		"lists": {
+			"in": 2,
+			"out": 1,
+			"index": 2,
+			"texts": ["name"],
+			"numbers": ["selected", "listed"]
+		},
+		"words": {
+			"in": 2,
+			"out": 1,
+			"index": 3,
+			"texts": ["kanji", "kana"],
+			"numbers": ["list_id"]
+		}
 	}
 }
