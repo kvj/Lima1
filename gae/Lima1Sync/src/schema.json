@@ -30,7 +30,7 @@
 		}
 	},
 	"sstack": {
-		"_rev": 1,
+		"_rev": 2,
 		"sheets": {
 			"in": 2,
 			"out": 1,
@@ -57,11 +57,14 @@
 			"out": 1,
 			"index": 3,
 			"texts": ["text", "type"],
-			"numbers": ["value", "note_id"]
+			"numbers": ["value", "note_id"],
+			"indexes": [
+				["note_id", "text", "value"]
+			]
 		}
 	},
 	"dict": {
-		"_rev": 1,
+		"_rev": 2,
 		"collections": {
 			"in": 2,
 			"out": 1,
@@ -74,7 +77,10 @@
 			"out": 3,
 			"index": 1,
 			"texts": ["name"],
-			"numbers": ["collection_id", "date_created", "read"]
+			"numbers": ["collection_id", "date_created", "read"],
+			"indexes": [
+				["collection_id", "read"]
+			]
 		},
 		"lists": {
 			"in": 2,
@@ -88,7 +94,10 @@
 			"out": 1,
 			"index": 3,
 			"texts": ["kanji", "kana"],
-			"numbers": ["list_id"]
+			"numbers": ["list_id"],
+			"indexes": [
+				["list_id"]
+			]
 		}
 	}
 }
