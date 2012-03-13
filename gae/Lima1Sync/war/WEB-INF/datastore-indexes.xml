@@ -5,4 +5,9 @@
         <property name="user" direction="asc"/>
         <property name="updated" direction="asc"/>
     </datastore-index>
+    <datastore-index kind="File" ancestor="false" source="manual">
+        <property name="app" direction="asc"/>
+        <property name="user" direction="asc"/>
+        <property name="name" direction="asc"/>
+    </datastore-index>
 </datastore-indexes>

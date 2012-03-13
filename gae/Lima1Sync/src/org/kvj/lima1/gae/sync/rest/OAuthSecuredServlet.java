@@ -16,17 +16,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class OAuthSecuredServlet extends HttpServlet {
-	
+
 	private static final long serialVersionUID = 1L;
 	protected Logger log = LoggerFactory.getLogger(getClass());
 
-	private void writeJSON(JSONObject object, ServletResponse resp) throws IOException {
+	protected void writeJSON(JSONObject object, ServletResponse resp)
+			throws IOException {
 		resp.setContentType("application/json");
-		OutputStreamWriter writer = new OutputStreamWriter(resp.getOutputStream(), "utf-8");
+		OutputStreamWriter writer = new OutputStreamWriter(
+				resp.getOutputStream(), "utf-8");
 		writer.write(object.toString());
 		writer.flush();
 	}
-	
+
 	@Override
 	protected void doGet(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -38,7 +40,7 @@ public class OAuthSecuredServlet extends HttpServlet {
 			throw new ServletException(e);
 		}
 	}
-	
+
 	@Override
 	protected void doPost(HttpServletRequest req, HttpServletResponse resp)
 			throws ServletException, IOException {
@@ -47,7 +49,7 @@ public class OAuthSecuredServlet extends HttpServlet {
 					req.getInputStream(), "utf-8"));
 			StringBuilder builder = new StringBuilder();
 			String line = null;
-			while((line = reader.readLine()) != null) {
+			while ((line = reader.readLine()) != null) {
 				builder.append(line);
 			}
 			reader.close();
@@ -62,14 +64,15 @@ public class OAuthSecuredServlet extends HttpServlet {
 			log.error("Error in REST", e);
 			throw new ServletException(e);
 		}
-		
+
 	}
-	
+
 	protected JSONObject get(HttpServletRequest req) throws Exception {
 		throw new Exception("Not supported");
 	}
-	
-	protected JSONObject post(JSONObject in, HttpServletRequest req) throws Exception {
+
+	protected JSONObject post(JSONObject in, HttpServletRequest req)
+			throws Exception {
 		throw new Exception("Not supported");
 	}
 }

@@ -46,6 +46,18 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-name>Out</servlet-name>
 		<servlet-class>org.kvj.lima1.gae.sync.rest.OutServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>Upload</servlet-name>
+		<servlet-class>org.kvj.lima1.gae.sync.rest.UploadServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>Download</servlet-name>
+		<servlet-class>org.kvj.lima1.gae.sync.rest.DownloadServlet</servlet-class>
+	</servlet>
+	<servlet>
+		<servlet-name>RemoveFile</servlet-name>
+		<servlet-class>org.kvj.lima1.gae.sync.rest.RemoveFileServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>Token</servlet-name>
 		<url-pattern>/token</url-pattern>
@@ -61,6 +73,18 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet-mapping>
 		<servlet-name>Out</servlet-name>
 		<url-pattern>/rest/out</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Upload</servlet-name>
+		<url-pattern>/rest/file/upload</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Download</servlet-name>
+		<url-pattern>/rest/file/download</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>RemoveFile</servlet-name>
+		<url-pattern>/rest/file/remove</url-pattern>
 	</servlet-mapping>
 	<welcome-file-list>
 		<welcome-file>index.html</welcome-file>
