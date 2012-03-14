@@ -5,6 +5,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.google.appengine.api.blobstore.BlobKey;
+import com.google.appengine.api.blobstore.BlobstoreService;
+import com.google.appengine.api.blobstore.BlobstoreServiceFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
@@ -75,7 +77,7 @@ public class FileStorage {
 			}
 			return (BlobKey) fileEntity.getProperty("file");
 		} catch (Exception e) {
-			log.error("Save error", e);
+			log.error("Download error", e);
 			return null;
 		}
 	}
@@ -104,6 +106,9 @@ public class FileStorage {
 			if (null == fileEntity) {
 				return null;
 			}
+			BlobstoreService blobstoreService = BlobstoreServiceFactory
+					.getBlobstoreService();
+			blobstoreService.delete((BlobKey) fileEntity.getProperty("file"));
 			datastore.delete(txn, fileEntity.getKey());
 			txn.commit();
 			return null;

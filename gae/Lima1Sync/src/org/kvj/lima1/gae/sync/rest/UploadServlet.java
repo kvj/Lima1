@@ -28,6 +28,7 @@ public class UploadServlet extends OAuthSecuredServlet {
 		String app = req.getParameter("app");
 		Map<String, BlobKey> blobs = blobstoreService.getUploadedBlobs(req);
 		BlobKey file = blobs.get("file");
+		log.info("Upload: " + name + " - " + file);
 		if (null != name && null != file) {
 			String result = FileStorage.upload(app,
 					(String) req.getAttribute(OAuth.OAUTH_CLIENT_ID), file,

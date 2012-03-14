@@ -30,6 +30,7 @@ public class DownloadServlet extends OAuthSecuredServlet {
 			throws ServletException, IOException {
 		String app = req.getParameter("app");
 		String name = req.getParameter("name");
+		log.info("Getting file: " + name);
 		BlobKey file = FileStorage.getFile(app,
 				(String) req.getAttribute(OAuth.OAUTH_CLIENT_ID), name);
 		if (null == file) {
@@ -51,8 +52,9 @@ public class DownloadServlet extends OAuthSecuredServlet {
 						ImagesServiceFactory.makeRotate(0), fromBlob,
 						inputSettings, outputSettings);
 				double mul = Double.parseDouble(width) / fromBlob.getWidth();
-				log.info("Transform image (with rotate) " + fromBlob.getWidth()
-						+ fromBlob.getHeight() + ", " + mul);
+				// log.info("Transform image (with rotate) " +
+				// fromBlob.getWidth()
+				// + fromBlob.getHeight() + ", " + mul);
 				Transform transform = ImagesServiceFactory.makeResize(
 						(int) Math.ceil(fromBlob.getWidth() * mul),
 						(int) Math.ceil(fromBlob.getHeight() * mul));
