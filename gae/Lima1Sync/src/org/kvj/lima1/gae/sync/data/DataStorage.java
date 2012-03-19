@@ -1,7 +1,6 @@
 package org.kvj.lima1.gae.sync.data;
 
 import java.util.Date;
-import java.util.List;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
@@ -11,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import com.google.appengine.api.datastore.DatastoreService;
 import com.google.appengine.api.datastore.DatastoreServiceFactory;
 import com.google.appengine.api.datastore.Entity;
-import com.google.appengine.api.datastore.FetchOptions;
 import com.google.appengine.api.datastore.Query;
 import com.google.appengine.api.datastore.Query.FilterOperator;
 import com.google.appengine.api.datastore.Text;
@@ -21,42 +19,45 @@ public class DataStorage {
 
 	private static Logger log = LoggerFactory.getLogger(DataStorage.class);
 	private static long nextID = 0;
-	
+
 	private static synchronized long nextUpdated() {
 		long result = new Date().getTime();
-		while(result<=nextID) {
+		while (result <= nextID) {
 			result++;
 		}
 		nextID = result;
 		return result;
 	}
-	
-	public static JSONObject getData(String app, String user, String token, long from, boolean inc) {
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+
+	public static JSONObject getData(String app, String user, String token,
+			long from, boolean inc) {
+		DatastoreService datastore = DatastoreServiceFactory
+				.getDatastoreService();
 		try {
 			JSONObject schema = SchemaStorage.getInstance().getSchema(app);
 			if (null == schema) {
 				throw new Exception("Schema not found");
 			}
 			int slots = schema.optInt("_slots", 10);
-			Query existing = new Query("User").
-					addFilter("username", FilterOperator.EQUAL, user);
+			Query existing = new Query("User").addFilter("username",
+					FilterOperator.EQUAL, user);
 			Entity userEntity = datastore.prepare(existing).asSingleEntity();
 			if (null == userEntity) {
 				throw new Exception("User not found");
 			}
-			Query data = new Query("Data").
-				addFilter("user", FilterOperator.EQUAL, userEntity.getKey()).
-				addFilter("app", FilterOperator.EQUAL, app).
-				addFilter("updated", FilterOperator.GREATER_THAN, from).
-				addSort("updated");
+			Query data = new Query("Data")
+					.addFilter("user", FilterOperator.EQUAL,
+							userEntity.getKey())
+					.addFilter("app", FilterOperator.EQUAL, app)
+					.addFilter("updated", FilterOperator.GREATER_THAN, from)
+					.addSort("updated");
 			JSONArray arr = new JSONArray();
 			int slots_used = 0;
-			for (Entity dataEntity: datastore.prepare(data).asIterable()) {
-//				log.info("About to send entity: {}", dataEntity);
+			for (Entity dataEntity : datastore.prepare(data).asIterable()) {
+				// log.info("About to send entity: {}", dataEntity);
 				if (inc) {
 					if (token.equals(dataEntity.getProperty("token"))) {
-						log.info("Skip own token {}", from);
+						// log.info("Skip own token {}", from);
 						continue;
 					}
 				}
@@ -67,8 +68,8 @@ public class DataStorage {
 					continue;
 				}
 				int slots_needed = config.optInt("out", 1);
-				if (slots_used+slots_needed>slots) {
-					log.info("Reached number of slots: {}", slots_used);
+				if (slots_used + slots_needed > slots) {
+					// log.info("Reached number of slots: {}", slots_used);
 					break;
 				}
 				slots_used += slots_needed;
@@ -81,36 +82,39 @@ public class DataStorage {
 				dataObject.put("o", oText.getValue());
 				arr.put(dataObject);
 			}
-			log.info("Sending arr: {}", arr.length());
+			// log.info("Sending arr: {}", arr.length());
 			JSONObject result = new JSONObject();
 			result.put("a", arr);
 			if (0 == arr.length()) {
 				result.put("u", nextUpdated());
 			}
 			return result;
-			
+
 		} catch (Exception e) {
 			log.error("Get data error", e);
 		}
 		return null;
 	}
-	
-	public static String saveData(JSONArray data, String app, String user, String token) {
-		DatastoreService datastore = DatastoreServiceFactory.getDatastoreService();
+
+	public static String saveData(JSONArray data, String app, String user,
+			String token) {
+		DatastoreService datastore = DatastoreServiceFactory
+				.getDatastoreService();
 		Transaction txn = datastore.beginTransaction();
 		try {
-			Query existing = new Query("User").
-					addFilter("username", FilterOperator.EQUAL, user);
+			Query existing = new Query("User").addFilter("username",
+					FilterOperator.EQUAL, user);
 			Entity userEntity = datastore.prepare(existing).asSingleEntity();
 			if (null == userEntity) {
 				return "User not found";
 			}
 			for (int i = 0; i < data.length(); i++) {
 				JSONObject item = data.getJSONObject(i);
-				Query existingData = new Query("Data").
-						addFilter("user", FilterOperator.EQUAL, userEntity.getKey()).
-						addFilter("id", FilterOperator.EQUAL, item.getLong("i"));
-				Entity dataEntity = datastore.prepare(existingData).asSingleEntity();
+				Query existingData = new Query("Data").addFilter("user",
+						FilterOperator.EQUAL, userEntity.getKey()).addFilter(
+						"id", FilterOperator.EQUAL, item.getLong("i"));
+				Entity dataEntity = datastore.prepare(existingData)
+						.asSingleEntity();
 				if (null == dataEntity) {
 					dataEntity = new Entity("Data", userEntity.getKey());
 					dataEntity.setProperty("id", item.getLong("i"));
@@ -123,17 +127,20 @@ public class DataStorage {
 				dataEntity.setProperty("updated", nextUpdated());
 				dataEntity.setProperty("token", token);
 				datastore.put(txn, dataEntity);
-				log.info("Saved entity: {}", item);
+				// log.info("Saved entity: {}", item);
 			}
 			txn.commit();
-		    return null;
+			if (data.length() > 0) {
+				ChannelStorage.dataUpdated(app, user, token);
+			}
+			return null;
 		} catch (Exception e) {
 			log.error("Save error", e);
 			return "Database error";
 		} finally {
-		    if (txn.isActive()) {
-		        txn.rollback();
-		    }
-		}	
+			if (txn.isActive()) {
+				txn.rollback();
+			}
+		}
 	}
 }

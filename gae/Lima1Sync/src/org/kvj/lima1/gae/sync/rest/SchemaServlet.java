@@ -30,8 +30,9 @@ public class SchemaServlet extends OAuthSecuredServlet {
 			String token = (String) req.getAttribute(OAuth.OAUTH_TOKEN);
 			ChannelService channelService = ChannelServiceFactory
 					.getChannelService();
-			schema.put("_channel", channelService.createChannel(channel));
-			ChannelStorage.newChannel(token, userName, channel);
+			String channelID = channelService.createChannel(token);
+			schema.put("_channel", channelID);
+			ChannelStorage.newChannel(app, token, userName, channelID);
 		}
 		return schema;
 	}
