@@ -30,7 +30,8 @@
 		}
 	},
 	"sstack": {
-		"_rev": 2,
+		"_rev": 3,
+		"_slots": 30,
 		"sheets": {
 			"in": 2,
 			"out": 1,
@@ -39,7 +40,7 @@
 			"numbers": ["visible"]
 		},
 		"notes": {
-			"in": 3,
+			"in": 5,
 			"out": 1,
 			"index": 1,
 			"texts": ["ref", "link", "text"],
@@ -57,10 +58,17 @@
 			"out": 1,
 			"index": 3,
 			"texts": ["text", "type"],
-			"numbers": ["value", "note_id"],
+			"numbers": ["value", "note_id", "value2", "value3"],
 			"indexes": [
 				["note_id", "text", "value"]
 			]
+		},
+		"keys": {
+			"in": 20,
+			"out": 5,
+			"index": 4,
+			"texts": ["name", "ref", "info"],
+			"numbers": ["size"]
 		}
 	},
 	"dict": {
