@@ -1,13 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <datastore-indexes autoGenerate="false">
-    <datastore-index kind="Data" ancestor="false" source="manual">
-        <property name="app" direction="asc"/>
-        <property name="user" direction="asc"/>
-        <property name="updated" direction="asc"/>
-    </datastore-index>
-    <datastore-index kind="File" ancestor="false" source="manual">
-        <property name="app" direction="asc"/>
-        <property name="user" direction="asc"/>
-        <property name="name" direction="asc"/>
-    </datastore-index>
+	<datastore-index kind="Data" ancestor="false" source="manual">
+		<property name="app" direction="asc" />
+		<property name="user" direction="asc" />
+		<property name="updated" direction="asc" />
+	</datastore-index>
+
+	<datastore-index kind="Data" ancestor="false" source="manual">
+		<property name="app" direction="asc" />
+		<property name="status" direction="asc" />
+		<property name="stream" direction="asc" />
+		<property name="user" direction="asc" />
+		<property name="id" direction="asc" />
+	</datastore-index>
+
+	<datastore-index kind="File" ancestor="false" source="manual">
+		<property name="app" direction="asc" />
+		<property name="user" direction="asc" />
+		<property name="name" direction="asc" />
+	</datastore-index>
+
+	<datastore-index kind="File" ancestor="false" source="manual">
+		<property name="app" direction="asc" />
+		<property name="user" direction="asc" />
+		<property name="created" direction="asc" />
+	</datastore-index>
 </datastore-indexes>

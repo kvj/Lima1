@@ -58,6 +58,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 		<servlet-name>RemoveFile</servlet-name>
 		<servlet-class>org.kvj.lima1.gae.sync.rest.RemoveFileServlet</servlet-class>
 	</servlet>
+	<servlet>
+		<servlet-name>Backup</servlet-name>
+		<servlet-class>org.kvj.lima1.gae.sync.rest.BackupServlet</servlet-class>
+	</servlet>
 	<servlet-mapping>
 		<servlet-name>Token</servlet-name>
 		<url-pattern>/token</url-pattern>
@@ -73,6 +77,10 @@ http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
 	<servlet-mapping>
 		<servlet-name>Out</servlet-name>
 		<url-pattern>/rest/out</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>Backup</servlet-name>
+		<url-pattern>/rest/backup</url-pattern>
 	</servlet-mapping>
 	<servlet-mapping>
 		<servlet-name>Upload</servlet-name>

@@ -32,6 +32,9 @@
 	"sstack": {
 		"_rev": 3,
 		"_slots": 30,
+		"_fkeys": [
+			{pk: "notes.id", fk: "notes_tags.note_id"}
+		],
 		"sheets": {
 			"in": 2,
 			"out": 1,

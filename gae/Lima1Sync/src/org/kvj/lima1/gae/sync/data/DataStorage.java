@@ -1,6 +1,13 @@
 package org.kvj.lima1.gae.sync.data;
 
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
@@ -141,6 +148,132 @@ public class DataStorage {
 			if (txn.isActive()) {
 				txn.rollback();
 			}
+		}
+	}
+
+	static class FKey {
+		List<String> fks = new ArrayList<String>();
+		List<String> data = new ArrayList<String>();
+	}
+
+	public static void backupData(String app, String user, OutputStream out)
+			throws Exception {
+		DatastoreService datastore = DatastoreServiceFactory
+				.getDatastoreService();
+		try {
+			JSONObject schema = SchemaStorage.getInstance().getSchema(app);
+			if (null == schema) {
+				throw new Exception("Schema not found");
+			}
+			Query existing = new Query("User").addFilter("username",
+					FilterOperator.EQUAL, user);
+			Entity userEntity = datastore.prepare(existing).asSingleEntity();
+			if (null == userEntity) {
+				throw new Exception("User not found");
+			}
+			List<Integer> statuses = new ArrayList<Integer>();
+			statuses.add(0);
+			statuses.add(1);
+			statuses.add(2);
+			OutputStreamWriter writer = new OutputStreamWriter(out, "utf-8");
+			Map<String, FKey> fkeys = new HashMap<String, DataStorage.FKey>();
+			if (schema.has("_fkeys")) {
+				JSONArray _fkeys = schema.getJSONArray("_fkeys");
+				for (int i = 0; i < _fkeys.length(); i++) {
+					JSONObject _fkey = _fkeys.getJSONObject(i);
+					FKey fkey = fkeys.get(_fkey.optString("pk"));
+					if (null == fkey) {
+						fkey = new FKey();
+						fkeys.put(_fkey.optString("pk"), fkey);
+					}
+					fkey.fks.add(_fkey.optString("fk"));
+				}
+			}
+			log.info("Before backup fkeys:" + fkeys.size());
+			Iterator<String> keys = schema.keys();
+			while (keys.hasNext()) {
+				String key = keys.next();
+				if (key.startsWith("_")) {
+					continue;
+				}
+				Map<String, FKey> fkeysToSave = new HashMap<String, DataStorage.FKey>();
+				Map<String, FKey> fkeysToCheck = new HashMap<String, DataStorage.FKey>();
+				for (String pk : fkeys.keySet()) {
+					FKey fkey = fkeys.get(pk);
+					if (pk.startsWith(key + ".")) {
+						fkeysToSave.put(pk.substring(key.length() + 1), fkey);
+					}
+					for (String fk : fkey.fks) {
+						if (fk.startsWith(key + ".")) {
+							fkeysToCheck.put(fk.substring(key.length() + 1),
+									fkey);
+						}
+					}
+				}
+				log.info("Stream " + key + " start. Check: "
+						+ fkeysToCheck.size() + ". Save: " + fkeysToSave.size());
+				long entriesOK = 0;
+				long entriesSkip = 0;
+				Query data = new Query("Data")
+						.addFilter("user", FilterOperator.EQUAL,
+								userEntity.getKey())
+						.addFilter("app", FilterOperator.EQUAL, app)
+						.addFilter("stream", FilterOperator.EQUAL, key)
+						.addFilter("status", FilterOperator.IN, statuses)
+						// .addFilter("updated", FilterOperator.GREATER_THAN,
+						// from)
+						.addSort("id");
+				writer.write("#" + key + "\n");
+				for (Entity dataEntity : datastore.prepare(data).asIterable()) {
+					Text oText = (Text) dataEntity.getProperty("object");
+					JSONObject object = null;
+					try {
+						object = new JSONObject(oText.getValue());
+					} catch (Exception e) {
+						log.warn("Not a JSON: " + oText.getValue());
+						entriesSkip++;
+						continue;
+					}
+					boolean putEntry = true;
+					// Check foreign keys
+					for (String field : fkeysToCheck.keySet()) {
+						FKey fkey = fkeysToCheck.get(field);
+						if (object.has(field)) {
+							String value = object.optString(field);
+							if (null != value && !fkey.data.contains(value)) {
+								putEntry = false;
+								break;
+							}
+						}
+					}
+					if (putEntry) {
+						// Write entry
+						entriesOK++;
+						writer.write(object.toString());
+						writer.write("\n");
+						// Save primary keys, if have
+						for (String field : fkeysToSave.keySet()) {
+							FKey fkey = fkeysToSave.get(field);
+							if (object.has(field)) {
+								String value = object.optString(field);
+								if (null != value) {
+									fkey.data.add(value);
+								}
+							}
+						}
+					} else {
+						entriesSkip++;
+					}
+				}
+				writer.flush();
+				log.info("Stream " + key + " done. OK: " + entriesOK
+						+ ". SKIP: " + entriesSkip);
+			}
+			log.info("Backup done");
+			return;
+		} catch (Exception e) {
+			log.error("Backup error", e);
+			throw e;
 		}
 	}
 }
