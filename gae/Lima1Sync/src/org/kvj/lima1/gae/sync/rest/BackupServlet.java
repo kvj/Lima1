@@ -35,11 +35,12 @@ public class BackupServlet extends OAuthSecuredServlet {
 		try {
 			String user = (String) req.getAttribute(OAuth.OAUTH_CLIENT_ID);
 			ZipOutputStream zip = new ZipOutputStream(resp.getOutputStream());
+			int filesAdded = 0;
 			if ("data".equals(type)) {
-				ZipEntry entry = new ZipEntry("data.json");
-				zip.putNextEntry(entry);
-				DataStorage.backupData(app, user, zip);
-				zip.closeEntry();
+				// ZipEntry entry = new ZipEntry("data.json");
+				// zip.putNextEntry(entry);
+				filesAdded = DataStorage.backupData(app, user, zip);
+				// zip.closeEntry();
 			}
 			if ("file".equals(type)) {
 				String from = req.getParameter("from");
@@ -47,13 +48,12 @@ public class BackupServlet extends OAuthSecuredServlet {
 				if (null != from) {
 					fromLong = Long.parseLong(from);
 				}
-				int filesAdded = FileStorage.backupFiles(app, user, fromLong,
-						zip);
-				if (filesAdded == 0) {
-					ZipEntry noFiles = new ZipEntry(".no-files");
-					zip.putNextEntry(noFiles);
-					zip.closeEntry();
-				}
+				filesAdded = FileStorage.backupFiles(app, user, fromLong, zip);
+			}
+			if (filesAdded == 0) {
+				ZipEntry noFiles = new ZipEntry(".no-files");
+				zip.putNextEntry(noFiles);
+				zip.closeEntry();
 			}
 			zip.close();
 			resp.flushBuffer();

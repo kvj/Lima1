@@ -1,13 +1,13 @@
 package org.kvj.lima1.gae.sync.data;
 
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import org.codehaus.jettison.json.JSONArray;
 import org.codehaus.jettison.json.JSONObject;
@@ -156,7 +156,9 @@ public class DataStorage {
 		List<String> data = new ArrayList<String>();
 	}
 
-	public static void backupData(String app, String user, OutputStream out)
+	static final int MAX_DATA_SIZE = 100000;
+
+	public static int backupData(String app, String user, ZipOutputStream out)
 			throws Exception {
 		DatastoreService datastore = DatastoreServiceFactory
 				.getDatastoreService();
@@ -171,11 +173,13 @@ public class DataStorage {
 			if (null == userEntity) {
 				throw new Exception("User not found");
 			}
+			int filesAdded = 0;
+			int dataSize = MAX_DATA_SIZE;
+			ZipEntry zipEntry = null;
 			List<Integer> statuses = new ArrayList<Integer>();
 			statuses.add(0);
 			statuses.add(1);
 			statuses.add(2);
-			OutputStreamWriter writer = new OutputStreamWriter(out, "utf-8");
 			Map<String, FKey> fkeys = new HashMap<String, DataStorage.FKey>();
 			if (schema.has("_fkeys")) {
 				JSONArray _fkeys = schema.getJSONArray("_fkeys");
@@ -223,7 +227,21 @@ public class DataStorage {
 						// .addFilter("updated", FilterOperator.GREATER_THAN,
 						// from)
 						.addSort("id");
-				writer.write("#" + key + "\n");
+				byte[] headerData = new String("#" + key + "\n")
+						.getBytes("utf-8");
+				if (null == zipEntry
+						|| dataSize + headerData.length > MAX_DATA_SIZE) {
+					if (null != zipEntry) {
+						out.closeEntry();
+					}
+					zipEntry = new ZipEntry(String.format("data%03d.json",
+							filesAdded));
+					out.putNextEntry(zipEntry);
+					filesAdded++;
+					dataSize = 0;
+				}
+				out.write(headerData);
+				dataSize += headerData.length;
 				for (Entity dataEntity : datastore.prepare(data).asIterable()) {
 					Text oText = (Text) dataEntity.getProperty("object");
 					JSONObject object = null;
@@ -249,8 +267,21 @@ public class DataStorage {
 					if (putEntry) {
 						// Write entry
 						entriesOK++;
-						writer.write(object.toString());
-						writer.write("\n");
+						byte[] objectData = new String(object.toString() + "\n")
+								.getBytes("utf-8");
+						if (null == zipEntry
+								|| dataSize + objectData.length > MAX_DATA_SIZE) {
+							if (null != zipEntry) {
+								out.closeEntry();
+							}
+							zipEntry = new ZipEntry(String.format(
+									"data%03d.json", filesAdded));
+							out.putNextEntry(zipEntry);
+							filesAdded++;
+							dataSize = 0;
+						}
+						out.write(objectData);
+						dataSize += objectData.length;
 						// Save primary keys, if have
 						for (String field : fkeysToSave.keySet()) {
 							FKey fkey = fkeysToSave.get(field);
@@ -265,12 +296,15 @@ public class DataStorage {
 						entriesSkip++;
 					}
 				}
-				writer.flush();
+				out.flush();
 				log.info("Stream " + key + " done. OK: " + entriesOK
 						+ ". SKIP: " + entriesSkip);
 			}
+			if (null != zipEntry) {
+				out.closeEntry();
+			}
 			log.info("Backup done");
-			return;
+			return filesAdded;
 		} catch (Exception e) {
 			log.error("Backup error", e);
 			throw e;

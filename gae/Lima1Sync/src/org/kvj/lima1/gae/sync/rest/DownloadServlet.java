@@ -38,6 +38,7 @@ public class DownloadServlet extends OAuthSecuredServlet {
 		} else {
 			BlobstoreService blobstoreService = BlobstoreServiceFactory
 					.getBlobstoreService();
+			resp.setHeader("Content-Type", "application/octet-stream");
 			String width = req.getParameter("width");
 			if (null != "width") {
 				ImagesService imagesService = ImagesServiceFactory
