@@ -150,6 +150,7 @@ public class FileStorage {
 				file.addFilter("created", FilterOperator.GREATER_THAN, from);
 			}
 			int filesAdded = 0;
+			StringBuilder meta = new StringBuilder();
 			for (Entity dataEntity : datastore.prepare(file).asIterable()) {
 				BlobKey blob = (BlobKey) dataEntity.getProperty("file");
 				String name = (String) dataEntity.getProperty("name");
@@ -166,10 +167,25 @@ public class FileStorage {
 					zip.closeEntry();
 					filesAdded++;
 					zip.flush();
+					try {
+						JSONObject metaObject = new JSONObject();
+						metaObject.put("name", name);
+						metaObject.put("created",
+								dataEntity.getProperty("created"));
+						meta.append(metaObject.toString());
+						meta.append("\n");
+					} catch (Exception e) {
+					}
 				} catch (Exception e) {
 					log.warn("Error writing blob", e);
 					continue;
 				}
+			}
+			if (filesAdded > 0) {
+				ZipEntry entry = new ZipEntry("meta.json");
+				zip.putNextEntry(entry);
+				zip.write(meta.toString().getBytes("utf-8"));
+				zip.closeEntry();
 			}
 			return filesAdded;
 		} catch (Exception e) {
