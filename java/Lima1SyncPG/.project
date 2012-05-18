@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projectDescription>
+	<name>Lima1SyncPG</name>
+	<comment></comment>
+	<projects>
+	</projects>
+	<buildSpec>
+		<buildCommand>
+			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments>
+			</arguments>
+		</buildCommand>
+	</buildSpec>
+	<natures>
+		<nature>org.eclipse.jdt.core.javanature</nature>
+	</natures>
+	<linkedResources>
+		<link>
+			<name>src-amber-authzserver</name>
+			<type>2</type>
+			<locationURI>HOBBY_FOLDER/Lima1/gae/Lima1Sync/src-amber/oauth2-authzserver/src/main/java</locationURI>
+		</link>
+		<link>
+			<name>src-amber-common</name>
+			<type>2</type>
+			<locationURI>HOBBY_FOLDER/Lima1/gae/Lima1Sync/src-amber/oauth2-common/src/main/java</locationURI>
+		</link>
+		<link>
+			<name>src-amber-resourceserver</name>
+			<type>2</type>
+			<locationURI>HOBBY_FOLDER/Lima1/gae/Lima1Sync/src-amber/oauth2-resourceserver/src/main/java</locationURI>
+		</link>
+		<link>
+			<name>src-amber-rs-filter</name>
+			<type>2</type>
+			<locationURI>HOBBY_FOLDER/Lima1/gae/Lima1Sync/src-amber/oauth2-rs-filter/src/main/java</locationURI>
+		</link>
+	</linkedResources>
+</projectDescription>
