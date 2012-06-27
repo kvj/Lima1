@@ -5,8 +5,10 @@ import java.io.File;
 import org.kvj.bravo7.ControllerConnector.ControllerReceiver;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Environment;
 import android.widget.Toast;
 
@@ -67,6 +69,34 @@ public class SuperActivity<A extends ApplicationContext, T, S extends SuperServi
 			}
 		}
 		return dir;
+	}
+
+	public static void showQuestionDialog(Context context, String title,
+			String message, final Runnable... buttons) {
+		new AlertDialog.Builder(context)
+				.setIcon(android.R.drawable.ic_dialog_alert)
+				.setTitle(title)
+				.setMessage(message)
+				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						if (buttons.length > 0) { // Have handler
+							buttons[0].run();
+						}
+					}
+				})
+				.setNegativeButton("Cancel",
+						new DialogInterface.OnClickListener() {
+
+							@Override
+							public void onClick(DialogInterface dialog,
+									int which) {
+								if (buttons.length > 1) { // Have handler
+									buttons[1].run();
+								}
+							}
+						}).show();
 	}
 
 	protected ProgressDialog showProgressDialog(String message) {
