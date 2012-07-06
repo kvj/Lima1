@@ -1,0 +1,85 @@
+package org.kvj.bravo7.ipc;
+
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.ContextWrapper;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.os.IBinder;
+import android.os.IInterface;
+
+abstract public class RemoteServiceConnector<T extends IInterface> implements
+		ServiceConnection {
+
+	private T remote = null;
+	private PackageBroadcastReceiver packageBroadcastReceiver = null;
+	private IntentFilter packageFilter = null;
+	private ContextWrapper ctx = null;
+	private String action = null;
+	private String category = null;
+	private boolean active = true;
+
+	class PackageBroadcastReceiver extends BroadcastReceiver {
+
+		@Override
+		public void onReceive(Context context, Intent intent) {
+			if (null == remote && active) { // Reconnect
+				connect();
+			}
+		}
+	}
+
+	public RemoteServiceConnector(ContextWrapper ctx, String action,
+			String category) {
+		this.ctx = ctx;
+		this.action = action;
+		this.category = category;
+		packageBroadcastReceiver = new PackageBroadcastReceiver();
+		packageFilter = new IntentFilter();
+		packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
+		packageFilter.addAction(Intent.ACTION_PACKAGE_REPLACED);
+		packageFilter.addCategory(Intent.CATEGORY_DEFAULT);
+		packageFilter.addDataScheme("package");
+		ctx.registerReceiver(packageBroadcastReceiver, packageFilter);
+		connect();
+	}
+
+	protected void connect() {
+		Intent bindIntent = new Intent(action);
+		if (null != category) { // Have category
+			bindIntent.addCategory(category);
+		}
+		ctx.bindService(bindIntent, this, Context.BIND_AUTO_CREATE);
+	}
+
+	public T getRemote() {
+		return remote;
+	}
+
+	public void stop() {
+		active = false;
+		ctx.unregisterReceiver(packageBroadcastReceiver);
+	}
+
+	@Override
+	public void onServiceConnected(ComponentName name, IBinder service) {
+		remote = castAIDL(service);
+	}
+
+	@Override
+	public void onServiceDisconnected(ComponentName name) {
+		remote = null;
+	}
+
+	abstract public T castAIDL(IBinder binder);
+
+	public void onConnect() {
+
+	}
+
+	public void onDisconnect() {
+
+	}
+}
