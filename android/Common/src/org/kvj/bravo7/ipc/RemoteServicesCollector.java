@@ -7,7 +7,6 @@ import java.util.Map;
 
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -22,7 +21,7 @@ public abstract class RemoteServicesCollector<T extends IInterface> {
 		RemoteServiceConnector<T> connector = null;
 	}
 
-	private ContextWrapper ctx = null;
+	private Context ctx = null;
 	private String action = null;
 	private Map<String, List<PluginConnection>> plugins = new HashMap<String, List<PluginConnection>>();
 	private PackageBroadcastReceiver receiver = null;
@@ -31,11 +30,11 @@ public abstract class RemoteServicesCollector<T extends IInterface> {
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
-			collectPlugins(intent);
+			collectPlugins(intent.getAction(), intent.getDataString());
 		}
 	}
 
-	public RemoteServicesCollector(ContextWrapper ctx, String action) {
+	public RemoteServicesCollector(Context ctx, String action) {
 		this.ctx = ctx;
 		this.action = action;
 		receiver = new PackageBroadcastReceiver();
@@ -45,32 +44,44 @@ public abstract class RemoteServicesCollector<T extends IInterface> {
 		packageFilter.addCategory(Intent.CATEGORY_DEFAULT);
 		packageFilter.addDataScheme("package");
 		ctx.registerReceiver(receiver, packageFilter);
+		collectPlugins(Intent.ACTION_PACKAGE_ADDED, null);
 	}
 
-	private void collectPlugins(Intent intent) {
-		List<PluginConnection> list = plugins.get(intent.getPackage());
-		if (null != list) { // Have plugins - stop
-			for (PluginConnection plugin : list) { // Call stop()
-				plugin.connector.stop();
+	private void collectPlugins(String packageAction, String changedPackage) {
+		if (null != changedPackage) {
+			List<PluginConnection> list = plugins.get(changedPackage);
+			if (null != list) { // Have plugins - stop
+				for (PluginConnection plugin : list) { // Call stop()
+					plugin.connector.stop();
+				}
+				list.clear();
 			}
 		}
-		if (!Intent.ACTION_PACKAGE_REMOVED.equals(intent.getAction())) {
+		if (!Intent.ACTION_PACKAGE_REMOVED.equals(packageAction)) {
 			// Not removed
-			if (null == list) { // List not created - new
-				list = new ArrayList<PluginConnection>();
-			}
 			// Discover
 			PackageManager packageManager = ctx.getPackageManager();
 			Intent baseIntent = new Intent(action);
+			if (null != changedPackage) {
+				baseIntent.setPackage(changedPackage);
+			}
 			baseIntent.setFlags(Intent.FLAG_DEBUG_LOG_RESOLUTION);
 			List<ResolveInfo> resolves = packageManager.queryIntentServices(
 					baseIntent, PackageManager.GET_RESOLVED_FILTER);
+			if (null == resolves) {
+				resolves = new ArrayList<ResolveInfo>();
+			}
 			for (ResolveInfo info : resolves) { // Check every found item
 				ServiceInfo sinfo = info.serviceInfo;
 				IntentFilter filter = info.filter;
 				if (null == sinfo || null == filter
 						|| 0 == filter.countCategories()) { // Invalid data
 					continue;
+				}
+				List<PluginConnection> list = plugins.get(sinfo.packageName);
+				if (null == list) { // List not created - new
+					list = new ArrayList<PluginConnection>();
+					plugins.put(sinfo.packageName, list);
 				}
 				PluginConnection plugin = new PluginConnection();
 				plugin.connector = new RemoteServiceConnector<T>(ctx, action,
@@ -84,12 +95,31 @@ public abstract class RemoteServicesCollector<T extends IInterface> {
 				list.add(plugin);
 			}
 		}
+		onChange();
+	}
+
+	public void onChange() {
 	}
 
 	abstract public T castAIDL(IBinder binder);
 
 	public void stop() {
 		ctx.unregisterReceiver(receiver);
+	}
+
+	public List<T> getPlugins() {
+		List<T> result = new ArrayList<T>();
+		synchronized (plugins) {
+			for (List<PluginConnection> p : plugins.values()) {
+				for (PluginConnection pc : p) {
+					T remote = pc.connector.getRemote();
+					if (null != remote) {
+						result.add(remote);
+					}
+				}
+			}
+		}
+		return result;
 	}
 
 }

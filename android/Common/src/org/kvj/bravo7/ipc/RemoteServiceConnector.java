@@ -3,7 +3,6 @@ package org.kvj.bravo7.ipc;
 import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
-import android.content.ContextWrapper;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
@@ -13,10 +12,11 @@ import android.os.IInterface;
 abstract public class RemoteServiceConnector<T extends IInterface> implements
 		ServiceConnection {
 
+	private static final String TAG = "RemoteConnector";
 	private T remote = null;
 	private PackageBroadcastReceiver packageBroadcastReceiver = null;
 	private IntentFilter packageFilter = null;
-	private ContextWrapper ctx = null;
+	private Context ctx = null;
 	private String action = null;
 	private String category = null;
 	private boolean active = true;
@@ -25,14 +25,16 @@ abstract public class RemoteServiceConnector<T extends IInterface> implements
 
 		@Override
 		public void onReceive(Context context, Intent intent) {
+			// Log.i(TAG,
+			// "Received: " + intent.getAction() + ", "
+			// + intent.getDataString());
 			if (null == remote && active) { // Reconnect
 				connect();
 			}
 		}
 	}
 
-	public RemoteServiceConnector(ContextWrapper ctx, String action,
-			String category) {
+	public RemoteServiceConnector(Context ctx, String action, String category) {
 		this.ctx = ctx;
 		this.action = action;
 		this.category = category;
@@ -47,6 +49,7 @@ abstract public class RemoteServiceConnector<T extends IInterface> implements
 	}
 
 	protected void connect() {
+		// Log.i(TAG, "Connecting to " + action);
 		Intent bindIntent = new Intent(action);
 		if (null != category) { // Have category
 			bindIntent.addCategory(category);
@@ -66,11 +69,13 @@ abstract public class RemoteServiceConnector<T extends IInterface> implements
 	@Override
 	public void onServiceConnected(ComponentName name, IBinder service) {
 		remote = castAIDL(service);
+		onConnect();
 	}
 
 	@Override
 	public void onServiceDisconnected(ComponentName name) {
 		remote = null;
+		onDisconnect();
 	}
 
 	abstract public T castAIDL(IBinder binder);
