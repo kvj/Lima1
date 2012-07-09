@@ -9,6 +9,7 @@ import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Bundle;
 import android.os.Environment;
 import android.widget.Toast;
 
@@ -69,6 +70,19 @@ public class SuperActivity<A extends ApplicationContext, T, S extends SuperServi
 			}
 		}
 		return dir;
+	}
+
+	public static Bundle getData(Activity activity, Bundle inData) {
+		if (null != inData) { // Have data - restore state
+			return inData;
+		} else { // Don't have - new run or from Intent
+			if (activity.getIntent() != null
+					&& activity.getIntent().getExtras() != null) {
+				// Have data in Intent
+				return activity.getIntent().getExtras();
+			}
+		}
+		return new Bundle();
 	}
 
 	public static void showQuestionDialog(Context context, String title,
