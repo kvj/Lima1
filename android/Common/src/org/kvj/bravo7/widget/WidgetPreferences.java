@@ -34,14 +34,14 @@ public abstract class WidgetPreferences extends FragmentActivity implements
 		LayoutParams params = new LayoutParams(
 				FrameLayout.LayoutParams.MATCH_PARENT,
 				FrameLayout.LayoutParams.MATCH_PARENT);
-		root.setId(-1);
+		root.setId(1);
 		setContentView(root, params);
 		FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
-		ft.replace(-1, widgetList);
+		ft.replace(1, widgetList);
 		widgetList.setClickListener(this);
+		ft.commit();
 	}
 
-	@Override
 	public void click(WidgetInfo info) {
 		if (null == editorFragment) {
 			Class<? extends WidgetPreferenceActivity> configActivity = getConfigActivity(info);
