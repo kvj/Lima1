@@ -32,6 +32,10 @@ public class PlainTextFormatter<T> {
 		}
 	}
 
+	public void setFormatters(TextFormatter<T>[] formatters) {
+		this.formatters = formatters;
+	}
+	
 	private void writePlainText(T note, SpannableStringBuilder sb,
 			int defColor, String text, int index, boolean selected) {
 		if (index >= formatters.length || null == text) {
