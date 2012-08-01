@@ -14,8 +14,8 @@ public class WidgetPreferenceActivity extends PreferenceActivity {
 
 	private ApplicationContext app = null;
 
-	Integer widgetID = null;
-	private String widgetType;
+	protected Integer widgetID = null;
+	protected String widgetType;
 	private int prefID;
 	List<WidgetPreference> prefs = new ArrayList<WidgetPreference>();
 	String[] ids = null;
