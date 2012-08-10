@@ -7,7 +7,7 @@ import android.text.SpannableStringBuilder;
 
 public interface TextFormatter<T> {
 
-	public static final Pattern eatAll = Pattern.compile(".*");
+	public static final Pattern eatAll = Pattern.compile(".+");
 
 	Pattern getPattern(T note, boolean selected);
 

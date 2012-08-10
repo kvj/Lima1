@@ -143,7 +143,8 @@ public abstract class SuperService<T, A extends ApplicationContext> extends
 		Intent intent = new Intent(this, alarmBroadcastReceiverClass);
 		Log.i(TAG, "runAtTime - " + alarmBroadcastReceiverClass.getName());
 		intent.putExtra("message", message);
-		PendingIntent pintent = PendingIntent.getBroadcast(this, 0, intent, 0);
+		PendingIntent pintent = PendingIntent.getBroadcast(this, 0, intent,
+				PendingIntent.FLAG_CANCEL_CURRENT);
 		alarmManager.set(AlarmManager.RTC_WAKEUP, date, pintent);
 		return pintent;
 	}

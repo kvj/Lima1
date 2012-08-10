@@ -4,10 +4,12 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.text.SpannableStringBuilder;
+import android.text.TextUtils;
 import android.text.style.ForegroundColorSpan;
 
 public class PlainTextFormatter<T> {
 
+	private static final String TAG = "TextFormatter";
 	TextFormatter<T>[] formatters;
 
 	public PlainTextFormatter(TextFormatter<T>... formatters) {
@@ -35,11 +37,14 @@ public class PlainTextFormatter<T> {
 	public void setFormatters(TextFormatter<T>[] formatters) {
 		this.formatters = formatters;
 	}
-	
+
 	private void writePlainText(T note, SpannableStringBuilder sb,
 			int defColor, String text, int index, boolean selected) {
-		if (index >= formatters.length || null == text) {
-			addSpan(sb, text, new ForegroundColorSpan(defColor));
+		boolean textEmpty = TextUtils.isEmpty(text);
+		if (index >= formatters.length || textEmpty) {
+			if (!textEmpty) { // Not write default
+				addSpan(sb, text, new ForegroundColorSpan(defColor));
+			}
 			return;
 		}
 		TextFormatter<T> formatter = formatters[index];
