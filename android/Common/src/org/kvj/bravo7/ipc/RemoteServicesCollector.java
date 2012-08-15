@@ -41,6 +41,7 @@ public abstract class RemoteServicesCollector<T extends IInterface> {
 		IntentFilter packageFilter = new IntentFilter();
 		packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
 		packageFilter.addAction(Intent.ACTION_PACKAGE_REPLACED);
+		packageFilter.addAction(Intent.ACTION_PACKAGE_CHANGED);
 		packageFilter.addCategory(Intent.CATEGORY_DEFAULT);
 		packageFilter.addDataScheme("package");
 		ctx.registerReceiver(receiver, packageFilter);

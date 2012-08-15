@@ -19,7 +19,7 @@ public class WidgetUpdateReceiver extends BroadcastReceiver {
 	public static PendingIntent createUpdateIntent(Context ctx, int widgetID) {
 		Intent intent = new Intent(ctx.getPackageName() + INTENT_SUFFIX);
 		intent.putExtra(WIDGET_ID, widgetID);
-		return PendingIntent.getBroadcast(ctx, 0, intent,
+		return PendingIntent.getBroadcast(ctx, widgetID, intent,
 				PendingIntent.FLAG_UPDATE_CURRENT);
 	}
 
