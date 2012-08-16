@@ -12,19 +12,48 @@ import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.content.pm.ServiceInfo;
+import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.os.IInterface;
+import android.util.Log;
 
 public abstract class RemoteServicesCollector<T extends IInterface> {
 
-	class PluginConnection {
+	public class PluginConnection {
 		RemoteServiceConnector<T> connector = null;
 	}
+
+	public interface PluginFilter {
+		public boolean filter(String category, Bundle meta);
+	}
+
+	public static class APIPluginFilter implements PluginFilter {
+
+		@Override
+		public boolean filter(String category, Bundle meta) {
+			if (meta.containsKey("api")) { // Have API
+				try { // Conversion errors
+					int api = meta.getInt("api");
+					if (api > Build.VERSION.SDK_INT) { // Not suitable
+						return false;
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			return true;
+		}
+
+	}
+
+	private static final String TAG = "RemotePlugins";
 
 	private Context ctx = null;
 	private String action = null;
 	private Map<String, List<PluginConnection>> plugins = new HashMap<String, List<PluginConnection>>();
 	private PackageBroadcastReceiver receiver = null;
+	private List<PluginFilter> filters = new ArrayList<PluginFilter>();
 
 	class PackageBroadcastReceiver extends BroadcastReceiver {
 
@@ -34,9 +63,15 @@ public abstract class RemoteServicesCollector<T extends IInterface> {
 		}
 	}
 
-	public RemoteServicesCollector(Context ctx, String action) {
+	public RemoteServicesCollector(Context ctx, String action,
+			PluginFilter... filters) {
 		this.ctx = ctx;
 		this.action = action;
+		if (null != filters) { // Have filters
+			for (PluginFilter filter : filters) { // Add filters
+				addPluginFilter(filter);
+			}
+		}
 		receiver = new PackageBroadcastReceiver();
 		IntentFilter packageFilter = new IntentFilter();
 		packageFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
@@ -68,7 +103,8 @@ public abstract class RemoteServicesCollector<T extends IInterface> {
 			}
 			baseIntent.setFlags(Intent.FLAG_DEBUG_LOG_RESOLUTION);
 			List<ResolveInfo> resolves = packageManager.queryIntentServices(
-					baseIntent, PackageManager.GET_RESOLVED_FILTER);
+					baseIntent, PackageManager.GET_RESOLVED_FILTER
+							| PackageManager.GET_META_DATA);
 			if (null == resolves) {
 				resolves = new ArrayList<ResolveInfo>();
 			}
@@ -85,8 +121,23 @@ public abstract class RemoteServicesCollector<T extends IInterface> {
 					plugins.put(sinfo.packageName, list);
 				}
 				PluginConnection plugin = new PluginConnection();
+				boolean filteredOut = false;
+				String category = filter.getCategory(0);
+				synchronized (filters) { // Lock for modifications
+					for (PluginFilter f : filters) { // Run filter
+						if (null != sinfo.metaData
+								&& !f.filter(category, sinfo.metaData)) {
+							// Filtered out
+							filteredOut = true;
+							break;
+						}
+					}
+				}
+				if (filteredOut) { // Skip plugin
+					Log.i(TAG, "Plugin " + category + " filtered out");
+				}
 				plugin.connector = new RemoteServiceConnector<T>(ctx, action,
-						filter.getCategory(0)) {
+						category) {
 
 					@Override
 					public T castAIDL(IBinder binder) {
@@ -121,6 +172,12 @@ public abstract class RemoteServicesCollector<T extends IInterface> {
 			}
 		}
 		return result;
+	}
+
+	public void addPluginFilter(PluginFilter filter) {
+		synchronized (filters) { // Lock for modifications
+			filters.add(filter);
+		}
 	}
 
 }
