@@ -9,7 +9,6 @@ import org.kvj.bravo7.ApplicationContext;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v4.app.ListFragment;
-import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -17,7 +16,7 @@ import android.widget.ListView;
 public class WidgetList extends ListFragment {
 
 	private static final String TAG = "Widget list";
-	private ApplicationContext app = null;
+	ApplicationContext app = null;
 
 	public WidgetList(ApplicationContext app) {
 		this.app = app;
@@ -48,7 +47,7 @@ public class WidgetList extends ListFragment {
 
 	public void reloadData() {
 		Map<Integer, String> data = app.getWidgetConfigs(null);
-		Log.i(TAG, "Widgets: " + data.size());
+		// Log.i(TAG, "Widgets: " + data.size());
 		list = new ArrayList<WidgetList.WidgetInfo>();
 		for (Integer id : data.keySet()) {
 			WidgetInfo info = new WidgetInfo();

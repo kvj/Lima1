@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.widget.FrameLayout;
 import android.widget.FrameLayout.LayoutParams;
 
@@ -56,4 +58,30 @@ public abstract class WidgetPreferences extends FragmentActivity implements
 
 	abstract protected Class<? extends WidgetPreferenceActivity> getConfigActivity(
 			WidgetInfo info);
+
+	@Override
+	public boolean onCreateOptionsMenu(Menu menu) {
+		menu.clear();
+		menu.add(Menu.NONE, 1, 0, "Update");
+		return true;
+	}
+
+	@Override
+	public boolean onOptionsItemSelected(MenuItem item) {
+		switch (item.getItemId()) {
+		case 1: // Update
+
+			widgetList.app.updateWidgets(-1);
+			widgetList.reloadData();
+			break;
+		}
+		return true;
+	}
+
+	// public void onCreateOptionsMenu(Menu menu) {
+	// }
+	//
+	// @Override
+	// public boolean onOptionsItemSelected(MenuItem item) {
+	// }
 }
