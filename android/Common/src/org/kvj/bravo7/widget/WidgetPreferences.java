@@ -8,6 +8,7 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.FrameLayout;
@@ -15,6 +16,8 @@ import android.widget.FrameLayout.LayoutParams;
 
 public abstract class WidgetPreferences extends FragmentActivity implements
 		ClickListener {
+
+	private static final String TAG = "WidgetPrefs";
 
 	public WidgetPreferences(WidgetList widgetList) {
 		this.widgetList = widgetList;
@@ -25,6 +28,7 @@ public abstract class WidgetPreferences extends FragmentActivity implements
 
 	@Override
 	protected void onActivityResult(int arg0, int arg1, Intent arg2) {
+		Log.i(TAG, "onResult");
 		super.onActivityResult(arg0, arg1, arg2);
 		widgetList.reloadData();
 	}

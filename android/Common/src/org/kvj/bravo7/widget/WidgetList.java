@@ -56,7 +56,7 @@ public class WidgetList extends ListFragment {
 			list.add(info);
 		}
 		setListAdapter(new ArrayAdapter<WidgetInfo>(getActivity(),
-				android.R.layout.simple_selectable_list_item, list));
+				android.R.layout.simple_list_item_1, list));
 	}
 
 	@Override
