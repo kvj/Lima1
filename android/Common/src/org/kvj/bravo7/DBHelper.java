@@ -15,7 +15,7 @@ abstract public class DBHelper extends SQLiteOpenHelper {
 		super(context, path, null, version);
 		this.version = version;
 	}
-	
+
 	public boolean open() {
 		try {
 			Log.i(TAG, "Opening DB...");
@@ -36,32 +36,26 @@ abstract public class DBHelper extends SQLiteOpenHelper {
 	}
 
 	abstract public void migrate(SQLiteDatabase db, int version);
-	
+
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		Log.i(TAG, "onUpgrade from "+oldVersion+" to "+newVersion);
-		for (int i = oldVersion+1; i <= newVersion; i++) {
+		Log.i(TAG, "onUpgrade from " + oldVersion + " to " + newVersion);
+		for (int i = oldVersion + 1; i <= newVersion; i++) {
 			migrate(db, i);
-//			switch (i) {
-//			case 1:
-//				db.execSQL("create table data (id integer primary key autoincrement, " +
-//						"mdate integer not null, level integer default 0, status integer default 0)");
-//				break;
-//			}
 		}
 	}
 
 	@Override
 	public void onOpen(SQLiteDatabase db) {
 		super.onOpen(db);
-		Log.i("DBHelper", "onOpen");
+		Log.i("DBHelper", "onOpen " + db.getVersion());
 		this.database = db;
 	}
-	
+
 	public SQLiteDatabase getDatabase() {
 		return database;
 	}
-	
+
 	@Override
 	protected void finalize() throws Throwable {
 		Log.i(TAG, "Closing DB...");
