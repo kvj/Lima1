@@ -26,7 +26,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -48,25 +47,20 @@ public class SyncController implements OAuthProviderListener {
 
 	public SyncController(Lima1SyncApp context) {
 		this.transport = new HttpClientTransport();
-		transport.setURL(context, "http://lima1sync.appspot.com");
-		this.net = new OAuthProvider(transport, "lima1android",
-				context.getStringPreference(R.string.token,
-						R.string.tokenDefault), this);
+		transport.setURL(context, "https://lima1-kvj.rhcloud.com");
+		this.net = new OAuthProvider(transport, "lima1android", context.getStringPreference(R.string.token,
+				R.string.tokenDefault), this);
 		// context.getStringPreference(R.string.token, R.string.tokenDefault)
 	}
 
 	@Override
 	public void onNeedToken() {
-		NotificationManager notificationManager = (NotificationManager) Lima1SyncApp
-				.getInstance().getSystemService(Context.NOTIFICATION_SERVICE);
-		Notification notification = new Notification(R.drawable.ic_login,
-				"Lima1", System.currentTimeMillis());
-		PendingIntent intent = PendingIntent.getActivity(
-				Lima1SyncApp.getInstance(), 0,
-				new Intent(Lima1SyncApp.getInstance(), LoginForm.class),
-				PendingIntent.FLAG_CANCEL_CURRENT);
-		notification.setLatestEventInfo(Lima1SyncApp.getInstance(), "Lima1",
-				"Authorization required", intent);
+		NotificationManager notificationManager = (NotificationManager) Lima1SyncApp.getInstance().getSystemService(
+				Context.NOTIFICATION_SERVICE);
+		Notification notification = new Notification(R.drawable.ic_login, "Lima1", System.currentTimeMillis());
+		PendingIntent intent = PendingIntent.getActivity(Lima1SyncApp.getInstance(), 0,
+				new Intent(Lima1SyncApp.getInstance(), LoginForm.class), PendingIntent.FLAG_CANCEL_CURRENT);
+		notification.setLatestEventInfo(Lima1SyncApp.getInstance(), "Lima1", "Authorization required", intent);
 		notification.defaults = Notification.DEFAULT_ALL;
 		notification.flags |= Notification.FLAG_AUTO_CANCEL;
 		notificationManager.notify(LOGIN_ID, notification);
@@ -76,8 +70,7 @@ public class SyncController implements OAuthProviderListener {
 		try {
 			Log.i(TAG, "Verify: " + username + ", " + password);
 			String token = net.tokenByUsernamePassword(username, password);
-			Lima1SyncApp.getInstance().setStringPreference(R.string.token,
-					token);
+			Lima1SyncApp.getInstance().setStringPreference(R.string.token, token);
 			return null;
 		} catch (NetTransportException e) {
 			e.printStackTrace();
@@ -102,8 +95,7 @@ public class SyncController implements OAuthProviderListener {
 			long outFrom = 0;
 			int itemSent = 0;
 			int itemReceived = 0;
-			Cursor c = info.db.getDatabase().query("updates",
-					new String[] { "version_in", "version_out" }, null, null,
+			Cursor c = info.db.getDatabase().query("updates", new String[] { "version_in", "version_out" }, null, null,
 					null, null, "id desc", "1");
 			if (c.moveToFirst()) {
 				inFrom = c.getLong(0);
@@ -112,18 +104,13 @@ public class SyncController implements OAuthProviderListener {
 			c.close();
 			// Send changes
 			int slots = newSchema.optInt("_slots", 10);
-			c = info.db.getDatabase()
-					.query("data",
-							new String[] { "id", "stream", "data", "updated",
-									"status" }, "own=? and updated>?",
-							new String[] { "1", Long.toString(inFrom) }, null,
-							null, "updated");
+			c = info.db.getDatabase().query("data", new String[] { "id", "stream", "data", "updated", "status" },
+					"own=? and updated>?", new String[] { "1", Long.toString(inFrom) }, null, null, "updated");
 			if (c.moveToFirst()) {
 				int slotsUsed = 0;
 				JSONArray result = new JSONArray();
 				do {
-					int slotsNeeded = newSchema.optJSONObject(c.getString(1))
-							.optInt("in", 1);
+					int slotsNeeded = newSchema.optJSONObject(c.getString(1)).optInt("in", 1);
 					slotsUsed += slotsNeeded;
 					JSONObject json = new JSONObject();
 					if (slotsUsed > slots) {
@@ -149,9 +136,7 @@ public class SyncController implements OAuthProviderListener {
 				}
 			}
 			c.close();
-			if (null == info.schema
-					|| info.schema.optInt("_rev", -1) != newSchema
-							.optInt("_rev")) {
+			if (null == info.schema || info.schema.optInt("_rev", -1) != newSchema.optInt("_rev")) {
 				// Save schema, reset DB
 				info.setSchema(newSchema);
 				info.db.getDatabase().delete("data", null, null);
@@ -160,8 +145,7 @@ public class SyncController implements OAuthProviderListener {
 			}
 			// Receive data
 			while (true) {
-				String url = String.format("/rest/out?from=%d&%s", outFrom,
-						fullSync ? "" : "inc=yes&");
+				String url = String.format("/rest/out?from=%d&%s", outFrom, fullSync ? "" : "inc=yes&");
 				JSONObject res = net.rest(app, url, null);
 				JSONArray arr = res.getJSONArray("a");
 				if (arr.length() == 0) {
@@ -172,8 +156,7 @@ public class SyncController implements OAuthProviderListener {
 					JSONObject object = arr.getJSONObject(i);
 					outFrom = object.getLong("u");
 					JSONObject obj = new JSONObject(object.getString("o"));
-					create(app, object.getString("s"), obj,
-							object.getInt("st"), object.getLong("u"));
+					create(app, object.getString("s"), obj, object.getInt("st"), object.getLong("u"));
 					itemReceived++;
 				}
 			}
@@ -183,8 +166,7 @@ public class SyncController implements OAuthProviderListener {
 			values.put("version_in", inFrom);
 			values.put("version_out", outFrom);
 			info.db.getDatabase().insert("updates", null, values);
-			info.db.getDatabase().delete("data", "status=?",
-					new String[] { "3" });
+			info.db.getDatabase().delete("data", "status=?", new String[] { "3" });
 			info.db.getDatabase().setTransactionSuccessful();
 			Log.i(TAG, "Sync done: out: " + itemSent + ", in: " + itemReceived);
 			if (null != listener) {
@@ -202,8 +184,7 @@ public class SyncController implements OAuthProviderListener {
 		}
 	}
 
-	private Long create(String app, String stream, JSONObject obj, int status,
-			Long updated) throws Exception {
+	private Long create(String app, String stream, JSONObject obj, int status, Long updated) throws Exception {
 		AppInfo info = getInfo(app);
 		ContentValues values = new ContentValues();
 		if (info.schema == null || !info.schema.has(stream)) {
@@ -236,8 +217,7 @@ public class SyncController implements OAuthProviderListener {
 				values.put("t" + i, obj.optString(arr.getString(i)));
 			}
 		}
-		info.db.getDatabase().insertWithOnConflict("data", null, values,
-				SQLiteDatabase.CONFLICT_REPLACE);
+		info.db.getDatabase().insert("data", null, values);
 		return obj.optLong("id");
 	}
 
@@ -305,8 +285,7 @@ public class SyncController implements OAuthProviderListener {
 		return -1;
 	}
 
-	private String parseOrder(String order, String def, JSONArray numbers,
-			JSONArray texts) throws JSONException {
+	private String parseOrder(String order, String def, JSONArray numbers, JSONArray texts) throws JSONException {
 		if (TextUtils.isEmpty(order)) {
 			return def;
 		}
@@ -325,8 +304,7 @@ public class SyncController implements OAuthProviderListener {
 					field = "i" + index;
 				}
 			}
-			Log.i(TAG, "parseOrder: " + part + ", " + field + ", " + index
-					+ ", " + numbers + ", " + texts);
+			Log.i(TAG, "parseOrder: " + part + ", " + field + ", " + index + ", " + numbers + ", " + texts);
 			if (i > 0) {
 				buffer.append(", ");
 			}
@@ -338,9 +316,8 @@ public class SyncController implements OAuthProviderListener {
 		return buffer.toString();
 	}
 
-	private String arrayToQuery(QueryOperator[] arr, List<String> values,
-			String orand, JSONArray numbers, JSONArray texts)
-			throws JSONException {
+	private String arrayToQuery(QueryOperator[] arr, List<String> values, String orand, JSONArray numbers,
+			JSONArray texts) throws JSONException {
 		StringBuilder buffer = new StringBuilder();
 		for (int i = 0, fields = 0; i < arr.length; i++) {
 			QueryOperator op = arr[i];
@@ -370,8 +347,7 @@ public class SyncController implements OAuthProviderListener {
 		return buffer.toString();
 	}
 
-	public PJSONObject[] query(String app, String stream, QueryOperator[] ops,
-			String order, String limit) {
+	public PJSONObject[] query(String app, String stream, QueryOperator[] ops, String order, String limit) {
 		AppInfo info = getInfo(app);
 		if (null == info.db) {
 			Log.e(TAG, "No DB: " + app);
@@ -388,23 +364,16 @@ public class SyncController implements OAuthProviderListener {
 			values.add(stream);
 			String where = "status<>? and stream=?";
 			if (null != ops) {
-				String cond = arrayToQuery(ops, values, "and",
-						config.optJSONArray("numbers"),
+				String cond = arrayToQuery(ops, values, "and", config.optJSONArray("numbers"),
 						config.optJSONArray("texts"));
 				if (!TextUtils.isEmpty(cond)) {
 					where += " and (" + cond + ")";
 				}
 			}
 			Log.i(TAG, "Query: " + stream + ", " + where + ", " + values);
-			Cursor c = info.db.getDatabase().query(
-					"data",
-					new String[] { "data" },
-					where,
-					values.toArray(new String[0]),
-					null,
-					null,
-					parseOrder(order, "id", config.optJSONArray("numbers"),
-							config.optJSONArray("texts")), limit);
+			Cursor c = info.db.getDatabase().query("data", new String[] { "data" }, where,
+					values.toArray(new String[0]), null, null,
+					parseOrder(order, "id", config.optJSONArray("numbers"), config.optJSONArray("texts")), limit);
 			List<PJSONObject> result = new ArrayList<PJSONObject>();
 			if (c.moveToFirst()) {
 				do {
