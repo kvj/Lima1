@@ -19,6 +19,7 @@ import org.apache.http.conn.params.ConnRouteParams;
 import org.apache.http.conn.scheme.PlainSocketFactory;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
@@ -46,23 +47,21 @@ public class HttpClientTransport implements NetTransport {
 
 	@SuppressWarnings("unchecked")
 	@Override
-	public JSONObject request(String uri, RequestType type, Object data,
-			String contentType) throws NetTransportException {
+	public JSONObject request(String uri, RequestType type, Object data, String contentType)
+			throws NetTransportException {
 		int code = 500;
 		try {
 			Log.i(TAG, "Request: " + uri + ", " + type);
 			DefaultHttpClient httpClient = new DefaultHttpClient();
 			HttpParams params = httpClient.getParams();
 			SchemeRegistry schemeRegistry = new SchemeRegistry();
-			schemeRegistry.register(new Scheme("http", PlainSocketFactory
-					.getSocketFactory(), 80));
-			ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(
-					params, schemeRegistry);
+			schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+			schemeRegistry.register(new Scheme("https", SSLSocketFactory.getSocketFactory(), 443));
+			ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
 			httpClient.setParams(params);
 
 			if (proxyHost != null && proxyPort > 0) {
-				params.setParameter(ConnRouteParams.DEFAULT_PROXY,
-						new HttpHost(proxyHost, proxyPort));
+				params.setParameter(ConnRouteParams.DEFAULT_PROXY, new HttpHost(proxyHost, proxyPort));
 			}
 			DefaultHttpClient nHttpClient = new DefaultHttpClient(cm, params);
 			HttpUriRequest request = new HttpGet(url + uri);
@@ -72,15 +71,13 @@ public class HttpClientTransport implements NetTransport {
 					Map<String, Object> map = (Map<String, Object>) data;
 					List<NameValuePair> pairs = new ArrayList<NameValuePair>();
 					for (String key : map.keySet()) {
-						pairs.add(new BasicNameValuePair(key, map.get(key)
-								.toString()));
+						pairs.add(new BasicNameValuePair(key, map.get(key).toString()));
 					}
 					post.setEntity(new UrlEncodedFormEntity(pairs));
 				}
 				if (data instanceof JSONObject) {
 					JSONObject json = (JSONObject) data;
-					StringEntity entity = new StringEntity(json.toString(),
-							"utf-8");
+					StringEntity entity = new StringEntity(json.toString(), "utf-8");
 					if (null != contentType) {
 						entity.setContentType(contentType);
 					}
@@ -97,9 +94,8 @@ public class HttpClientTransport implements NetTransport {
 					return result;
 				}
 				Log.i(TAG, "JSON: " + result);
-				throw new NetTransportException(code, result.optString(
-						"message", result.optString("error_description",
-								"No error message")), null);
+				throw new NetTransportException(code, result.optString("message",
+						result.optString("error_description", "No error message")), null);
 			}
 			throw new NetTransportException(code, "No response", null);
 		} catch (NetTransportException e) {
@@ -110,12 +106,10 @@ public class HttpClientTransport implements NetTransport {
 		}
 	}
 
-	private String readString(HttpEntity entity)
-			throws UnsupportedEncodingException, IllegalStateException,
+	private String readString(HttpEntity entity) throws UnsupportedEncodingException, IllegalStateException,
 			IOException {
 		StringBuilder sb = new StringBuilder();
-		InputStreamReader reader = new InputStreamReader(entity.getContent(),
-				"utf-8");
+		InputStreamReader reader = new InputStreamReader(entity.getContent(), "utf-8");
 		int ch = -1;
 		while ((ch = reader.read()) != -1) {
 			sb.append((char) ch);

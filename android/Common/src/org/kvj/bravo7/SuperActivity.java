@@ -13,8 +13,8 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.widget.Toast;
 
-public class SuperActivity<A extends ApplicationContext, T, S extends SuperService<T, A>>
-		extends Activity implements ControllerReceiver<T> {
+public class SuperActivity<A extends ApplicationContext, T, S extends SuperService<T, A>> extends Activity implements
+		ControllerReceiver<T> {
 
 	Class<S> serviceClass = null;
 
@@ -24,8 +24,7 @@ public class SuperActivity<A extends ApplicationContext, T, S extends SuperServi
 
 	private static final String TAG = "SuperActivity";
 	protected T controller = null;
-	ControllerConnector<A, T, S> connector = new ControllerConnector<A, T, S>(
-			this, this);
+	ControllerConnector<A, T, S> connector = new ControllerConnector<A, T, S>(this, this);
 
 	public void onController(T controller) {
 		this.controller = controller;
@@ -58,8 +57,7 @@ public class SuperActivity<A extends ApplicationContext, T, S extends SuperServi
 		} else {
 			dir = Environment.getExternalStorageDirectory();
 			if (null != dir) {
-				dir = new File(dir, "Android/data/" + context.getPackageName()
-						+ "/cache/");
+				dir = new File(dir, "Android/data/" + context.getPackageName() + "/cache/");
 			}
 		}
 		if (null != dir) {
@@ -76,8 +74,7 @@ public class SuperActivity<A extends ApplicationContext, T, S extends SuperServi
 		if (null != inData) { // Have data - restore state
 			return inData;
 		} else { // Don't have - new run or from Intent
-			if (activity.getIntent() != null
-					&& activity.getIntent().getExtras() != null) {
+			if (activity.getIntent() != null && activity.getIntent().getExtras() != null) {
 				// Have data in Intent
 				return activity.getIntent().getExtras();
 			}
@@ -85,13 +82,9 @@ public class SuperActivity<A extends ApplicationContext, T, S extends SuperServi
 		return new Bundle();
 	}
 
-	public static void showQuestionDialog(Context context, String title,
-			String message, final Runnable... buttons) {
-		new AlertDialog.Builder(context)
-				.setIcon(android.R.drawable.ic_dialog_alert)
-				.setTitle(title)
-				.setMessage(message)
-				.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+	public static void showQuestionDialog(Context context, String title, String message, final Runnable... buttons) {
+		new AlertDialog.Builder(context).setIcon(android.R.drawable.ic_dialog_alert).setTitle(title)
+				.setMessage(message).setPositiveButton("OK", new DialogInterface.OnClickListener() {
 
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
@@ -99,22 +92,23 @@ public class SuperActivity<A extends ApplicationContext, T, S extends SuperServi
 							buttons[0].run();
 						}
 					}
-				})
-				.setNegativeButton("Cancel",
-						new DialogInterface.OnClickListener() {
+				}).setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
 
-							@Override
-							public void onClick(DialogInterface dialog,
-									int which) {
-								if (buttons.length > 1) { // Have handler
-									buttons[1].run();
-								}
-							}
-						}).show();
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						if (buttons.length > 1) { // Have handler
+							buttons[1].run();
+						}
+					}
+				}).show();
 	}
 
 	protected ProgressDialog showProgressDialog(String message) {
-		final ProgressDialog progressDialog = new ProgressDialog(this);
+		return showProgressDialog(this, message);
+	}
+
+	public static ProgressDialog showProgressDialog(Context ctx, String message) {
+		final ProgressDialog progressDialog = new ProgressDialog(ctx);
 		progressDialog.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL);
 		progressDialog.setMessage(message);
 		progressDialog.setCancelable(false);

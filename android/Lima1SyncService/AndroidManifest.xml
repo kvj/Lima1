@@ -1,41 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    android:installLocation="auto"
     package="org.kvj.lima1.sync"
+    android:installLocation="auto"
     android:versionCode="1"
     android:versionName="1.0" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
-    
+
     <uses-sdk
         android:minSdkVersion="7"
         android:targetSdkVersion="14" />
 
     <application
+        android:name=".Lima1SyncApp"
         android:icon="@drawable/ic_icon"
         android:label="@string/app_name"
-        android:name=".Lima1SyncApp" >
+        android:theme="@style/Theme.Sherlock" >
         <activity
-            android:label="@string/app_name"
-            android:name=".ConnectionsActivity" >
-            <intent-filter >
+            android:name=".ConnectionsActivity"
+            android:label="@string/app_name" >
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
         <activity
+            android:name=".LoginForm"
+            android:configChanges="orientation|keyboardHidden"
             android:label="Login"
-            android:launchMode="singleTop"
-            android:name=".LoginForm" 
-            android:configChanges="orientation|keyboardHidden">
+            android:launchMode="singleTop" >
         </activity>
 
         <service
-            android:exported="true"
-            android:name=".aidl.SyncServiceProvider" >
-            <intent-filter >
+            android:name=".aidl.SyncServiceProvider"
+            android:exported="true" >
+            <intent-filter>
                 <action android:name="org.kvj.lima1.sync.SyncService" />
             </intent-filter>
         </service>
@@ -43,7 +44,7 @@
         </service>
 
         <receiver android:name=".controller.StartupReceiver" >
-            <intent-filter >
+            <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
 
                 <category android:name="android.intent.category.HOME" />

@@ -9,8 +9,7 @@ import android.content.ServiceConnection;
 import android.os.IBinder;
 import android.os.IInterface;
 
-abstract public class RemoteServiceConnector<T extends IInterface> implements
-		ServiceConnection {
+abstract public class RemoteServiceConnector<T extends IInterface> implements ServiceConnection {
 
 	private static final String TAG = "RemoteConnector";
 	private T remote = null;
@@ -55,7 +54,12 @@ abstract public class RemoteServiceConnector<T extends IInterface> implements
 		if (null != category) { // Have category
 			bindIntent.addCategory(category);
 		}
+		onBeforeConnect(bindIntent);
 		ctx.bindService(bindIntent, this, Context.BIND_AUTO_CREATE);
+	}
+
+	protected void onBeforeConnect(Intent intent) {
+
 	}
 
 	public T getRemote() {
