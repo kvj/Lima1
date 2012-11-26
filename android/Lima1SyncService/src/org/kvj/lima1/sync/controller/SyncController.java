@@ -112,15 +112,16 @@ public class SyncController implements OAuthProviderListener {
 				throw new Exception(upgradeResult);
 			}
 			// Send changes
-			int slots = newSchema.optInt("_slots", 10);
+			int slots = 10;
 			JSONArray result = new JSONArray();
+			int slotsUsed = 0;
 			for (String stream : info.schemaInfo.tables.keySet()) {
 				// For every table
-				int slotsUsed = 0;
 				c = info.db.getDatabase().query("t_" + stream, new String[] { "id", "data", "updated", "status" },
 						"own=? and updated>?", new String[] { "1", Long.toString(inFrom) }, null, null, "updated");
-				int slotsNeeded = newSchema.optJSONObject(stream).optInt("in", 1);
+				int slotsNeeded = 1;
 				if (c.moveToFirst()) {
+					Log.i(TAG, "There is smth. to send");
 					do {
 						slotsUsed += slotsNeeded;
 						JSONObject json = new JSONObject();
@@ -129,7 +130,8 @@ public class SyncController implements OAuthProviderListener {
 							json.put("a", result);
 							net.rest(app, "/rest/in?", json);
 							slotsUsed = 0;
-							continue;
+							result = new JSONArray();
+							json = new JSONObject();
 						}
 						json.put("s", stream);
 						json.put("st", c.getInt(3));
@@ -140,8 +142,12 @@ public class SyncController implements OAuthProviderListener {
 						itemSent++;
 						inFrom = c.getLong(2);
 					} while (c.moveToNext());
+				} else {
+					Log.i(TAG, "Stream: " + stream + ", nothing to send - " + inFrom);
 				}
+				c.close();
 			}
+			Log.i(TAG, "In data: " + result.length());
 			if (result.length() > 0) {
 				JSONObject json = new JSONObject();
 				json.put("a", result);
@@ -172,7 +178,8 @@ public class SyncController implements OAuthProviderListener {
 			values.put("version_out", outFrom);
 			info.db.getDatabase().insert("updates", null, values);
 			for (String stream : info.schemaInfo.tables.keySet()) {
-				info.db.getDatabase().delete("t_" + stream, "status=?", new String[] { "3" });
+				info.db.getDatabase().delete("t_" + stream, "status=? and updated<=?",
+						new String[] { "3", Long.toString(inFrom) });
 			}
 			info.db.getDatabase().setTransactionSuccessful();
 			info.setSchema(newSchema);
@@ -209,8 +216,9 @@ public class SyncController implements OAuthProviderListener {
 			values.put("updated", updated.longValue());
 			values.put("own", 0);
 		} else {
-			values.put("updated", obj.getLong("id"));
+			values.put("updated", info.id());
 			values.put("own", 1);
+			Log.i(TAG, "Create/update: " + obj.getLong("id") + ", " + values.getAsLong("updated"));
 		}
 		for (String field : tinfo.numbers) { // Add numbers
 			values.put("f_" + field, obj.optLong(field));
