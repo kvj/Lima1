@@ -105,7 +105,8 @@ public class AppInfo {
 		try { // DB and JSON errors
 			SchemaInfo newSchemaInfo = new SchemaInfo();
 			newSchemaInfo.parseSchema(newSchema);
-			Log.i(TAG, "upgradeSchema: " + schemaInfo + ", " + newSchemaInfo);
+			// Log.i(TAG, "upgradeSchema: " + schemaInfo + ", " +
+			// newSchemaInfo);
 			if (null == schemaInfo || schemaInfo.upgrades < newSchemaInfo.upgrades) {
 				// New or upgrades are different
 				List<String> sqls = new ArrayList<String>();
@@ -118,7 +119,7 @@ public class AppInfo {
 						sqls.addAll(generateAlter(table, schemaInfo.tables.get(table), newSchemaInfo.tables.get(table)));
 					}
 				}
-				Log.i(TAG, "Upgrade: " + sqls);
+				// Log.i(TAG, "Upgrade: " + sqls);
 				for (String sql : sqls) { // Execute SQL
 					Log.i(TAG, "Upgrade schema: " + sql);
 					db.getDatabase().execSQL(sql);

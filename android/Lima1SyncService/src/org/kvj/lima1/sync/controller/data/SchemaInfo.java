@@ -10,8 +10,6 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.util.Log;
-
 public class SchemaInfo {
 	private static final String TAG = "SchemaInfo";
 	public Map<String, TableInfo> tables = new HashMap<String, TableInfo>();
@@ -43,7 +41,8 @@ public class SchemaInfo {
 				}
 			}
 		}
-		Log.i(TAG, "parseTableData: " + info.texts + ", " + info.numbers + ", " + info.indexes);
+		// Log.i(TAG, "parseTableData: " + info.texts + ", " + info.numbers +
+		// ", " + info.indexes);
 	}
 
 	private int parseSchema(JSONObject schema, Map<String, TableInfo> infos) throws JSONException {
@@ -89,6 +88,6 @@ public class SchemaInfo {
 		Map<String, TableInfo> infos = new HashMap<String, TableInfo>();
 		upgrades = parseSchema(schema, infos);
 		tables.putAll(infos);
-		Log.i(TAG, "parseSchema: " + tables);
+		// Log.i(TAG, "parseSchema: " + tables);
 	}
 }
