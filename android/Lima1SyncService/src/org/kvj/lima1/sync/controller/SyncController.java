@@ -4,10 +4,13 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Timer;
+import java.util.TimerTask;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.kvj.bravo7.SuperActivity;
 import org.kvj.lima1.sync.Lima1SyncApp;
 import org.kvj.lima1.sync.LoginForm;
 import org.kvj.lima1.sync.PJSONObject;
@@ -39,12 +42,34 @@ public class SyncController implements OAuthProviderListener {
 		public void syncCompleted(String error);
 	}
 
+	class AutoSyncTask extends TimerTask {
+
+		private String app;
+
+		public AutoSyncTask(String app) {
+			this.app = app;
+		}
+
+		@Override
+		public void run() {
+			String result = sync(app);
+			if (null != result) { // Error
+				SuperActivity.notifyUser(Lima1SyncApp.getInstance(), result);
+			}
+		}
+
+	}
+
 	private static final int LOGIN_ID = 1;
+	private static int AUTO_SYNC_SEC_DEFAULT = 30;
 	private static final String TAG = "Sync";
 	private HttpClientTransport transport;
 	private OAuthProvider net;
 	private Map<String, AppInfo> infos = new HashMap<String, AppInfo>();
 	private SyncControllerListener listener = null;
+	private Map<String, AutoSyncTask> autoSyncTasks = new HashMap<String, AutoSyncTask>();
+	private Map<String, Boolean> autoSyncLocks = new HashMap<String, Boolean>();
+	private Timer autoSyncTimer = new Timer("AutoSync");
 
 	public SyncController(Lima1SyncApp context) {
 		this.transport = new HttpClientTransport();
@@ -83,6 +108,19 @@ public class SyncController implements OAuthProviderListener {
 		if (null == info.db) {
 			return "DB error";
 		}
+		synchronized (autoSyncLocks) { // Lock
+			Boolean syncNow = autoSyncLocks.get(app);
+			Log.i(TAG, "Sync lock: " + syncNow + ", " + app);
+			if (null != syncNow && syncNow) { // Already started
+				return "Sync is in progress";
+			}
+			autoSyncLocks.put(app, true);
+		}
+		AutoSyncTask task = null;
+		synchronized (autoSyncTasks) { // Remove itself
+			task = autoSyncTasks.get(app);
+			autoSyncTasks.put(app, null); // Removed
+		}
 		if (null != listener) {
 			listener.syncStarted();
 		}
@@ -115,37 +153,44 @@ public class SyncController implements OAuthProviderListener {
 			int slots = 10;
 			JSONArray result = new JSONArray();
 			int slotsUsed = 0;
+			int index = 0;
+			StringBuffer sqls = new StringBuffer();
+			List<String> sqlArgs = new ArrayList<String>();
 			for (String stream : info.schemaInfo.tables.keySet()) {
 				// For every table
-				c = info.db.getDatabase().query("t_" + stream, new String[] { "id", "data", "updated", "status" },
-						"own=? and updated>?", new String[] { "1", Long.toString(inFrom) }, null, null, "updated");
-				int slotsNeeded = 1;
-				if (c.moveToFirst()) {
-					Log.i(TAG, "There is smth. to send");
-					do {
-						slotsUsed += slotsNeeded;
-						JSONObject json = new JSONObject();
-						if (slotsUsed > slots) {
-							// Send
-							json.put("a", result);
-							net.rest(app, "/rest/in?", json);
-							slotsUsed = 0;
-							result = new JSONArray();
-							json = new JSONObject();
-						}
-						json.put("s", stream);
-						json.put("st", c.getInt(3));
-						json.put("u", c.getLong(2));
-						json.put("o", c.getString(1));
-						json.put("i", c.getLong(0));
-						result.put(json);
-						itemSent++;
-						inFrom = c.getLong(2);
-					} while (c.moveToNext());
-				} else {
-					Log.i(TAG, "Stream: " + stream + ", nothing to send - " + inFrom);
+				if (index > 0) { // Add union
+					sqls.append(" union ");
 				}
-				c.close();
+				sqls.append("select id, stream, data, updated, status from t_" + stream + " where own=? and updated>?");
+				sqlArgs.add("1");
+				sqlArgs.add(Long.toString(inFrom));
+				index++;
+			}
+			sqls.append(" order by updated");
+			c = info.db.getDatabase().rawQuery(sqls.toString(), sqlArgs.toArray(new String[0]));
+			int slotsNeeded = 1;
+			if (c.moveToFirst()) {
+				Log.i(TAG, "There is smth. to send");
+				do {
+					slotsUsed += slotsNeeded;
+					JSONObject json = new JSONObject();
+					if (slotsUsed > slots) {
+						// Send
+						json.put("a", result);
+						net.rest(app, "/rest/in?", json);
+						slotsUsed = 0;
+						result = new JSONArray();
+						json = new JSONObject();
+					}
+					json.put("s", c.getString(1));
+					json.put("st", c.getInt(4));
+					json.put("u", c.getLong(3));
+					json.put("o", c.getString(2));
+					json.put("i", c.getLong(0));
+					result.put(json);
+					itemSent++;
+					inFrom = c.getLong(3);
+				} while (c.moveToNext());
 			}
 			Log.i(TAG, "In data: " + result.length());
 			if (result.length() > 0) {
@@ -196,6 +241,24 @@ public class SyncController implements OAuthProviderListener {
 			return e.getMessage();
 		} finally {
 			info.db.getDatabase().endTransaction();
+			if (null != task) { // Not empty
+				task.cancel();
+			}
+			synchronized (autoSyncLocks) { // Unlock
+				autoSyncLocks.put(app, false);
+			}
+		}
+	}
+
+	private void scheduleAutoSync(String app) {
+		synchronized (autoSyncTasks) { // Lock
+			AutoSyncTask task = autoSyncTasks.get(app);
+			if (null != task) { // Not null
+				task.cancel();
+			}
+			task = new AutoSyncTask(app);
+			autoSyncTasks.put(app, task);
+			autoSyncTimer.schedule(task, 1000 * AUTO_SYNC_SEC_DEFAULT);
 		}
 	}
 
@@ -258,6 +321,7 @@ public class SyncController implements OAuthProviderListener {
 			info.db.getDatabase().beginTransaction();
 			create(app, stream, obj, 1, null);
 			info.db.getDatabase().setTransactionSuccessful();
+			scheduleAutoSync(app);
 			return obj;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -282,6 +346,7 @@ public class SyncController implements OAuthProviderListener {
 			values.put("own", 1);
 			info.db.getDatabase().update("t_" + stream, values, "id=?", new String[] { obj.optString("id") });
 			info.db.getDatabase().setTransactionSuccessful();
+			scheduleAutoSync(app);
 			return obj;
 		} catch (Exception e) {
 			e.printStackTrace();
