@@ -161,7 +161,8 @@ public class SyncController implements OAuthProviderListener {
 				if (index > 0) { // Add union
 					sqls.append(" union ");
 				}
-				sqls.append("select id, stream, data, updated, status from t_" + stream + " where own=? and updated>?");
+				sqls.append("select id, '" + stream + "' stream, data, updated, status from t_" + stream
+						+ " where own=? and updated>?");
 				sqlArgs.add("1");
 				sqlArgs.add(Long.toString(inFrom));
 				index++;
