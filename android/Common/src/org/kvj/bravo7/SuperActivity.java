@@ -4,11 +4,13 @@ import java.io.File;
 
 import org.kvj.bravo7.ControllerConnector.ControllerReceiver;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.widget.Toast;
@@ -50,6 +52,7 @@ public class SuperActivity<A extends ApplicationContext, T, S extends SuperServi
 		Toast.makeText(this, message, Toast.LENGTH_SHORT).show();
 	}
 
+	@TargetApi(Build.VERSION_CODES.FROYO)
 	public static File getExternalCacheFolder(Context context) {
 		File dir = null;
 		if (android.os.Build.VERSION.SDK_INT >= 8) {
@@ -63,7 +66,7 @@ public class SuperActivity<A extends ApplicationContext, T, S extends SuperServi
 		if (null != dir) {
 			if (!dir.exists()) {
 				if (!dir.mkdirs()) {
-					dir = null;
+					dir = context.getCacheDir();
 				}
 			}
 		}

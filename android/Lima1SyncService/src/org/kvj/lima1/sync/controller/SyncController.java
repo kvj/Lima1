@@ -1,5 +1,13 @@
 package org.kvj.lima1.sync.controller;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -70,12 +78,16 @@ public class SyncController implements OAuthProviderListener {
 	private Map<String, AutoSyncTask> autoSyncTasks = new HashMap<String, AutoSyncTask>();
 	private Map<String, Boolean> autoSyncLocks = new HashMap<String, Boolean>();
 	private Timer autoSyncTimer = new Timer("AutoSync");
+	private int imageWidth = 0;
 
 	public SyncController(Lima1SyncApp context) {
 		this.transport = new HttpClientTransport();
 		transport.setURL(context, "https://lima1-kvj.rhcloud.com");
 		this.net = new OAuthProvider(transport, "lima1android", context.getStringPreference(R.string.token,
 				R.string.tokenDefault), this);
+
+		imageWidth = Math.max(context.getResources().getDisplayMetrics().widthPixels, context.getResources()
+				.getDisplayMetrics().heightPixels);
 	}
 
 	@Override
@@ -149,6 +161,37 @@ public class SyncController implements OAuthProviderListener {
 			if (null != upgradeResult) { // Upgrade failed
 				throw new Exception(upgradeResult);
 			}
+			// Upload files
+			c = info.db.getDatabase().query("uploads", new String[] { "id", "name", "path", "status" }, null, null,
+					null, null, "id");
+			if (c.moveToFirst()) { // Have data
+				File folder = info.getFilesFolder();
+				if (null == folder) { // No cache
+					Log.e(TAG, "No cache folder: " + app);
+					throw new Exception("Cache folder is not accessible");
+				}
+				do {
+					String id = c.getString(0);
+					String name = c.getString(1);
+					int status = c.getInt(3);
+					if (3 == status) { // Remove
+						String uri = String.format("/rest/file/remove?name=%s&", name);
+						net.rest(app, uri, null);
+						removeCacheFile(info, name);
+					} else {
+						File file = new File(folder, name);
+						if (file.exists()) { // Still here - upload
+							String uri = String.format("/rest/file/upload?name=%s&", name);
+							Map<String, Object> params = new HashMap<String, Object>();
+							params.put("file", new FileInputStream(file));
+							net.rest(app, uri, params);
+							removeCacheFile(info, name);
+						}
+					}
+					info.db.getDatabase().delete("uploads", "id=?", new String[] { id });
+				} while (c.moveToNext());
+			}
+			c.close();
 			// Send changes
 			int slots = 10;
 			JSONArray result = new JSONArray();
@@ -465,6 +508,145 @@ public class SyncController implements OAuthProviderListener {
 
 	public void setListener(SyncControllerListener listener) {
 		this.listener = listener;
+	}
+
+	public String getFile(String app, String name) {
+		AppInfo info = getInfo(app);
+		if (null == info.db) {
+			Log.e(TAG, "No DB: " + app);
+			return null;
+		}
+		File folder = info.getFilesFolder();
+		if (null == folder) { // No cache
+			Log.e(TAG, "No cache folder: " + app);
+			return null;
+		}
+		try {
+			File file = new File(folder, name);
+			if (file.exists()) { // Already downloaded
+				return file.getAbsolutePath();
+			}
+			String url = String.format("/rest/file/download?name=%s&", name);
+			if (name.endsWith(".jpg")) { // Add with
+				url += String.format("width=%d&", imageWidth);
+			}
+			// Download
+			Log.i(TAG, "Downloading file: " + name + ", imageWidth: " + imageWidth);
+			InputStream stream = net.raw(app, url, null);
+			copyStreams(stream, new FileOutputStream(file));
+			return file.getAbsolutePath();
+		} catch (Exception e) {
+			Log.e(TAG, "Error getting file:", e);
+		}
+		return null;
+	}
+
+	private void copyStreams(InputStream in, OutputStream out) throws IOException {
+		BufferedInputStream bis = new BufferedInputStream(in);
+		BufferedOutputStream bos = new BufferedOutputStream(out);
+		byte[] buffer = new byte[4096];
+		int bytes = 0;
+		while ((bytes = bis.read(buffer)) > 0) {
+			bos.write(buffer, 0, bytes);
+		}
+		bis.close();
+		bos.close();
+	}
+
+	public boolean removeFile(String app, String name) {
+		AppInfo info = getInfo(app);
+		if (null == info.db) {
+			Log.e(TAG, "No DB: " + app);
+			return false;
+		}
+		removeCacheFile(info, name);
+		try {
+			info.db.getDatabase().beginTransaction();
+			Cursor c = info.db.getDatabase().query("uploads", new String[] { "id" }, "name=? and status=?",
+					new String[] { name, "1" }, null, null, null);
+			if (c.moveToFirst()) { // Have data - delete
+				info.db.getDatabase().delete("uploads", "id=?", new String[] { c.getString(0) });
+			} else {
+				ContentValues values = new ContentValues();
+				values.put("id", info.id());
+				values.put("name", name);
+				values.put("status", 3);
+				info.db.getDatabase().insert("uploads", null, values);
+			}
+			info.db.getDatabase().setTransactionSuccessful();
+			scheduleAutoSync(app);
+			return true;
+		} catch (Exception e) {
+			Log.e(TAG, "Error removing file:", e);
+		} finally {
+			info.db.getDatabase().endTransaction();
+		}
+		return false;
+	}
+
+	private boolean removeCacheFile(AppInfo info, String name) {
+		File folder = info.getFilesFolder();
+		if (null == folder) { // No cache
+			Log.e(TAG, "No cache folder: " + info.name);
+			return false;
+		}
+		try {
+			File file = new File(folder, name);
+			if (!file.exists()) { // Already downloaded
+				return true;
+			}
+			return file.delete();
+		} catch (Exception e) {
+			Log.e(TAG, "Error getting file:", e);
+		}
+		return false;
+	}
+
+	public String uploadFile(String app, String path) {
+		AppInfo info = getInfo(app);
+		if (null == info.db) {
+			Log.e(TAG, "No DB: " + app);
+			return null;
+		}
+		File folder = info.getFilesFolder();
+		if (null == folder) { // No cache
+			Log.e(TAG, "No cache folder: " + app);
+			return null;
+		}
+		File inFile = new File(path);
+		if (!inFile.exists() || !inFile.isFile()) { // Invalid input file
+			Log.e(TAG, "File not found: " + inFile);
+			return null;
+		}
+		String ext = ".bin";
+		if (-1 != path.lastIndexOf('.')) { // Have ext
+			ext = path.substring(path.lastIndexOf('.')).toLowerCase();
+		}
+		String name = "" + info.id() + ext;
+		File file = new File(folder, name);
+		try { //
+			copyStreams(new FileInputStream(inFile), new FileOutputStream(file)); // Copied
+		} catch (Exception e) {
+			Log.e(TAG, "Error copying files:", e);
+			return null;
+		}
+		try {
+			info.db.getDatabase().beginTransaction();
+			ContentValues values = new ContentValues();
+			values.put("id", info.id());
+			values.put("path", file.getAbsolutePath());
+			values.put("name", name);
+			values.put("status", 1);
+			info.db.getDatabase().insert("uploads", null, values);
+			info.db.getDatabase().setTransactionSuccessful();
+			scheduleAutoSync(app);
+			return name;
+		} catch (Exception e) {
+			Log.e(TAG, "Error getting file:", e);
+		} finally {
+			info.db.getDatabase().endTransaction();
+		}
+		return null;
 	}
 
 }

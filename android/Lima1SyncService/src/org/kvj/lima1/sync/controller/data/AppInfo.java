@@ -1,11 +1,13 @@
 package org.kvj.lima1.sync.controller.data;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.kvj.bravo7.ApplicationContext;
+import org.kvj.bravo7.SuperActivity;
 
 import android.text.TextUtils;
 import android.util.Log;
@@ -18,6 +20,7 @@ public class AppInfo {
 	private JSONObject schema = null;
 	public SchemaInfo schemaInfo = null;
 	private ApplicationContext context;
+	private File folderName = null;
 
 	public AppInfo(ApplicationContext context, String name) {
 		this.name = name;
@@ -146,5 +149,17 @@ public class AppInfo {
 			return null;
 		}
 		return schemaInfo.tables.get(stream);
+	}
+
+	public File getFilesFolder() {
+		if (null == folderName) { //
+			folderName = new File(SuperActivity.getExternalCacheFolder(context), "files" + File.separatorChar + name);
+			if (!folderName.exists()) { // Not created yet
+				if (!folderName.mkdirs()) { // Failed
+					Log.w(TAG, "Error creating cache files folder");
+				}
+			}
+		}
+		return folderName;
 	}
 }

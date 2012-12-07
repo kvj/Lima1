@@ -1,5 +1,7 @@
 package org.kvj.lima1.sync.controller.net;
 
+import java.io.InputStream;
+
 import org.json.JSONObject;
 
 import android.content.Context;
@@ -11,8 +13,7 @@ public interface NetTransport {
 		private int code = 500;
 		private Exception exception = null;
 
-		public NetTransportException(int code, String message,
-				Exception exception) {
+		public NetTransportException(int code, String message, Exception exception) {
 			super(message);
 			this.code = code;
 			this.exception = exception;
@@ -33,6 +34,9 @@ public interface NetTransport {
 
 	public void setURL(Context context, String url);
 
-	public JSONObject request(String uri, RequestType type, Object data,
-			String contentType) throws NetTransportException;
+	public JSONObject request(String uri, RequestType type, Object data, String contentType)
+			throws NetTransportException;
+
+	public InputStream rawRequest(String uri, RequestType type, Object data, String contentType)
+			throws NetTransportException;
 }

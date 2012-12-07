@@ -1,6 +1,8 @@
 package org.kvj.lima1.sync.controller.net;
 
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.Socket;
@@ -34,6 +36,10 @@ import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicNameValuePair;
@@ -124,11 +130,31 @@ public class HttpClientTransport implements NetTransport {
 				HttpPost post = new HttpPost(url + uri);
 				if (data instanceof Map) {
 					Map<String, Object> map = (Map<String, Object>) data;
-					List<NameValuePair> pairs = new ArrayList<NameValuePair>();
-					for (String key : map.keySet()) {
-						pairs.add(new BasicNameValuePair(key, map.get(key).toString()));
+					boolean multipart = false;
+					for (Object value : ((Map) data).values()) { // Check
+						if (value instanceof File) { // At least one is file
+							multipart = true;
+							break;
+						}
 					}
-					post.setEntity(new UrlEncodedFormEntity(pairs));
+					if (multipart) { //
+						MultipartEntity entity = new MultipartEntity(HttpMultipartMode.BROWSER_COMPATIBLE);
+						for (String key : map.keySet()) {
+							Object value = map.get(key);
+							if (value instanceof File) { // File entity
+								entity.addPart(key, new FileBody((File) value, "application/octet-stream"));
+							} else {
+								entity.addPart(key, new StringBody(value.toString()));
+							}
+						}
+						post.setEntity(entity);
+					} else { //
+						List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+						for (String key : map.keySet()) {
+							pairs.add(new BasicNameValuePair(key, map.get(key).toString()));
+						}
+						post.setEntity(new UrlEncodedFormEntity(pairs));
+					}
 				}
 				if (data instanceof JSONObject) {
 					JSONObject json = (JSONObject) data;
@@ -171,5 +197,67 @@ public class HttpClientTransport implements NetTransport {
 		}
 		reader.close();
 		return sb.toString();
+	}
+
+	@Override
+	public InputStream rawRequest(String uri, RequestType type, Object data, String contentType)
+			throws NetTransportException {
+		int code = 500;
+		try {
+			Log.i(TAG, "Request: " + uri + ", " + type);
+			DefaultHttpClient httpClient = new DefaultHttpClient();
+			HttpParams params = httpClient.getParams();
+			SchemeRegistry schemeRegistry = new SchemeRegistry();
+			schemeRegistry.register(new Scheme("http", PlainSocketFactory.getSocketFactory(), 80));
+			KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+			trustStore.load(null, null);
+
+			SSLSocketFactory sf = new MySSLSocketFactory(trustStore);
+			sf.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
+			schemeRegistry.register(new Scheme("https", sf, 443));
+			ThreadSafeClientConnManager cm = new ThreadSafeClientConnManager(params, schemeRegistry);
+			httpClient.setParams(params);
+
+			if (proxyHost != null && proxyPort > 0) {
+				params.setParameter(ConnRouteParams.DEFAULT_PROXY, new HttpHost(proxyHost, proxyPort));
+			}
+			DefaultHttpClient nHttpClient = new DefaultHttpClient(cm, params);
+			HttpUriRequest request = new HttpGet(url + uri);
+			if (null != data && type != RequestType.Get) {
+				HttpPost post = new HttpPost(url + uri);
+				if (data instanceof Map) {
+					Map<String, Object> map = (Map<String, Object>) data;
+					List<NameValuePair> pairs = new ArrayList<NameValuePair>();
+					for (String key : map.keySet()) {
+						pairs.add(new BasicNameValuePair(key, map.get(key).toString()));
+					}
+					post.setEntity(new UrlEncodedFormEntity(pairs));
+				}
+				if (data instanceof JSONObject) {
+					JSONObject json = (JSONObject) data;
+					StringEntity entity = new StringEntity(json.toString(), "utf-8");
+					if (null != contentType) {
+						entity.setContentType(contentType);
+					}
+					post.setEntity(entity);
+				}
+				request = post;
+			}
+			HttpResponse response = nHttpClient.execute(request);
+			code = response.getStatusLine().getStatusCode();
+			HttpEntity entity = response.getEntity();
+			if (null != entity) {
+				if (200 == code) {
+					return entity.getContent();
+				}
+				throw new NetTransportException(code, "HTTP error", null);
+			}
+			throw new NetTransportException(code, "No response", null);
+		} catch (NetTransportException e) {
+			throw e;
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw new NetTransportException(code, e.getMessage(), e);
+		}
 	}
 }
