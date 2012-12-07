@@ -14,4 +14,7 @@ interface SyncService {
 	String sync();
 	String get(String name, String def);
 	void set(String name, String value);
+	String getFile(String name);
+	boolean removeFile(String name);
+	String uploadFile(String path);
 }

@@ -69,6 +69,24 @@ public class SyncServiceProvider extends Service {
 				public String sync() throws RemoteException {
 					return controller.sync(application);
 				}
+
+				@Override
+				public String getFile(String name) throws RemoteException {
+					// TODO Auto-generated method stub
+					return null;
+				}
+
+				@Override
+				public boolean removeFile(String name) throws RemoteException {
+					// TODO Auto-generated method stub
+					return false;
+				}
+
+				@Override
+				public String uploadFile(String path) throws RemoteException {
+					// TODO Auto-generated method stub
+					return null;
+				}
 			};
 		}
 		return null;
