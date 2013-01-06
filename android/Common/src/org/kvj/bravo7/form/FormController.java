@@ -29,6 +29,7 @@ public class FormController {
 		Pair pair = new Pair();
 		pair.viewAdapter = viewAdapter;
 		pairs.put(name, pair);
+		viewAdapter.key = name;
 		viewAdapter.setController(this);
 	}
 
@@ -94,7 +95,7 @@ public class FormController {
 		return (T) p.viewAdapter.getWidgetValue();
 	}
 
-	public <T extends ViewBundleAdapter<?, ?>> T getAdapter(String name, Class<T> cl) {
+	public <T extends WidgetBundleAdapter<?, ?>> T getAdapter(String name, Class<T> cl) {
 		Pair p = pairs.get(name);
 		if (null == p) {
 			return null;

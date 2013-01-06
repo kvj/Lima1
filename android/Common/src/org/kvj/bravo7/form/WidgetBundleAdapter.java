@@ -7,6 +7,7 @@ abstract public class WidgetBundleAdapter<V, T> {
 	protected T defaultValue;
 	private BundleAdapter<T> adapter;
 	protected FormController controller = null;
+	protected String key = null;
 
 	public WidgetBundleAdapter(BundleAdapter<T> adapter, T def) {
 		this.defaultValue = def;

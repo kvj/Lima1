@@ -61,8 +61,7 @@ public class SyncServiceProvider extends Service {
 
 				@Override
 				public PJSONObject removeCascade(String stream, PJSONObject obj) throws RemoteException {
-					// TODO: Implement removeCascade
-					return controller.remove(application, stream, obj);
+					return controller.removeCascade(application, stream, obj);
 				}
 
 				@Override

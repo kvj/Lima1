@@ -18,13 +18,14 @@ import java.util.TimerTask;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.kvj.bravo7.SuperActivity;
 import org.kvj.lima1.sync.Lima1SyncApp;
 import org.kvj.lima1.sync.LoginForm;
 import org.kvj.lima1.sync.PJSONObject;
 import org.kvj.lima1.sync.QueryOperator;
 import org.kvj.lima1.sync.R;
+import org.kvj.lima1.sync.SyncServiceInfo;
 import org.kvj.lima1.sync.controller.data.AppInfo;
+import org.kvj.lima1.sync.controller.data.FKey;
 import org.kvj.lima1.sync.controller.data.TableInfo;
 import org.kvj.lima1.sync.controller.net.HttpClientTransport;
 import org.kvj.lima1.sync.controller.net.NetTransport.NetTransportException;
@@ -38,6 +39,8 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.text.TextUtils;
 import android.util.Log;
 
@@ -60,10 +63,7 @@ public class SyncController implements OAuthProviderListener {
 
 		@Override
 		public void run() {
-			String result = sync(app);
-			if (null != result) { // Error
-				SuperActivity.notifyUser(Lima1SyncApp.getInstance(), result);
-			}
+			sync(app);
 		}
 
 	}
@@ -71,6 +71,7 @@ public class SyncController implements OAuthProviderListener {
 	private static final int LOGIN_ID = 1;
 	private static int AUTO_SYNC_SEC_DEFAULT = 30;
 	private static final String TAG = "Sync";
+	private static final int TYPE_NO_NETWORK = -1;
 	private HttpClientTransport transport;
 	private OAuthProvider net;
 	private Map<String, AppInfo> infos = new HashMap<String, AppInfo>();
@@ -79,8 +80,10 @@ public class SyncController implements OAuthProviderListener {
 	private Map<String, Boolean> autoSyncLocks = new HashMap<String, Boolean>();
 	private Timer autoSyncTimer = new Timer("AutoSync");
 	private int imageWidth = 0;
+	private Lima1SyncApp context = null;
 
 	public SyncController(Lima1SyncApp context) {
+		this.context = context;
 		this.transport = new HttpClientTransport();
 		transport.setURL(context, "https://lima1-kvj.rhcloud.com");
 		this.net = new OAuthProvider(transport, "lima1android", context.getStringPreference(R.string.token,
@@ -115,31 +118,84 @@ public class SyncController implements OAuthProviderListener {
 		}
 	}
 
-	public String sync(String app) {
-		AppInfo info = getInfo(app);
+	private int hasConnection() {
+		ConnectivityManager cm = (ConnectivityManager) context.getSystemService(
+				Context.CONNECTIVITY_SERVICE);
+
+		NetworkInfo wifiNetwork = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+		if (wifiNetwork != null && wifiNetwork.isConnected()) {
+			return ConnectivityManager.TYPE_WIFI;
+		}
+
+		NetworkInfo mobileNetwork = cm.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+		if (mobileNetwork != null && mobileNetwork.isConnected()) {
+			return ConnectivityManager.TYPE_WIFI;
+		}
+
+		NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+		if (activeNetwork != null && activeNetwork.isConnected()) {
+			return activeNetwork.getType();
+		}
+
+		return TYPE_NO_NETWORK;
+	}
+
+	public String sync(final String app) {
+		int networkType = hasConnection();
+		if (TYPE_NO_NETWORK == networkType) { // No connection
+			Log.w(TAG, "Skipping sync because of no network");
+			return null;
+		}
+		Log.i(TAG, "Network: " + networkType);
+		final AppInfo info = getInfo(app);
 		if (null == info.db) {
-			return "DB error";
+			Log.e(TAG, "DB error");
+			return null;
 		}
 		synchronized (autoSyncLocks) { // Lock
 			Boolean syncNow = autoSyncLocks.get(app);
 			Log.i(TAG, "Sync lock: " + syncNow + ", " + app);
 			if (null != syncNow && syncNow) { // Already started
-				return "Sync is in progress";
+				return null;
 			}
 			autoSyncLocks.put(app, true);
 		}
-		AutoSyncTask task = null;
+		final AutoSyncTask task;
 		synchronized (autoSyncTasks) { // Remove itself
 			task = autoSyncTasks.get(app);
 			autoSyncTasks.put(app, null); // Removed
 		}
+		final String id = "sync" + info.id();
+		Thread syncThread = new Thread() {
+
+			@Override
+			public void run() {
+				String syncResult = _sync(info, app);
+				if (null != task) { // Not empty
+					task.cancel();
+				}
+				synchronized (autoSyncLocks) { // Unlock
+					autoSyncLocks.put(app, false);
+				}
+				Intent syncFinish = new Intent(SyncServiceInfo.SYNC_FINISH_INTENT);
+				syncFinish.putExtra(SyncServiceInfo.KEY_APP, app);
+				syncFinish.putExtra(SyncServiceInfo.KEY_TOKEN, id);
+				syncFinish.putExtra(SyncServiceInfo.KEY_RESULT, syncResult);
+				context.sendBroadcast(syncFinish);
+			}
+		};
+		syncThread.start();
+		return id;
+	}
+
+	private String _sync(AppInfo info, String app) {
 		if (null != listener) {
 			listener.syncStarted();
 		}
 		try {
 			info.db.getDatabase().beginTransaction();
 			JSONObject newSchema = net.rest(app, "/rest/schema?", null);
-			Log.i(TAG, "Schema: " + newSchema);
+			// Log.i(TAG, "Schema: " + newSchema);
 			boolean fullSync = false;
 			long inFrom = 0;
 			long outFrom = 0;
@@ -214,7 +270,6 @@ public class SyncController implements OAuthProviderListener {
 			c = info.db.getDatabase().rawQuery(sqls.toString(), sqlArgs.toArray(new String[0]));
 			int slotsNeeded = 1;
 			if (c.moveToFirst()) {
-				Log.i(TAG, "There is smth. to send");
 				do {
 					slotsUsed += slotsNeeded;
 					JSONObject json = new JSONObject();
@@ -285,12 +340,6 @@ public class SyncController implements OAuthProviderListener {
 			return e.getMessage();
 		} finally {
 			info.db.getDatabase().endTransaction();
-			if (null != task) { // Not empty
-				task.cancel();
-			}
-			synchronized (autoSyncLocks) { // Unlock
-				autoSyncLocks.put(app, false);
-			}
 		}
 	}
 
@@ -325,7 +374,8 @@ public class SyncController implements OAuthProviderListener {
 		} else {
 			values.put("updated", info.id());
 			values.put("own", 1);
-			Log.i(TAG, "Create/update: " + obj.getLong("id") + ", " + values.getAsLong("updated"));
+			// Log.i(TAG, "Create/update: " + obj.getLong("id") + ", " +
+			// values.getAsLong("updated"));
 		}
 		for (String field : tinfo.numbers) { // Add numbers
 			values.put("f_" + field, obj.optLong(field));
@@ -398,6 +448,33 @@ public class SyncController implements OAuthProviderListener {
 		} finally {
 			info.db.getDatabase().endTransaction();
 		}
+	}
+
+	public PJSONObject removeCascade(String app, String stream, PJSONObject obj) {
+		AppInfo info = getInfo(app);
+		TableInfo tinfo = info.getTableInfo(stream);
+		if (null == tinfo) {
+			Log.e(TAG, "No DB");
+			return null;
+		}
+		long id = obj.optLong("id");
+		for (FKey fkey : tinfo.fkeys) { // Remove cascade for every fkey
+			PJSONObject[] items = query(app, fkey.table, new QueryOperator[] { new QueryOperator(fkey.field, id) },
+					null, null);
+			if (null == items) { // Error selecting
+				Log.w(TAG, "Error selecting from: " + fkey.table + "::" + fkey.field);
+				return null;
+			}
+			Log.i(TAG, "Remove cascade: " + fkey.table + "::" + fkey.field + ": " + items.length);
+			for (PJSONObject object : items) { // Remove
+				PJSONObject result = removeCascade(app, fkey.table, object);
+				if (null == result) {
+					Log.e(TAG, "Error removing item: " + object);
+					return null;
+				}
+			}
+		}
+		return remove(app, stream, obj);
 	}
 
 	private int jsonIndexOf(JSONArray arr, String value) throws JSONException {
@@ -490,7 +567,7 @@ public class SyncController implements OAuthProviderListener {
 					where += " and (" + cond + ")";
 				}
 			}
-			Log.i(TAG, "Query: " + stream + ", " + where + ", " + values);
+			// Log.i(TAG, "Query: " + stream + ", " + where + ", " + values);
 			Cursor c = info.db.getDatabase().query("t_" + stream, new String[] { "data" }, where,
 					values.toArray(new String[0]), null, null, parseOrder(order, "id", tinfo), limit);
 			List<PJSONObject> result = new ArrayList<PJSONObject>();
