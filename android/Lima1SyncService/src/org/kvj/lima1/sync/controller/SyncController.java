@@ -119,8 +119,7 @@ public class SyncController implements OAuthProviderListener {
 	}
 
 	private int hasConnection() {
-		ConnectivityManager cm = (ConnectivityManager) context.getSystemService(
-				Context.CONNECTIVITY_SERVICE);
+		ConnectivityManager cm = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
 
 		NetworkInfo wifiNetwork = cm.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
 		if (wifiNetwork != null && wifiNetwork.isConnected()) {
@@ -141,12 +140,12 @@ public class SyncController implements OAuthProviderListener {
 	}
 
 	public String sync(final String app) {
-		int networkType = hasConnection();
-		if (TYPE_NO_NETWORK == networkType) { // No connection
-			Log.w(TAG, "Skipping sync because of no network");
-			return null;
-		}
-		Log.i(TAG, "Network: " + networkType);
+		// int networkType = hasConnection();
+		// if (TYPE_NO_NETWORK == networkType) { // No connection
+		// Log.w(TAG, "Skipping sync because of no network");
+		// return null;
+		// }
+		// Log.i(TAG, "Network: " + networkType);
 		final AppInfo info = getInfo(app);
 		if (null == info.db) {
 			Log.e(TAG, "DB error");
