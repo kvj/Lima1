@@ -725,4 +725,21 @@ public class SyncController implements OAuthProviderListener {
 		return null;
 	}
 
+	public PJSONObject getData(String application) {
+		AppInfo info = getInfo(application);
+		if (null == info.db) {
+			Log.e(TAG, "No DB: " + application);
+			return null;
+		}
+		try { // JSON Errors
+			JSONObject object = info.schema.optJSONObject("_data");
+			if (null != object) { // Have data
+				return new PJSONObject(object.toString());
+			}
+			return null; // No data
+		} catch (Exception e) {
+			Log.e(TAG, "Error getting data", e);
+		}
+		return null;
+	}
 }

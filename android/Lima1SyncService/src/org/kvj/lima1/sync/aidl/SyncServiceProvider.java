@@ -83,6 +83,11 @@ public class SyncServiceProvider extends Service {
 				public String uploadFile(String path) throws RemoteException {
 					return controller.uploadFile(application, path);
 				}
+
+				@Override
+				public PJSONObject getData() throws RemoteException {
+					return controller.getData(application);
+				}
 			};
 		}
 		return null;

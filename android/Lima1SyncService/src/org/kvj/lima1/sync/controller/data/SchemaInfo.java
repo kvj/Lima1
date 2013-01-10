@@ -13,7 +13,7 @@ import org.json.JSONObject;
 public class SchemaInfo {
 	private static final String TAG = "SchemaInfo";
 	public Map<String, TableInfo> tables = new HashMap<String, TableInfo>();
-	int upgrades = 0;
+	int revision = 0;
 
 	private void parseTableData(JSONObject data, TableInfo info) throws JSONException {
 		JSONArray texts = data.optJSONArray("texts");
@@ -52,9 +52,12 @@ public class SchemaInfo {
 			String key = keys.next();
 			if (!key.startsWith("_")) { // Not a reserved word
 				JSONObject table = schema.getJSONObject(key);
-				TableInfo tinfo = new TableInfo();
+				TableInfo tinfo = infos.get(key);
+				if (null == tinfo) { //
+					tinfo = new TableInfo();
+					infos.put(key, tinfo);
+				}
 				parseTableData(table, tinfo);
-				infos.put(key, tinfo);
 			}
 		}
 		if (schema.has("_fkeys")) { // Have foreign keys
@@ -86,8 +89,14 @@ public class SchemaInfo {
 	void parseSchema(JSONObject schema) throws JSONException {
 		tables.clear();
 		Map<String, TableInfo> infos = new HashMap<String, TableInfo>();
-		upgrades = parseSchema(schema, infos);
+		parseSchema(schema, infos);
 		tables.putAll(infos);
+		revision = schema.optInt("_rev");
 		// Log.i(TAG, "parseSchema: " + tables);
+	}
+
+	@Override
+	public String toString() {
+		return "SchemaInfo: " + revision + ": " + tables.keySet().size();
 	}
 }

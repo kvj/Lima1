@@ -17,7 +17,7 @@ public class AppInfo {
 	public AppDBHelper db = null;
 	public String name = null;
 	private long id = 0;
-	private JSONObject schema = null;
+	public JSONObject schema = null;
 	public SchemaInfo schemaInfo = null;
 	private ApplicationContext context;
 	private File folderName = null;
@@ -30,6 +30,8 @@ public class AppInfo {
 			db = null;
 		}
 		String json = context.getStringPreference(name + "-schema", "");
+		// json =
+		// "{\"_rev\":2,\"_fkeys\":[{\"pk\":\"notepads.id\",\"fk\":\"sheets.notepad_id\"},{\"pk\":\"templates.id\",\"fk\":\"sheets.template_id\"},{\"pk\":\"sheets.id\",\"fk\":\"notes.sheet_id\"},{\"pk\":\"sheets.id\",\"fk\":\"bookmarks.sheet_id\"}],\"templates\":{\"index\":1,\"texts\":[\"name\",\"tag\"]},\"notepads\":{\"index\":0,\"numbers\":[\"archived\"],\"texts\":[\"name\",\"tag\"]},\"sheets\":{\"index\":2,\"numbers\":[\"template_id\",\"notepad_id\"],\"texts\":[\"title\"],\"indexes\":[[\"notepad_id\"]]},\"notes\":{\"index\":3,\"numbers\":[\"sheet_id\",\"archived\"],\"texts\":[\"text\"],\"indexes\":[[\"sheet_id\",\"archived\"]]},\"bookmarks\":{\"index\":4,\"numbers\":[\"sheet_id\"],\"texts\":[\"name\"],\"indexes\":[[\"sheet_id\"]]}}";
 		if (!TextUtils.isEmpty(json)) {
 			try {
 				schema = new JSONObject(json);
@@ -108,9 +110,8 @@ public class AppInfo {
 		try { // DB and JSON errors
 			SchemaInfo newSchemaInfo = new SchemaInfo();
 			newSchemaInfo.parseSchema(newSchema);
-			// Log.i(TAG, "upgradeSchema: " + schemaInfo + ", " +
-			// newSchemaInfo);
-			if (null == schemaInfo || schemaInfo.upgrades < newSchemaInfo.upgrades) {
+			Log.i(TAG, "upgradeSchema: " + schemaInfo + ", " + newSchemaInfo);
+			if (null == schemaInfo || schemaInfo.revision < newSchemaInfo.revision) {
 				// New or upgrades are different
 				List<String> sqls = new ArrayList<String>();
 				for (String table : newSchemaInfo.tables.keySet()) {

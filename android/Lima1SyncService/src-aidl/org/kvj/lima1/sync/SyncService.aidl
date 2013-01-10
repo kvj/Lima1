@@ -17,4 +17,5 @@ interface SyncService {
 	String getFile(String name);
 	boolean removeFile(String name);
 	String uploadFile(String path);
+	PJSONObject getData();
 }
