@@ -31,4 +31,4 @@
 * Single Sign On (one login for all supported applications)
 * Uses SQLite internally
 * Android 2.1+
-* AIDL service provided: [SyncService.aidl](/kvj/Lima1/blob/master/android/Lima1SyncService/src-aidl/org/kvj/lima1/sync/SyncService.aidl)
+* AIDL service provided: [SyncService.aidl](android/Lima1SyncService/src-aidl/org/kvj/lima1/sync/SyncService.aidl)
