@@ -2,9 +2,9 @@
 
 ### Project consists of three parts:
 
-* Server side sync service here: kvj/Lima1OpenShift
-* Android data provider application here: kvj/Lima1/tree/master/android/Lima1SyncService
-* HTML5 library here: kvj/Whiskey2/tree/master/html/lib/lima1
+* Server side sync service [here](/kvj/Lima1OpenShift)
+* Android data provider application [here](/kvj/Lima1/tree/master/android/Lima1SyncService)
+* HTML5 library [here](/kvj/Whiskey2/tree/master/html/lib/lima1)
 
 ### Main features
 
@@ -31,4 +31,4 @@
 * Single Sign On (one login for all supported applications)
 * Uses SQLite internally
 * Android 2.1+
-* AIDL service provided: kvj/Lima1/blob/master/android/Lima1SyncService/src-aidl/org/kvj/lima1/sync/SyncService.aidl
+* AIDL service provided: [SyncService.aidl](/kvj/Lima1/blob/master/android/Lima1SyncService/src-aidl/org/kvj/lima1/sync/SyncService.aidl)
