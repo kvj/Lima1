@@ -2,8 +2,8 @@
 
 ### Project consists of three parts:
 
-* Server side sync service [here](Lima1OpenShift)
-* Android data provider application [here](Lima1/tree/master/android/Lima1SyncService)
+* Server side sync service [here](kvj/Lima1OpenShift)
+* Android data provider application [here](android/Lima1SyncService)
 * HTML5 library [here](Whiskey2/tree/master/html/lib/lima1)
 
 ### Main features
