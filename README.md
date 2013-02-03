@@ -2,14 +2,14 @@
 
 ### Project consists of three parts:
 
-* Server side sync service [here](/kvj/Lima1OpenShift)
-* Android data provider application [here](kvj/Lima1/tree/master/android/Lima1SyncService)
-* HTML5 library [here](/kvj/Whiskey2/tree/master/html/lib/lima1)
+* Server side sync service [here](Lima1OpenShift)
+* Android data provider application [here](Lima1/tree/master/android/Lima1SyncService)
+* HTML5 library [here](Whiskey2/tree/master/html/lib/lima1)
 
 ### Main features
 
 * Data model is described in JSON format on server side
-  * Streams (objects types) have indexes, foreign keys, indexable data types
+  * Streams (objects types) can have indexes, foreign keys, indexable data types
 * CRUD operations on streams, remove cascade, query builder for selects
 * Data model versioning, with automatic schema upgrade
 * Every local data storage synchronizes it's state and data with server on regular basis (on edit/by ping)
