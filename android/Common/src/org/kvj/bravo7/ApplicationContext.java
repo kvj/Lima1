@@ -82,8 +82,7 @@ abstract public class ApplicationContext extends Application {
 	}
 
 	public String getStringPreference(int name, int defaultValue) {
-		return getPreferences().getString(getString(name),
-				getString(defaultValue));
+		return getPreferences().getString(getString(name), getString(defaultValue));
 	}
 
 	public void setStringPreference(String name, String value) {
@@ -102,8 +101,7 @@ abstract public class ApplicationContext extends Application {
 		return result;
 	}
 
-	public List<String> setStringArrayPreference(String name, String id,
-			boolean add) {
+	public List<String> setStringArrayPreference(String name, String id, boolean add) {
 		List<String> result = getStringArrayPreference(name);
 		if (id == null || "".equals(id)) {
 			return result;
@@ -134,8 +132,7 @@ abstract public class ApplicationContext extends Application {
 
 	public int getIntPreference(String name, int defaultID) {
 		try {
-			return Integer.parseInt(getPreferences().getString(name,
-					getString(defaultID)));
+			return Integer.parseInt(getPreferences().getString(name, getString(defaultID)));
 		} catch (Exception e) {
 			try {
 				return Integer.parseInt(getString(defaultID));
@@ -150,8 +147,7 @@ abstract public class ApplicationContext extends Application {
 	}
 
 	public void setIntPreference(String name, int value) {
-		getPreferences().edit().putString(name, Integer.toString(value))
-				.commit();
+		getPreferences().edit().putString(name, Integer.toString(value)).commit();
 	}
 
 	public void setWidgetConfig(int id, String name) {
@@ -181,17 +177,13 @@ abstract public class ApplicationContext extends Application {
 			if (key.startsWith("widget_")) {
 				try {
 					String name = getStringPreference(key, "");
-					int widgetID = Integer.parseInt(key.substring("widget_"
-							.length()));
-					AppWidgetProviderInfo info = manager
-							.getAppWidgetInfo(widgetID);
+					int widgetID = Integer.parseInt(key.substring("widget_".length()));
+					AppWidgetProviderInfo info = manager.getAppWidgetInfo(widgetID);
 					if (info == null) {
-						Log.w(TAG, "updateWidgets no info or config for "
-								+ widgetID);
+						Log.w(TAG, "updateWidgets no info or config for " + widgetID);
 						continue;
 					}
-					if (provider != null
-							&& !info.provider.getClassName().equals(provider)) {
+					if (provider != null && !info.provider.getClassName().equals(provider)) {
 						continue;
 					}
 					result.put(widgetID, name);
@@ -212,10 +204,8 @@ abstract public class ApplicationContext extends Application {
 				try {
 					// Log.i(TAG, "updateWidgets: key: "+key);
 					// String type = getStringPreference(key, "");
-					int widgetID = Integer.parseInt(key.substring("widget_"
-							.length()));
-					AppWidgetProviderInfo info = manager
-							.getAppWidgetInfo(widgetID);
+					int widgetID = Integer.parseInt(key.substring("widget_".length()));
+					AppWidgetProviderInfo info = manager.getAppWidgetInfo(widgetID);
 					if (info == null) {
 						Log.w(TAG, "updateWidgets no info for " + widgetID);
 						toRemove.add(key);
@@ -225,10 +215,8 @@ abstract public class ApplicationContext extends Application {
 						// Log.w(TAG, "updateWidgets not a requested ID");
 						continue;
 					}
-					AppWidgetProvider provider = (AppWidgetProvider) getClass()
-							.getClassLoader()
-							.loadClass(info.provider.getClassName())
-							.newInstance();
+					AppWidgetProvider provider = (AppWidgetProvider) getClass().getClassLoader()
+							.loadClass(info.provider.getClassName()).newInstance();
 					// Log.i(TAG, "updateWidgets calling update...");
 					provider.onUpdate(this, manager, new int[] { widgetID });
 				} catch (Exception e) {
@@ -278,9 +266,8 @@ abstract public class ApplicationContext extends Application {
 	public Integer getWidgetConfigID(Intent intent) {
 		Bundle extras = intent.getExtras();
 		if (extras != null) {
-			int mAppWidgetId = extras.getInt(
-					AppWidgetManager.EXTRA_APPWIDGET_ID,
-					AppWidgetManager.INVALID_APPWIDGET_ID);
+			int mAppWidgetId = extras
+					.getInt(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID);
 			if (AppWidgetManager.INVALID_APPWIDGET_ID != mAppWidgetId) {
 				return mAppWidgetId;
 			}
@@ -299,6 +286,15 @@ abstract public class ApplicationContext extends Application {
 
 	public boolean getBooleanPreference(int name, boolean def) {
 		return getPreferences().getBoolean(getString(name), def);
+	}
+
+	public boolean getBooleanPreference(int name, int def) {
+		boolean defBool = false;
+		try { //
+			defBool = Boolean.parseBoolean(getString(def));
+		} catch (Exception e) {
+		}
+		return getBooleanPreference(name, defBool);
 	}
 
 	public void setIntPreference(int id, int value) {
