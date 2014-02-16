@@ -153,4 +153,8 @@ public abstract class SuperService<T, A extends ApplicationContext> extends
 			Class<? extends AlarmReceiver> alarmBroadcastReceiverClass) {
 		this.alarmBroadcastReceiverClass = alarmBroadcastReceiverClass;
 	}
+
+	public Notification getNotification() {
+		return notification;
+	}
 }
