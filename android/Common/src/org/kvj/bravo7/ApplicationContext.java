@@ -102,6 +102,22 @@ abstract public class ApplicationContext extends Application {
 	}
 
 	public List<String> setStringArrayPreference(String name, String id, boolean add) {
+		return setStringArrayPreference(name, id, add, -1);
+	}
+
+	public List<String> setStringArrayPreference(String name, List<String> ids) {
+		StringBuilder builder = new StringBuilder();
+		for (int i = 0; i < ids.size(); i++) {
+			if (i > 0) {
+				builder.append(" ");
+			}
+			builder.append(ids.get(i));
+		}
+		setStringPreference(name, builder.toString());
+		return ids;
+	}
+
+	public List<String> setStringArrayPreference(String name, String id, boolean add, int index) {
 		List<String> result = getStringArrayPreference(name);
 		if (id == null || "".equals(id)) {
 			return result;
@@ -117,17 +133,13 @@ abstract public class ApplicationContext extends Application {
 			}
 		}
 		if (add) {
-			result.add(id);
-		}
-		StringBuilder builder = new StringBuilder();
-		for (int i = 0; i < result.size(); i++) {
-			if (i > 0) {
-				builder.append(" ");
+			if (-1 == index) {
+				result.add(id);
+			} else {
+				result.add(index, id);
 			}
-			builder.append(result.get(i));
 		}
-		setStringPreference(name, builder.toString());
-		return result;
+		return setStringArrayPreference(name, result);
 	}
 
 	public int getIntPreference(String name, int defaultID) {
