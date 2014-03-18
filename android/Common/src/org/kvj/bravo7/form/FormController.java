@@ -5,7 +5,6 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 import android.os.Bundle;
-import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.view.View;
 
@@ -54,10 +53,10 @@ public class FormController {
 		}
 	}
 
-	public void load(DialogFragment dialog, Bundle data) {
+	public void load(Bundle dialogArguments, Bundle data) {
 		Bundle values = new Bundle();
-		if (null != dialog.getArguments()) {
-			values = dialog.getArguments();
+		if (null != dialogArguments) {
+			values = dialogArguments;
 		}
 		loadDefaultValues(values);
 		if (null == data) {

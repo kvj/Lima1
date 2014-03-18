@@ -87,6 +87,7 @@ public abstract class SuperService<T, A extends ApplicationContext> extends
 			Class<? extends Activity> received) {
 		notification.icon = icon;
 		notification.when = new Date().getTime();
+		notification.tickerText = text;
 		notification.setLatestEventInfo(getApplicationContext(), title, text,
 				PendingIntent.getActivity(getApplicationContext(), 0,
 						new Intent(getApplicationContext(), received),
